@@ -2,13 +2,13 @@
 ![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '984429e-dirty'
+__version__ = 'v0.0.1-0-gecfa54c-dirty'
 
 # Template Overview
 
 * A [source layout][src-layout] python project/distribution with 2 packages/modules
 * [pyproject.toml][pyproject_config] configuration file
-* Auto-documentation using pdoc3, publishing to github pages in `doc/my-project-name` & `https://my-project-name.github.io/doc`
+* Auto-documentation using pdoc3, publishing pages in `doc/my-repo-name` to [`https://user.github.io/my-repo-name`](https://fdobad.github.io/template-python-package)
 * A simple precommit hook to auto-update versions in python files
 
 # Goal
@@ -31,10 +31,9 @@ tag (not dirty):    @tag
 pkg: @[tag|branch]#egg=mypackage
 faster: pip install https://github.com/user/repository/archive/branch.[zip|wheel]
 ```
-Or from requirements.txt:
+Or as a line in requirements.txt:
 ```
-my-project-name @ git+https://github.com/user/repo.git@...
-pip install git+https://github.com/fdobad/template-python-package.git@984429ed6e17f598785cc9f01a921ea75ba4ca6d
+my-project-name @ git+https://github.com/user/repo.git@SUFFIX
 ```
 
 * To develop, install with editable flag:
@@ -99,10 +98,9 @@ pip install --editable .
 pdoc --http localhost:8080 --config latex_math=True mypkg
 pdoc --http localhost:8081 --config latex_math=True otherpkg
 ```
-## testing
+## [testing with pytest][pytest]
 ```
-pip uninstall project-name
-pdoc --http : --config latex_math=True .
+pip uninstall my-project-name
 pytest
 ```
 ## building
@@ -111,16 +109,8 @@ pytest
 python -m pip install --upgrade build
 # creates dist folder with .whl & tar.gz
 python -m build
-# 
+# recreates docs
 pdoc --html --force --output-dir doc .
-```
-## upload manual
-```bash
-git clean -dfX
-pip uninstall my-project-name
-pytest
-# if action: manual build docs 
-pdoc --html --force --output-dir doc --config latex_math=True .
 ```
 ## troubleshoot
 Build files are not automatically cleaned!
@@ -132,7 +122,7 @@ git clean -dfX
 ```
 
 # github actions
-There're two actions (in .github/workflow):
+There're two actions (in .github/workflow) to make the web page:
 
 * manual: needs updating the doc before pushing  
 * auto: builds the doc online, needs updated requirements.txt or pyproject.toml:dependencies  

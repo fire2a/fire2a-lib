@@ -3,7 +3,7 @@
 This is the mypkg my_module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '984429e-dirty'
+__version__ = 'v0.0.1-0-gecfa54c-dirty'
 
 import logging as _logging
 from sys import argv as _argv
