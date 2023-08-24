@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '8712009-dirty'
+__version__ = '40ee0ea-dirty'
 
 # Template Overview
 
@@ -44,6 +44,7 @@ cd repo
 # pip install -r requirements.dev.txt
 # git clean -dfX -n
 pip install -e .
+pdoc --http localhost:8080 --config latex_math=True mypkg
 ```
 
 # Daily usage 
@@ -91,7 +92,8 @@ chmod +x .git/hooks/pre-commit
 ## live
 ```bash
 pip install --editable .
-pdoc --http localhost:8080 --config latex_math=True my-project-name
+pdoc --http localhost:8080 --config latex_math=True mypkg
+pdoc --http localhost:8081 --config latex_math=True otherpkg
 ```
 ## testing
 ```
@@ -108,11 +110,13 @@ python -m build
 # 
 pdoc --html --force --output-dir doc .
 ```
-## pushing
+## upload manual
 ```bash
-# build docs 
+git clean -dfX
+pip uninstall my-project-name
+pytest
+# if action: manual build docs 
 pdoc --html --force --output-dir doc --config latex_math=True .
-# push
 ```
 # github actions
 There're two actions (in .github/workflow):
