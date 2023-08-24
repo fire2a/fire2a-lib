@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '9323d23-dirty'
+__version__ = '8712009-dirty'
 
 # Template Overview
 
@@ -42,6 +42,7 @@ git clone git@git...
 cd repo
 # git checkout -b my_new_feature
 # pip install -r requirements.dev.txt
+# git clean -dfX -n
 pip install -e .
 ```
 

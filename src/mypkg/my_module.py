@@ -1,6 +1,6 @@
 #!python3
 __author__ = 'Fernando Badilla'
-__version__ = '9323d23-dirty'
+__version__ = '8712009-dirty'
 
 from sys import argv as _argv
 import numpy as _np
