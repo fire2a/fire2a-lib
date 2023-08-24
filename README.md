@@ -1,6 +1,7 @@
 ![manual workflow](https://github.com/fdobad/template-python-package/actions/workflows/manual.yml/badge.svg)
 ![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
+
 __version__ = "v0.0.1"
 
 # Template Overview
