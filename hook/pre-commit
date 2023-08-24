@@ -15,5 +15,5 @@ done
 # Add the modified files to the commit
 git add $files
 
-sed -i "1,s/__version__ = .*/__version__ = '$version'/" README.md
+sed -i "5 s/__version__ = .*/__version__ = '$version'/" README.md
 git add README.md
