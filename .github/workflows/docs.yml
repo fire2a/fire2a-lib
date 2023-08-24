@@ -24,12 +24,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      # ADJUST THIS: install all dependencies (including pdoc)
-      - run: pip install pdoc3
-      # ADJUST THIS: build your documentation into docs/.
-      # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
-      # - run: python docs/make.py
-      - run: pdoc --html --force --output-dir doc --config latex_math=True .
+      - run: |
+          pip install pdoc3
+          pip install .
+          rm -r doc/template-python-package
+          pdoc --html --force --output-dir doc --config latex_math=True .
 
       - uses: actions/upload-pages-artifact@v2
         with:

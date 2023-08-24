@@ -66,12 +66,18 @@ pdoc --html --force --output-dir doc .
 pdoc --html --force --output-dir doc --config latex_math=True .
 # push
 ```
+# github actions
+There're two actions (in .github/workflow):
+- static: needs updating the doc before pushing
+- docs: builds the doc online, needs updated requirements?
+
 # pdoc
 ```bash
 pdoc --html --force --output-dir doc .
 pdoc --html --http : --force --output-dir doc --config latex_math=True .
 pdoc --html --http localhost:8080 --force --output-dir doc mypkg
 ```
+https://github.com/pdoc3/pdoc/blob/master/pdoc/templates/config.mako
 
 # References
 * [official userguide pyproject config at pypa][pyproject_config]  
