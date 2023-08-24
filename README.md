@@ -1,42 +1,90 @@
+__version__ = "v0.0.1"
+![manual workflow](https://github.com/github/docs/actions/workflows/manual.yml/badge.svg)
+![auto workflow](https://github.com/github/docs/actions/workflows/auto.yml/badge.svg)
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/psf/black
-   :alt: Code style: Black
-
-.. image:: https://github.com/pypa/setuptools/workflows/tests/badge.svg
-   :target: https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22
-   :alt: tests
-
-.. image:: https://img.shields.io/readthedocs/setuptools/latest.svg
-    :target: https://setuptools.pypa.io
+![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg?link=https://github.com/psf/black)
+![tests](https://github.com/pypa/setuptools/workflows/tests/badge.svg?link=https://github.com/pypa/setuptools/actions?query=workflow%3A%22tests%22)
 
 # Template Overview
 
 * A [source layout][src-layout] python project/distribution with 2 packages/modules
 * [pyproject.toml][pyproject_config] configuration file
-* Auto-documentation using pdoc3, publishing to github pages in `doc` & `https://repo.github.io/doc`
+* Auto-documentation using pdoc3, publishing to github pages in `doc/my-project-name` & `https://my-project-name.github.io/doc`
 * A simple precommit hook to auto-update versions in python files
 
-# Usage 
+# Goal
+
+An easy-to-document&version python distribution/project, by self publishing code docstrings and being pip installable.
+
+* Easy to install:
+```bash
+pip install git+https://github.com/user/repo.git
+```
+
+* To version:
+```bash
+pip install git+https://github.com/user/repo.git@SUFFIX
+# SUFFIX CAN BE:
+tip of branch:      @branch
+specific commit:    @commit_id  (40 digits long SHA-hash not 7)
+tag (not dirty):    @tag
+...
+pkg: @[tag|branch]#egg=mypackage
+faster: pip install https://github.com/user/repository/archive/branch.[zip|wheel]
+```
+Or from requirements.txt:
+```
+my-project-name @ git+https://github.com/user/repo.git@...
+```
+
+* To develop, install with editable flag:
+```bash
+git clone git@git...
+cd repo
+# git checkout -b my_new_feature
+# pip install -r requirements.dev.txt
+pip install -e .
+```
+
+# Daily usage 
 
 In the current python-venv, is the project/distribution currently installed pointing to github[commit|latest|branch] or local folder?
 ```bash
 pip list | grep my-project-name
 ```
 * If it is local, the module can be edited & the documentation served live
-* Else from a commit, make sure it is pointing to the correct one on requirements.txt
-* Or uninstall and focus on testing ?
+* Else from a commit, be sure it is pointing to the correct one on requirements.txt
+* Or uninstall and focus on testing
 
-Version control tracked files get installed on the build!
+Development tips:
+* Beware of python sessions not reloading the entire packages when `import mypkg`, these should be restarted, not reset.
+* Version control tracked files get automatically added to the release, so be tidy, aware of `.gitignore` & beware `git add .`
+* Do your feature branch to contribute! `git checkout -b my_new_feature`
+* Use docstrings and typed methods to build a great documentation! Even latex (to html or pdf) is available. [more info](https://pdoc3.github.io/pdoc/doc/pdoc/#what-objects-are-documented)
+* All new `.py` files should have at least `version` & `author` in the header, sample:
+```python
+#!python3
+""" this text is the header module docstring
+"""
+__author__ = "Software Authors Name"
+__copyright__ = "Copyright (C) 1 May 1886 Author Name"
+__license__ = "https://anticapitalist.software"
+__version__ = "v0.0.1"
+```
 
-# Setup
+# Setup pattern
 
 1. Fork, rename, clone
-2. Enable github pages for the repo
-3. Copy the hook `hook/pre-commit` to `.git/hook/.` (you can delete the hook directory now)
+2. Enable github pages for the repo ?
+3. Enable the version updating hook:
+```bash
+cp hook/pre-commit .git/hooks/.
+chmod +x .git/hooks/pre-commit
+# TODO test on windows
+```
 4. Install requirements.dev.txt
-5. Try rebuilding the docs and editing a file in `src`
-6. Push
+5. Change something, rebuilding the docs (`pdoc`) or run tests (`pytest`)
+6. Push (to feature branch)
 
 # Development
 
@@ -72,7 +120,7 @@ There're two actions (in .github/workflow):
 * manual: needs updating the doc before pushing  
 * auto: builds the doc online, needs updated requirements.txt or pyproject.toml:dependencies  
 
-The headers needs some configuration (uncommenting) to work, a good practice is to enable them on branch docs, to not update needlessly
+The headers needs some configuration (uncommenting) to work, a good practice is to enable them `on branch doc`, to not update needlessly (only 2000 free mins a month)
 
 # pdoc
 ```bash
@@ -82,7 +130,29 @@ pdoc --html --http localhost:8080 --force --output-dir doc mypkg
 ```
 https://github.com/pdoc3/pdoc/blob/master/pdoc/templates/config.mako
 
+# git tag
+```bash
+# list tags
+git tag
+
+# tag current branch-commit
+git tag -a v0.0.2 -m "message"
+
+# delete 
+## local
+git tag --delete v0.0.2
+## remote
+git push --delete origin v0.0.2
+
+# push 
+## a tag
+git push origin v0.0.2
+## all tags
+git push origin --tags
+```
+
 # References
+* [learn about pytest][pytest]
 * [official userguide pyproject config at pypa][pyproject_config]  
 * [src project layout][src-layout]  
 * [auto python documentation][auto-document]  
@@ -100,3 +170,4 @@ chat rooms, and fora is expected to follow the
 [cli-scripts]: https://setuptools.pypa.io/en/latest/userguide/entry_point.html
 [auto-document]: https://pdoc3.github.io/pdoc
 [auto-publish-docs]: https://github.com/mitmproxy/pdoc/blob/main/.github/workflows/docs.yml
+[pytest]: https://docs.pytest.org/en/latest/getting-started.html
