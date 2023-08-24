@@ -3,7 +3,7 @@
 This is the OTHER PKG package docstring
 """
 __author__ = 'Fernando Badilla'
-__version__ = '$Format:%H$'
+__version__ = '75d8e13-dirty'
 
 import logging as _logging
 _logger = _logging.getLogger(__name__)
