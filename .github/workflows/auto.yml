@@ -25,8 +25,7 @@ jobs:
           python-version: '3.11'
 
       - run: |
-          pip install pdoc3
-          pip install .
+          pip install -r requirements.doc.txt
           rm -r doc/template-python-package
           pdoc --html --force --output-dir doc --config latex_math=True .
 
