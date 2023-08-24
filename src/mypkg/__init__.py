@@ -1,14 +1,15 @@
 #!python3
-"""
+""" 👋🌎🔥
 This is the package docstring
 """
-__author__ = 'Fernando Badilla'
-__version__ = '40ee0ea-dirty'
+__author__ = "Fernando Badilla"
+__version__ = '984429e-dirty'
 
 import logging as _logging
+
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
-_logger.debug('Hello world!')
+_logger.info("Hello world! version %s", __version__)
 
 PACKAGE_WIDE_CONSTANT = 42
-""" this variable is available to all modules in this package """
+""" this is a variable docstring """

@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '40ee0ea-dirty'
+__version__ = '984429e-dirty'
 
 # Template Overview
 
@@ -34,6 +34,7 @@ faster: pip install https://github.com/user/repository/archive/branch.[zip|wheel
 Or from requirements.txt:
 ```
 my-project-name @ git+https://github.com/user/repo.git@...
+pip install git+https://github.com/fdobad/template-python-package.git@984429ed6e17f598785cc9f01a921ea75ba4ca6d
 ```
 
 * To develop, install with editable flag:
@@ -49,11 +50,12 @@ pdoc --http localhost:8080 --config latex_math=True mypkg
 
 # Daily usage 
 
-In the current python-venv, is the project/distribution currently installed pointing to github[commit|latest|branch] or local folder?
+Activate you python venv, check if/where is installed: 
 ```bash
-pip list | grep my-project-name
+$ pip list | grep my-project-name
+my-project-name           0.0.0       /home/fdo/source/template-python-package
 ```
-* If it is local, the module can be edited & the documentation served live
+* If a filepath to the local repo is shown and --editable was used: the project can be directly edited & the documentation served live  
 * Else from a commit, be sure it is pointing to the correct one on requirements.txt
 * Or uninstall and focus on testing
 
@@ -61,11 +63,13 @@ Development tips:
 * Beware of python sessions not reloading the entire packages when `import mypkg`, these should be restarted, not reset.
 * Version control tracked files get automatically added to the release, so be tidy, aware of `.gitignore` & beware `git add .`
 * Do your feature branch to contribute! `git checkout -b my_new_feature`
-* Use docstrings and typed methods to build a great documentation! Even latex (to html or pdf) is available. [more info](https://pdoc3.github.io/pdoc/doc/pdoc/#what-objects-are-documented)
+* Use docstrings and typed methods to build a great documentation! Even latex (to html or pdf) is available. [more info](https://pdoc3.github.io/pdoc/doc/pdoc/#what-objects-are-documented). For a method, describe input `parameters & returns`, additionaly `exceptions, classes, variables, module header`, `docstring examples` are not tested at the time, use `pytest` instead
+    
 * All new `.py` files should have at least `version` & `author` in the header, sample:
 ```python
 #!python3
-""" this text is the header module docstring
+""" 
+this text is the header module docstring
 """
 __author__ = "Software Authors Name"
 __copyright__ = "Copyright (C) 1 May 1886 Author Name"
@@ -118,6 +122,15 @@ pytest
 # if action: manual build docs 
 pdoc --html --force --output-dir doc --config latex_math=True .
 ```
+## troubleshoot
+Build files are not automatically cleaned!
+```bash
+# check first -n is --dry-run
+git clean -dfX -n
+# once sure, delete them
+git clean -dfX
+```
+
 # github actions
 There're two actions (in .github/workflow):
 
