@@ -24,7 +24,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: main script
       - run: |
           pip install pdoc3
           pip install .
