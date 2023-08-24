@@ -17,10 +17,10 @@ license = {text = "GPLv3"} # , file = "LICENSE.txt"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
-# dependencies = [
-#     "numpy",
-#     'importlib-metadata; python_version<"3.8"',
-# ]
+dependencies = [
+#    "numpy",
+    'importlib-metadata',
+]
 dynamic = ["version"]
 
 [tool.pytest.ini_options]
