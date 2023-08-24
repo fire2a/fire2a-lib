@@ -63,7 +63,7 @@ pdoc --html --force --output-dir doc .
 ## pushing
 ```bash
 # build docs 
-pdoc --html --force --output-dir doc .
+pdoc --html --force --output-dir doc --config latex_math=True .
 # push
 ```
 # pdoc
