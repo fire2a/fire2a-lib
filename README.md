@@ -68,8 +68,11 @@ pdoc --html --force --output-dir doc --config latex_math=True .
 ```
 # github actions
 There're two actions (in .github/workflow):
-- static: needs updating the doc before pushing
-- docs: builds the doc online, needs updated requirements?
+
+* manual: needs updating the doc before pushing  
+* auto: builds the doc online, needs updated requirements.txt or pyproject.toml:dependencies  
+
+The headers needs some configuration (uncommenting) to work, a good practice is to enable them on branch docs, to not update needlessly
 
 # pdoc
 ```bash
