@@ -3,10 +3,12 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '5e42341-dirty'
+__version__ = '4f75fd7-dirty'
 
 import logging as _logging
-from osgeo import gdal
+
+import numpy as _np
+from osgeo import gdal as _gdal
 
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
@@ -20,13 +22,13 @@ def id2xy(idx: int, w: int, h: int) -> (int, int):
     If your're used to matplotlib, the y-axis is inverted.
 
     Args:
-    param idx: index of the pixel or cell (0,...,w*h-1)
+    param idx: index of the pixel or cell (0,..,w*h-1)
     param w: width of the image or grid
     param h: height of the image or grid
 
     Returns:
-    tuple: (x=idx%w, y=idx//w) coordinates of the pixel or cell
-    In a numpy array, the index of the pixel is (y,x)
+    tuple: (x, y) coordinates of the pixel or cell
+    In a numpy array, the index of the pixel is [y, x]
     """
     return idx % w, idx // w
 
@@ -44,11 +46,12 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     param h: height of the image or grid
 
     Returns:
-    param idx: y*w+x index of the pixel or cell (0,...,w*h-1)
+    int: index of the pixel or cell (0,..,w\*h-1)
     """
     return y * w + x
 
-def read_raster( filename : str, band : int = 1) -> (np.ndarray, int, int):
+
+def read_raster(filename: str, band: int = 1) -> (_np.ndarray, int, int):
     """Read a raster file and return the data as a numpy array.
 
     Args:
@@ -58,10 +61,11 @@ def read_raster( filename : str, band : int = 1) -> (np.ndarray, int, int):
     Returns:
     tuple: (data, width, height)
     """
-    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
-def read_raster_plop( filename : str ) -> (np.ndarray, np.ndarray, np.ndarray):
+
+def read_raster_plop(filename: str) -> (_np.ndarray, _np.ndarray, _np.ndarray):
     """Read a raster file and return the data as a numpy array.
 
     Args:
@@ -70,11 +74,10 @@ def read_raster_plop( filename : str ) -> (np.ndarray, np.ndarray, np.ndarray):
     Returns:
     tuple: (data, geotransform, projection)
     """
-    ds = gdal.Open(filename, gdal.GA_ReadOnly)
+    ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError(filename)
     data = ds.ReadAsArray()
     geotransform = ds.GetGeoTransform()
     projection = ds.GetProjection()
     return data, geotransform, projection
-
