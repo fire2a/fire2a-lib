@@ -1,4 +1,5 @@
 -r requirements.txt
 pdoc3
 pytest
+qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git
 

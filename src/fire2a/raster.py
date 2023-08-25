@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '9c15196-dirty'
+__version__ = '203e520-dirty'
 
 import logging as _logging
 
