@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '5332f27-dirty'
+__version__ = 'a4a9b8c-dirty'
 
 Welcome to Fire2a research group algorithms and tools python package.
 
@@ -37,6 +37,14 @@ fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@v1.2.3
 fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@e855bdb96202db42dc9013ea5c5cf934cee3f8d1
 ```
 This is a developing repo, disable updates (with possible breaking changes) by choosing a tag or commit.
+## Development Setup
+```bash
+git clone git@github.com:fire2a/fire2a-lib.git
+cd fire2a-lib
+cp hook/pre-commit .git/hooks/.
+chmod +x .git/hooks/pre-commit
+pip install --editable .
+```
 
 ## Usage 
 To create the static webpage before upload it use 
