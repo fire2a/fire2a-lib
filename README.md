@@ -38,6 +38,23 @@ fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@e855bdb96202db42dc9013
 ```
 This is a developing repo, disable updates (with possible breaking changes) by choosing a tag or commit.
 
+## Usage 
+To create the static webpage before upload it use 
+```bash
+pdoc --html --force --output-dir doc --config latex_math=True .
+```
+To live prevew the pakage documentation make user you have installed the pakage and the requirements
+```bash
+pip install --editable .
+pip install --requirement requirements.doc.txt
+pdoc --html --http : fire2a
+```
+
+If you wan to uninstall the package use
+```bash
+pip uninstall fire2a-lib
+```
+
 # Code of Conduct
 
 Everyone interacting in the project's codebases, issue trackers,

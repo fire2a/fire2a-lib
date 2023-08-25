@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '5332f27-dirty'
+__version__ = "5332f27-dirty"
 
 import logging as _logging
 
@@ -22,11 +22,13 @@ def id2xy(idx: int, w: int, h: int) -> (int, int):
     If your're used to matplotlib, the y-axis is inverted.
 
     Args:
+
     param idx: index of the pixel or cell (0,..,w*h-1)
     param w: width of the image or grid
     param h: height of the image or grid
 
     Returns:
+
     tuple: (x, y) coordinates of the pixel or cell
     In a numpy array, the index of the pixel is [y, x]
     """

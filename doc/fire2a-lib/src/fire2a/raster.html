@@ -35,7 +35,7 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;bbcef94-dirty&#39;
+__version__ = &#34;5332f27-dirty&#34;
 
 import logging as _logging
 
@@ -54,11 +54,13 @@ def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
     If your&#39;re used to matplotlib, the y-axis is inverted.
 
     Args:
+
     param idx: index of the pixel or cell (0,..,w*h-1)
     param w: width of the image or grid
     param h: height of the image or grid
 
     Returns:
+
     tuple: (x, y) coordinates of the pixel or cell
     In a numpy array, the index of the pixel is [y, x]
     &#34;&#34;&#34;
@@ -129,12 +131,12 @@ def read_raster_plop(filename: str) -&gt; (_np.ndarray, _np.ndarray, _np.ndarray
 <div class="desc"><p>Transform a pixel or cell index, into a x,y coordinates.</p>
 <p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
 If your're used to matplotlib, the y-axis is inverted.</p>
-<p>Args:
-param idx: index of the pixel or cell (0,..,w*h-1)
+<p>Args:</p>
+<p>param idx: index of the pixel or cell (0,..,w*h-1)
 param w: width of the image or grid
 param h: height of the image or grid</p>
-<p>Returns:
-tuple: (x, y) coordinates of the pixel or cell
+<p>Returns:</p>
+<p>tuple: (x, y) coordinates of the pixel or cell
 In a numpy array, the index of the pixel is [y, x]</p></div>
 <details class="source">
 <summary>
@@ -147,11 +149,13 @@ In a numpy array, the index of the pixel is [y, x]</p></div>
     If your&#39;re used to matplotlib, the y-axis is inverted.
 
     Args:
+
     param idx: index of the pixel or cell (0,..,w*h-1)
     param w: width of the image or grid
     param h: height of the image or grid
 
     Returns:
+
     tuple: (x, y) coordinates of the pixel or cell
     In a numpy array, the index of the pixel is [y, x]
     &#34;&#34;&#34;
