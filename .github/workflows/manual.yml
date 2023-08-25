@@ -36,7 +36,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          path: 'doc/template-python-package'
+          path: 'doc/fire2a-lib'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
