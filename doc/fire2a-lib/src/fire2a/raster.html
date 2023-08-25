@@ -35,7 +35,7 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#34;5332f27-dirty&#34;
+__version__ = &#39;784d1a4-dirty&#39;
 
 import logging as _logging
 
@@ -48,73 +48,92 @@ _logger.debug(&#34;Hello world!&#34;)
 
 
 def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
-    &#34;&#34;&#34;Transform a pixel or cell index, into a x,y coordinates.
-
-    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-    If your&#39;re used to matplotlib, the y-axis is inverted.
+    &#34;&#34;&#34;Transform a pixel or cell index, into x,y coordinates.
 
     Args:
 
-    param idx: index of the pixel or cell (0,..,w*h-1)
-    param w: width of the image or grid
+    param idx: index of the pixel or cell (0,..,w*h-1)  
+    param w: width of the image or grid  
     param h: height of the image or grid
 
     Returns:
 
-    tuple: (x, y) coordinates of the pixel or cell
-    In a numpy array, the index of the pixel is [y, x]
-    &#34;&#34;&#34;
+    tuple: (x, y) coordinates of the pixel or cell  
+
+    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
+    If your&#39;re used to matplotlib, the y-axis is inverted.
+    Also as numpy array, the index of the pixel is [y, x]
+    &#34;&#34;&#34;  # fmt: skip
     return idx % w, idx // w
 
 
 def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     &#34;&#34;&#34;Transform a x,y coordinates into a pixel or cell index.
 
-    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-
     Args:
-    param x: width or horizontal coordinate of the pixel or cell
-    param y: height or vertical coordinate of the pixel or cell
-    param w: width of the image or grid
+
+    param x: width or horizontal coordinate of the pixel or cell  
+    param y: height or vertical coordinate of the pixel or cell  
+    param w: width of the image or grid  
     param h: height of the image or grid
 
     Returns:
+
     int: index of the pixel or cell (0,..,w\*h-1)
-    &#34;&#34;&#34;
+
+    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
+    If your&#39;re used to matplotlib, the y-axis is inverted.
+    Also as numpy array, the index of the pixel is [y, x]
+    &#34;&#34;&#34;  # fmt: skip
     return y * w + x
 
 
-def read_raster(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
+def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array, along width and height.
 
     Args:
-    param filename: name of the raster file
+
+    param filename: name of the raster file  
     param band: band number to read (default 1)
 
     Returns:
+
     tuple: (data, width, height)
-    &#34;&#34;&#34;
+
+    Raises:
+    FileNotFoundError: if the file is not found
+    &#34;&#34;&#34;  # fmt: skip
     dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
+        raise FileNotFoundError(filename)
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster_plop(filename: str) -&gt; (_np.ndarray, _np.ndarray, _np.ndarray):
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
+def read_raster(filename: str) -&gt; (_np.ndarray, dict):
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
+    Along raster info: transform, projection, raster count, raster width, raster height.
 
     Args:
     param filename: name of the raster file
 
     Returns:
     tuple: (data, geotransform, projection)
-    &#34;&#34;&#34;
+
+    Raises:
+    FileNotFoundError: if the file is not found
+    &#34;&#34;&#34;  # fmt: skip
     ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError(filename)
     data = ds.ReadAsArray()
-    geotransform = ds.GetGeoTransform()
-    projection = ds.GetProjection()
-    return data, geotransform, projection</code></pre>
+    info = {
+        &#34;Transform&#34;: ds.GetGeoTransform(),
+        &#34;Projection&#34;: ds.GetProjection(),
+        &#34;RasterCount&#34;: ds.RasterCount,
+        &#34;RasterXSize&#34;: ds.RasterXSize,
+        &#34;RasterYSize&#34;: ds.RasterYSize,
+    }
+    return data, info</code></pre>
 </details>
 </section>
 <section>
@@ -128,97 +147,119 @@ def read_raster_plop(filename: str) -&gt; (_np.ndarray, _np.ndarray, _np.ndarray
 <span>def <span class="ident">id2xy</span></span>(<span>idx: int, w: int, h: int) ‑> (<class 'int'>, <class 'int'>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Transform a pixel or cell index, into a x,y coordinates.</p>
-<p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-If your're used to matplotlib, the y-axis is inverted.</p>
+<div class="desc"><p>Transform a pixel or cell index, into x,y coordinates.</p>
 <p>Args:</p>
-<p>param idx: index of the pixel or cell (0,..,w*h-1)
-param w: width of the image or grid
+<p>param idx: index of the pixel or cell (0,..,w*h-1)<br>
+param w: width of the image or grid<br>
 param h: height of the image or grid</p>
 <p>Returns:</p>
 <p>tuple: (x, y) coordinates of the pixel or cell
-In a numpy array, the index of the pixel is [y, x]</p></div>
+</p>
+<p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
+If your're used to matplotlib, the y-axis is inverted.
+Also as numpy array, the index of the pixel is [y, x]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
-    &#34;&#34;&#34;Transform a pixel or cell index, into a x,y coordinates.
-
-    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-    If your&#39;re used to matplotlib, the y-axis is inverted.
+    &#34;&#34;&#34;Transform a pixel or cell index, into x,y coordinates.
 
     Args:
 
-    param idx: index of the pixel or cell (0,..,w*h-1)
-    param w: width of the image or grid
+    param idx: index of the pixel or cell (0,..,w*h-1)  
+    param w: width of the image or grid  
     param h: height of the image or grid
 
     Returns:
 
-    tuple: (x, y) coordinates of the pixel or cell
-    In a numpy array, the index of the pixel is [y, x]
-    &#34;&#34;&#34;
+    tuple: (x, y) coordinates of the pixel or cell  
+
+    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
+    If your&#39;re used to matplotlib, the y-axis is inverted.
+    Also as numpy array, the index of the pixel is [y, x]
+    &#34;&#34;&#34;  # fmt: skip
     return idx % w, idx // w</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster"><code class="name flex">
-<span>def <span class="ident">read_raster</span></span>(<span>filename: str, band: int = 1) ‑> (<class 'numpy.ndarray'>, <class 'int'>, <class 'int'>)</span>
+<span>def <span class="ident">read_raster</span></span>(<span>filename: str) ‑> (<class 'numpy.ndarray'>, <class 'dict'>)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Read a raster file and return the data as a numpy array.</p>
-<p>Args:
-param filename: name of the raster file
-param band: band number to read (default 1)</p>
-<p>Returns:
-tuple: (data, width, height)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def read_raster(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
-
-    Args:
-    param filename: name of the raster file
-    param band: band number to read (default 1)
-
-    Returns:
-    tuple: (data, width, height)
-    &#34;&#34;&#34;
-    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize</code></pre>
-</details>
-</dd>
-<dt id="fire2a-lib.src.fire2a.raster.read_raster_plop"><code class="name flex">
-<span>def <span class="ident">read_raster_plop</span></span>(<span>filename: str) ‑> (<class 'numpy.ndarray'>, <class 'numpy.ndarray'>, <class 'numpy.ndarray'>)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Read a raster file and return the data as a numpy array.</p>
+<div class="desc"><p>Read a raster file and return the data as a numpy array.<br>
+Along raster info: transform, projection, raster count, raster width, raster height.</p>
 <p>Args:
 param filename: name of the raster file</p>
 <p>Returns:
-tuple: (data, geotransform, projection)</p></div>
+tuple: (data, geotransform, projection)</p>
+<p>Raises:
+FileNotFoundError: if the file is not found</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_raster_plop(filename: str) -&gt; (_np.ndarray, _np.ndarray, _np.ndarray):
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
+<pre><code class="python">def read_raster(filename: str) -&gt; (_np.ndarray, dict):
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
+    Along raster info: transform, projection, raster count, raster width, raster height.
 
     Args:
     param filename: name of the raster file
 
     Returns:
     tuple: (data, geotransform, projection)
-    &#34;&#34;&#34;
+
+    Raises:
+    FileNotFoundError: if the file is not found
+    &#34;&#34;&#34;  # fmt: skip
     ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError(filename)
     data = ds.ReadAsArray()
-    geotransform = ds.GetGeoTransform()
-    projection = ds.GetProjection()
-    return data, geotransform, projection</code></pre>
+    info = {
+        &#34;Transform&#34;: ds.GetGeoTransform(),
+        &#34;Projection&#34;: ds.GetProjection(),
+        &#34;RasterCount&#34;: ds.RasterCount,
+        &#34;RasterXSize&#34;: ds.RasterXSize,
+        &#34;RasterYSize&#34;: ds.RasterYSize,
+    }
+    return data, info</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.read_raster_band"><code class="name flex">
+<span>def <span class="ident">read_raster_band</span></span>(<span>filename: str, band: int = 1) ‑> (<class 'numpy.ndarray'>, <class 'int'>, <class 'int'>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Read a raster file and return the data as a numpy array, along width and height.</p>
+<p>Args:</p>
+<p>param filename: name of the raster file<br>
+param band: band number to read (default 1)</p>
+<p>Returns:</p>
+<p>tuple: (data, width, height)</p>
+<p>Raises:
+FileNotFoundError: if the file is not found</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array, along width and height.
+
+    Args:
+
+    param filename: name of the raster file  
+    param band: band number to read (default 1)
+
+    Returns:
+
+    tuple: (data, width, height)
+
+    Raises:
+    FileNotFoundError: if the file is not found
+    &#34;&#34;&#34;  # fmt: skip
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
+        raise FileNotFoundError(filename)
+    return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.xy2id"><code class="name flex">
@@ -226,15 +267,16 @@ tuple: (data, geotransform, projection)</p></div>
 </code></dt>
 <dd>
 <div class="desc"><p>Transform a x,y coordinates into a pixel or cell index.</p>
-<p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-If your're used to matplotlib, the y-axis is inverted.</p>
-<p>Args:
-param x: width or horizontal coordinate of the pixel or cell
-param y: height or vertical coordinate of the pixel or cell
-param w: width of the image or grid
+<p>Args:</p>
+<p>param x: width or horizontal coordinate of the pixel or cell<br>
+param y: height or vertical coordinate of the pixel or cell<br>
+param w: width of the image or grid<br>
 param h: height of the image or grid</p>
-<p>Returns:
-int: index of the pixel or cell (0,..,w*h-1)</p></div>
+<p>Returns:</p>
+<p>int: index of the pixel or cell (0,..,w*h-1)</p>
+<p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
+If your're used to matplotlib, the y-axis is inverted.
+Also as numpy array, the index of the pixel is [y, x]</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -242,18 +284,21 @@ int: index of the pixel or cell (0,..,w*h-1)</p></div>
 <pre><code class="python">def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     &#34;&#34;&#34;Transform a x,y coordinates into a pixel or cell index.
 
-    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-
     Args:
-    param x: width or horizontal coordinate of the pixel or cell
-    param y: height or vertical coordinate of the pixel or cell
-    param w: width of the image or grid
+
+    param x: width or horizontal coordinate of the pixel or cell  
+    param y: height or vertical coordinate of the pixel or cell  
+    param w: width of the image or grid  
     param h: height of the image or grid
 
     Returns:
+
     int: index of the pixel or cell (0,..,w\*h-1)
-    &#34;&#34;&#34;
+
+    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
+    If your&#39;re used to matplotlib, the y-axis is inverted.
+    Also as numpy array, the index of the pixel is [y, x]
+    &#34;&#34;&#34;  # fmt: skip
     return y * w + x</code></pre>
 </details>
 </dd>
@@ -277,7 +322,7 @@ int: index of the pixel or cell (0,..,w*h-1)</p></div>
 <ul class="">
 <li><code><a title="fire2a-lib.src.fire2a.raster.id2xy" href="#fire2a-lib.src.fire2a.raster.id2xy">id2xy</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster" href="#fire2a-lib.src.fire2a.raster.read_raster">read_raster</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.raster.read_raster_plop" href="#fire2a-lib.src.fire2a.raster.read_raster_plop">read_raster_plop</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.read_raster_band" href="#fire2a-lib.src.fire2a.raster.read_raster_band">read_raster_band</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.xy2id" href="#fire2a-lib.src.fire2a.raster.xy2id">xy2id</a></code></li>
 </ul>
 </li>
