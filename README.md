@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '784d1a4-dirty'
+__version__ = '7d43cd2-dirty'
 
 Welcome to Fire2a research group algorithms and tools python package.
 

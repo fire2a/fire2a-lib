@@ -17,3 +17,6 @@ git add $files
 
 sed -i "5 s/__version__ = .*/__version__ = '$version'/" README.md
 git add README.md
+
+pdoc --html --force --output-dir doc --config latex_math=True .
+git add doc/fire2a-lib/*
