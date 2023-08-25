@@ -1,5 +1,5 @@
-![manual workflow](https://github.com/fdobad/template-python-package/actions/workflows/manual.yml/badge.svg)
-![auto workflow](https://github.com/fdobad/template-python-package/actions/workflows/auto.yml/badge.svg)
+![manual workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/manual.yml/badge.svg)
+![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
 __version__ = 'v0.0.1-0-gecfa54c-dirty'
@@ -14,7 +14,7 @@ Tools related to GIS, graphs, optimization, etc.
 
 User : https://fire2a.github.io/fire2a-lib
 
-Developer : https://github.com/fdobad/template-python-package
+[Developer](development_tutorial.md) or https://github.com/fdobad/template-python-package
 
 ## Quickstart
 ### new python virtual environment
