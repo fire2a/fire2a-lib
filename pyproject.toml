@@ -5,21 +5,20 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "my-project-name"
+name = "fire2a-lib"
 authors = [
     {name = "Fernando Badilla", email = "fbadilla@ing.uchile.cl"},
 ]
-description = "My project description"
+description = "Algorithms and tools python package for Forest Fire Research, Management and Analytics"
 readme = "README.md"
 requires-python = ">=3.11"
-keywords = ["template", "package"]
+keywords = ["forest fires", "fire management", "fire analytics", "fire research"]
 license = {text = "GPLv3"} # , file = "LICENSE.txt"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "numpy",
-    'importlib-metadata',
+    "importlib-metadata",
 ]
 dynamic = ["version"]
 
