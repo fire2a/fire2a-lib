@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '6786d11-dirty'
+__version__ = '7937f19-dirty'
 
 Welcome to Fire2a research group algorithms and tools python package.
 
@@ -12,20 +12,23 @@ Tools related to GIS, graphs, optimization, etc.
 
 ## Documentation
 
-User : https://fire2a.github.io/fire2a-lib
+User: https://fire2a.github.io/fire2a-lib
 
-[Developer](development_tutorial.md) or https://github.com/fdobad/template-python-package
+[template package tutorial](development_tutorial.md) or https://github.com/fdobad/template-python-package
 
 ## Quickstart
-### new python virtual environment
+Installing [QGIS](https://qgis.org), cover most of our [requirements.txt](https://raw.githubusercontent.com/fire2a/fire2a-lib/main/requirements.txt)
 ```bash
-python3 -m venv fire
-source fire/bin/activate
-(fire) $ pip install git+https://github.com/fire2a/fire2a-lib.git
-(fire) $ python
->>> import fire2a
+(qgis_python_venv) $ pip install git+https://github.com/fire2a/fire2a-lib.git
+(qgis_python_venv) $ pip install -r requirements.txt
 ```
-### append to requirements.txt, choose
+Any language-server-protocol enabled environment is recommended:
+```bash
+(qgis_python_venv) $ ipython
+In [1]: from fire2a.<press-tab-to-continue>
+```
+### append to requirements.txt
+Choose latest, branch, tag or commit
 ```
 # latest main
 fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git
@@ -36,8 +39,9 @@ fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@v1.2.3
 # commit
 fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@e855bdb96202db42dc9013ea5c5cf934cee3f8d1
 ```
-This is a developing repo, disable updates (with possible breaking changes) by choosing a tag or commit.
+This is a developing repo, anchor your code to a commit to disable any incoming (possibly breaking) changes.
 ## Development Setup
+Fork it before cloning to contribute!
 ```bash
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib

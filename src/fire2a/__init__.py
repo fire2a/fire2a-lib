@@ -3,7 +3,7 @@
 This is fire2a-lib distribution, fire2a package docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '6786d11-dirty'
+__version__ = '7937f19-dirty'
 
 import logging as _logging
 
