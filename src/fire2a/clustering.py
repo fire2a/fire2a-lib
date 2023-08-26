@@ -3,13 +3,13 @@
 This is the raster module docstring
 """
 __author__ = "Rodrigo Mahaluf Recasens"
-__version__ = "a4a9b8c-dirty"
+__version__ = '6786d11-dirty'
 
 import logging as _logging
 import numpy as np
 from scipy.sparse import dok_matrix, lil_matrix
 from sklearn.cluster import AgglomerativeClustering
-from fire2a.adjacency import adjacent_cells
+from .adjacency import adjacent_cells
 
 
 def raster_clusters(
@@ -97,3 +97,4 @@ def raster_clusters(
         cluster_raster = cluster_raster.astype(np.int16)
 
         return cluster_raster
+

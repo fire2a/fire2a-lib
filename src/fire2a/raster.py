@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = "7147b66-dirty"
+__version__ = '6786d11-dirty'
 
 import logging as _logging
 
@@ -30,8 +30,8 @@ def id2xy(idx: int, w: int, h: int) -> (int, int):
     tuple: (x, y) coordinates of the pixel or cell  
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your're used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your're used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     """  # fmt: skip
     return idx % w, idx // w
 
@@ -51,8 +51,8 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     int: index of the pixel or cell (0,..,w\*h-1)
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your're used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your're used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     """  # fmt: skip
     return y * w + x
 
@@ -70,6 +70,7 @@ def read_raster_band(filename: str, band: int = 1) -> (_np.ndarray, int, int):
     tuple: (data, width, height)
 
     Raises:
+
     FileNotFoundError: if the file is not found
     """  # fmt: skip
     dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
@@ -86,9 +87,11 @@ def read_raster(filename: str) -> (_np.ndarray, dict):
     param filename: name of the raster file
 
     Returns:
-    tuple: (data, geotransform, projection)
+    tuple: (data np.array, info dict)
+    info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "RasterYSize"
 
     Raises:
+
     FileNotFoundError: if the file is not found
     """  # fmt: skip
     ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
@@ -110,7 +113,7 @@ def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
     """
     Get the cell size(s) of a raster.
 
-    Parameters:
+    Args:
         raster (gdal.Dataset | str): The GDAL dataset or path to the raster.
 
     Returns:
@@ -139,7 +142,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     """
     Mask a raster with polygons using GDAL.
 
-    Parameters:
+    Args:
         raster_ds (gdal.Dataset): GDAL dataset of the raster.
         band (int): Band index of the raster.
         polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for masking.
@@ -164,7 +167,7 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     """
     Rasterize polygons to a boolean array.
 
-    Parameters:
+    Args:
         polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for rasterization.
         geo_transform (tuple): GeoTransform parameters for the raster.
         width (int): Width of the raster.
@@ -198,7 +201,7 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
     """
     Stack raster files from a list into a 3D NumPy array.
 
-    Parameters:
+    Args:
         file_list (list[Path]): List of paths to raster files.
         mask_polygon (list[ogr.Geometry], optional): List of OGR geometries for masking. Defaults to None.
 

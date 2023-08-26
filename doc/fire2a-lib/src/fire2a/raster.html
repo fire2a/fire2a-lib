@@ -35,12 +35,13 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;7d43cd2-dirty&#39;
+__version__ = &#39;6786d11-dirty&#39;
 
 import logging as _logging
 
 import numpy as _np
-from osgeo import gdal as _gdal
+from osgeo import gdal as _gdal, ogr as _ogr
+from pathlib import Path
 
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
@@ -61,8 +62,8 @@ def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
     tuple: (x, y) coordinates of the pixel or cell  
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your&#39;re used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     &#34;&#34;&#34;  # fmt: skip
     return idx % w, idx // w
 
@@ -82,8 +83,8 @@ def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     int: index of the pixel or cell (0,..,w\*h-1)
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your&#39;re used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     &#34;&#34;&#34;  # fmt: skip
     return y * w + x
 
@@ -101,6 +102,7 @@ def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int)
     tuple: (data, width, height)
 
     Raises:
+
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
     dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
@@ -117,15 +119,18 @@ def read_raster(filename: str) -&gt; (_np.ndarray, dict):
     param filename: name of the raster file
 
     Returns:
-    tuple: (data, geotransform, projection)
+    tuple: (data np.array, info dict)
+    info dict keys: &#34;Transform&#34;, &#34;Projection&#34;, &#34;RasterCount&#34;, &#34;RasterXSize&#34;, &#34;RasterYSize&#34;
 
     Raises:
+
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
     ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError(filename)
     data = ds.ReadAsArray()
+
     info = {
         &#34;Transform&#34;: ds.GetGeoTransform(),
         &#34;Projection&#34;: ds.GetProjection(),
@@ -133,7 +138,140 @@ def read_raster(filename: str) -&gt; (_np.ndarray, dict):
         &#34;RasterXSize&#34;: ds.RasterXSize,
         &#34;RasterYSize&#34;: ds.RasterYSize,
     }
-    return data, info</code></pre>
+    return data, info
+
+
+def get_cell_size(raster: _gdal.Dataset | str) -&gt; float | tuple[float, float]:
+    &#34;&#34;&#34;
+    Get the cell size(s) of a raster.
+
+    Args:
+        raster (gdal.Dataset | str): The GDAL dataset or path to the raster.
+
+    Returns:
+        float | tuple[float, float]: The cell size(s) as a single float or a tuple (x, y).
+    &#34;&#34;&#34;  # fmt: skip
+    if isinstance(raster, str):
+        ds = _gdal.Open(raster, _gdal.GA_ReadOnly)
+    elif isinstance(raster, _gdal.Dataset):
+        ds = raster
+    else:
+        raise ValueError(&#34;Invalid input type for raster&#34;)
+
+    # Get the affine transformation parameters
+    affine = ds.GetGeoTransform()
+
+    if affine[1] != -affine[5]:
+        # If x and y cell sizes are not equal
+        cell_size = (affine[1], -affine[5])  # Return as a tuple
+    else:
+        cell_size = affine[1]  # Return as a single float
+
+    return cell_size
+
+
+def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometry]) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Mask a raster with polygons using GDAL.
+
+    Args:
+        raster_ds (gdal.Dataset): GDAL dataset of the raster.
+        band (int): Band index of the raster.
+        polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for masking.
+
+    Returns:
+        np.array: Masked raster data as a NumPy array.
+    &#34;&#34;&#34;  # fmt: skip
+
+    # Get the mask as a NumPy boolean array
+    mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
+
+    # Read the original raster data
+    original_data = band.ReadAsArray()
+
+    # Apply the mask
+    masked_data = _np.where(mask_array, original_data, _np.nan)
+
+    return masked_data
+
+
+def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Rasterize polygons to a boolean array.
+
+    Args:
+        polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for rasterization.
+        geo_transform (tuple): GeoTransform parameters for the raster.
+        width (int): Width of the raster.
+        height (int): Height of the raster.
+
+    Returns:
+        np.array: Rasterized mask as a boolean array.
+    &#34;&#34;&#34;  # fmt: skip
+
+    mask_array = _np.zeros((height, width), dtype=bool)
+
+    # Create an in-memory layer to hold the polygons
+    mem_driver = _ogr.GetDriverByName(&#34;Memory&#34;)
+    mem_ds = mem_driver.CreateDataSource(&#34;memData&#34;)
+    mem_layer = mem_ds.CreateLayer(&#34;memLayer&#34;, srs=None, geom_type=_ogr.wkbPolygon)
+
+    for geometry in polygons:
+        mem_feature = _ogr.Feature(mem_layer.GetLayerDefn())
+        mem_feature.SetGeometry(geometry.Clone())
+        mem_layer.CreateFeature(mem_feature)
+
+    # Rasterize the in-memory layer and update the mask array
+    _gdal.RasterizeLayer(mask_array, [1], mem_layer, burn_values=[1])
+
+    mem_ds = None  # Release the in-memory dataset
+
+    return mask_array
+
+
+def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Stack raster files from a list into a 3D NumPy array.
+
+    Args:
+        file_list (list[Path]): List of paths to raster files.
+        mask_polygon (list[ogr.Geometry], optional): List of OGR geometries for masking. Defaults to None.
+
+    Returns:
+        np.array: Stacked raster array.
+        list: List of layer names corresponding to the rasters.
+    &#34;&#34;&#34;  # fmt: skip
+    array_list = []
+    cell_sizes = set()
+    layer_names = []
+
+    for raster_path in file_list:
+        layer_name = raster_path.stem
+        layer_names.append(layer_name)
+
+        ds = _gdal.Open(str(raster_path))
+        if ds is None:
+            raise ValueError(f&#34;Failed to open raster file: {raster_path}&#34;)
+
+        band = ds.GetRasterBand(1)
+
+        if mask_polygon:
+            flatten_array = mask_raster(ds, band, mask_polygon)
+        else:
+            flatten_array = band.ReadAsArray()
+
+        array_list.append(flatten_array)
+        cell_sizes.add(get_cell_size(ds))
+
+    assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
+    stacked_array = _np.stack(array_list, axis=0)
+    return stacked_array, layer_names
+
+
+if __name__ == &#34;__main__&#34;:
+    file_list = Path(&#34;/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO&#34;).glob(&#34;*.asc&#34;)
+    array = stack_rasters(file_list)
+    print(array)</code></pre>
 </details>
 </section>
 <section>
@@ -143,6 +281,48 @@ def read_raster(filename: str) -&gt; (_np.ndarray, dict):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fire2a-lib.src.fire2a.raster.get_cell_size"><code class="name flex">
+<span>def <span class="ident">get_cell_size</span></span>(<span>raster: osgeo.gdal.Dataset | str) ‑> float | tuple[float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the cell size(s) of a raster.</p>
+<h2 id="args">Args</h2>
+<p>raster (gdal.Dataset | str): The GDAL dataset or path to the raster.</p>
+<h2 id="returns">Returns</h2>
+<p>float | tuple[float, float]: The cell size(s) as a single float or a tuple (x, y).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_cell_size(raster: _gdal.Dataset | str) -&gt; float | tuple[float, float]:
+    &#34;&#34;&#34;
+    Get the cell size(s) of a raster.
+
+    Args:
+        raster (gdal.Dataset | str): The GDAL dataset or path to the raster.
+
+    Returns:
+        float | tuple[float, float]: The cell size(s) as a single float or a tuple (x, y).
+    &#34;&#34;&#34;  # fmt: skip
+    if isinstance(raster, str):
+        ds = _gdal.Open(raster, _gdal.GA_ReadOnly)
+    elif isinstance(raster, _gdal.Dataset):
+        ds = raster
+    else:
+        raise ValueError(&#34;Invalid input type for raster&#34;)
+
+    # Get the affine transformation parameters
+    affine = ds.GetGeoTransform()
+
+    if affine[1] != -affine[5]:
+        # If x and y cell sizes are not equal
+        cell_size = (affine[1], -affine[5])  # Return as a tuple
+    else:
+        cell_size = affine[1]  # Return as a single float
+
+    return cell_size</code></pre>
+</details>
+</dd>
 <dt id="fire2a-lib.src.fire2a.raster.id2xy"><code class="name flex">
 <span>def <span class="ident">id2xy</span></span>(<span>idx: int, w: int, h: int) ‑> (<class 'int'>, <class 'int'>)</span>
 </code></dt>
@@ -156,8 +336,8 @@ param h: height of the image or grid</p>
 <p>tuple: (x, y) coordinates of the pixel or cell
 </p>
 <p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
-If your're used to matplotlib, the y-axis is inverted.
-Also as numpy array, the index of the pixel is [y, x]</p></div>
+If your're used to matplotlib, the y-axis is inverted.<br>
+Also as numpy array, the index of the pixel is [y, x].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -176,10 +356,117 @@ Also as numpy array, the index of the pixel is [y, x]</p></div>
     tuple: (x, y) coordinates of the pixel or cell  
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your&#39;re used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     &#34;&#34;&#34;  # fmt: skip
     return idx % w, idx // w</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.mask_raster"><code class="name flex">
+<span>def <span class="ident">mask_raster</span></span>(<span>raster_ds: osgeo.gdal.Dataset, band: int, polygons: list[osgeo.ogr.Geometry]) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Mask a raster with polygons using GDAL.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>raster_ds</code></strong> :&ensp;<code>gdal.Dataset</code></dt>
+<dd>GDAL dataset of the raster.</dd>
+<dt><strong><code>band</code></strong> :&ensp;<code>int</code></dt>
+<dd>Band index of the raster.</dd>
+<dt><strong><code>polygons</code></strong> :&ensp;<code>list[ogr.Geometry]</code></dt>
+<dd>List of OGR geometries representing polygons for masking.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.array</code></dt>
+<dd>Masked raster data as a NumPy array.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometry]) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Mask a raster with polygons using GDAL.
+
+    Args:
+        raster_ds (gdal.Dataset): GDAL dataset of the raster.
+        band (int): Band index of the raster.
+        polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for masking.
+
+    Returns:
+        np.array: Masked raster data as a NumPy array.
+    &#34;&#34;&#34;  # fmt: skip
+
+    # Get the mask as a NumPy boolean array
+    mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
+
+    # Read the original raster data
+    original_data = band.ReadAsArray()
+
+    # Apply the mask
+    masked_data = _np.where(mask_array, original_data, _np.nan)
+
+    return masked_data</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.rasterize_polygons"><code class="name flex">
+<span>def <span class="ident">rasterize_polygons</span></span>(<span>polygons: list[osgeo.ogr.Geometry], width: int, height: int) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Rasterize polygons to a boolean array.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>polygons</code></strong> :&ensp;<code>list[ogr.Geometry]</code></dt>
+<dd>List of OGR geometries representing polygons for rasterization.</dd>
+<dt><strong><code>geo_transform</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>GeoTransform parameters for the raster.</dd>
+<dt><strong><code>width</code></strong> :&ensp;<code>int</code></dt>
+<dd>Width of the raster.</dd>
+<dt><strong><code>height</code></strong> :&ensp;<code>int</code></dt>
+<dd>Height of the raster.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.array</code></dt>
+<dd>Rasterized mask as a boolean array.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Rasterize polygons to a boolean array.
+
+    Args:
+        polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for rasterization.
+        geo_transform (tuple): GeoTransform parameters for the raster.
+        width (int): Width of the raster.
+        height (int): Height of the raster.
+
+    Returns:
+        np.array: Rasterized mask as a boolean array.
+    &#34;&#34;&#34;  # fmt: skip
+
+    mask_array = _np.zeros((height, width), dtype=bool)
+
+    # Create an in-memory layer to hold the polygons
+    mem_driver = _ogr.GetDriverByName(&#34;Memory&#34;)
+    mem_ds = mem_driver.CreateDataSource(&#34;memData&#34;)
+    mem_layer = mem_ds.CreateLayer(&#34;memLayer&#34;, srs=None, geom_type=_ogr.wkbPolygon)
+
+    for geometry in polygons:
+        mem_feature = _ogr.Feature(mem_layer.GetLayerDefn())
+        mem_feature.SetGeometry(geometry.Clone())
+        mem_layer.CreateFeature(mem_feature)
+
+    # Rasterize the in-memory layer and update the mask array
+    _gdal.RasterizeLayer(mask_array, [1], mem_layer, burn_values=[1])
+
+    mem_ds = None  # Release the in-memory dataset
+
+    return mask_array</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster"><code class="name flex">
@@ -191,9 +478,10 @@ Along raster info: transform, projection, raster count, raster width, raster hei
 <p>Args:
 param filename: name of the raster file</p>
 <p>Returns:
-tuple: (data, geotransform, projection)</p>
-<p>Raises:
-FileNotFoundError: if the file is not found</p></div>
+tuple: (data np.array, info dict)
+info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "RasterYSize"</p>
+<p>Raises:</p>
+<p>FileNotFoundError: if the file is not found</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -206,15 +494,18 @@ FileNotFoundError: if the file is not found</p></div>
     param filename: name of the raster file
 
     Returns:
-    tuple: (data, geotransform, projection)
+    tuple: (data np.array, info dict)
+    info dict keys: &#34;Transform&#34;, &#34;Projection&#34;, &#34;RasterCount&#34;, &#34;RasterXSize&#34;, &#34;RasterYSize&#34;
 
     Raises:
+
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
     ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if ds is None:
         raise FileNotFoundError(filename)
     data = ds.ReadAsArray()
+
     info = {
         &#34;Transform&#34;: ds.GetGeoTransform(),
         &#34;Projection&#34;: ds.GetProjection(),
@@ -235,8 +526,8 @@ FileNotFoundError: if the file is not found</p></div>
 param band: band number to read (default 1)</p>
 <p>Returns:</p>
 <p>tuple: (data, width, height)</p>
-<p>Raises:
-FileNotFoundError: if the file is not found</p></div>
+<p>Raises:</p>
+<p>FileNotFoundError: if the file is not found</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -254,12 +545,75 @@ FileNotFoundError: if the file is not found</p></div>
     tuple: (data, width, height)
 
     Raises:
+
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
     dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
     if dataset is None:
         raise FileNotFoundError(filename)
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.stack_rasters"><code class="name flex">
+<span>def <span class="ident">stack_rasters</span></span>(<span>file_list: list[pathlib.Path], mask_polygon: list[osgeo.ogr.Geometry] = None) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stack raster files from a list into a 3D NumPy array.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>file_list</code></strong> :&ensp;<code>list[Path]</code></dt>
+<dd>List of paths to raster files.</dd>
+<dt><strong><code>mask_polygon</code></strong> :&ensp;<code>list[ogr.Geometry]</code>, optional</dt>
+<dd>List of OGR geometries for masking. Defaults to None.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>np.array</code></dt>
+<dd>Stacked raster array.</dd>
+<dt><code>list</code></dt>
+<dd>List of layer names corresponding to the rasters.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array:
+    &#34;&#34;&#34;
+    Stack raster files from a list into a 3D NumPy array.
+
+    Args:
+        file_list (list[Path]): List of paths to raster files.
+        mask_polygon (list[ogr.Geometry], optional): List of OGR geometries for masking. Defaults to None.
+
+    Returns:
+        np.array: Stacked raster array.
+        list: List of layer names corresponding to the rasters.
+    &#34;&#34;&#34;  # fmt: skip
+    array_list = []
+    cell_sizes = set()
+    layer_names = []
+
+    for raster_path in file_list:
+        layer_name = raster_path.stem
+        layer_names.append(layer_name)
+
+        ds = _gdal.Open(str(raster_path))
+        if ds is None:
+            raise ValueError(f&#34;Failed to open raster file: {raster_path}&#34;)
+
+        band = ds.GetRasterBand(1)
+
+        if mask_polygon:
+            flatten_array = mask_raster(ds, band, mask_polygon)
+        else:
+            flatten_array = band.ReadAsArray()
+
+        array_list.append(flatten_array)
+        cell_sizes.add(get_cell_size(ds))
+
+    assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
+    stacked_array = _np.stack(array_list, axis=0)
+    return stacked_array, layer_names</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.xy2id"><code class="name flex">
@@ -275,8 +629,8 @@ param h: height of the image or grid</p>
 <p>Returns:</p>
 <p>int: index of the pixel or cell (0,..,w*h-1)</p>
 <p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
-If your're used to matplotlib, the y-axis is inverted.
-Also as numpy array, the index of the pixel is [y, x]</p></div>
+If your're used to matplotlib, the y-axis is inverted.<br>
+Also as numpy array, the index of the pixel is [y, x].</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -296,8 +650,8 @@ Also as numpy array, the index of the pixel is [y, x]</p></div>
     int: index of the pixel or cell (0,..,w\*h-1)
 
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
-    If your&#39;re used to matplotlib, the y-axis is inverted.
-    Also as numpy array, the index of the pixel is [y, x]
+    If your&#39;re used to matplotlib, the y-axis is inverted.  
+    Also as numpy array, the index of the pixel is [y, x].
     &#34;&#34;&#34;  # fmt: skip
     return y * w + x</code></pre>
 </details>
@@ -319,10 +673,14 @@ Also as numpy array, the index of the pixel is [y, x]</p></div>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="fire2a-lib.src.fire2a.raster.get_cell_size" href="#fire2a-lib.src.fire2a.raster.get_cell_size">get_cell_size</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.id2xy" href="#fire2a-lib.src.fire2a.raster.id2xy">id2xy</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.mask_raster" href="#fire2a-lib.src.fire2a.raster.mask_raster">mask_raster</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.rasterize_polygons" href="#fire2a-lib.src.fire2a.raster.rasterize_polygons">rasterize_polygons</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster" href="#fire2a-lib.src.fire2a.raster.read_raster">read_raster</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster_band" href="#fire2a-lib.src.fire2a.raster.read_raster_band">read_raster_band</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.stack_rasters" href="#fire2a-lib.src.fire2a.raster.stack_rasters">stack_rasters</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.xy2id" href="#fire2a-lib.src.fire2a.raster.xy2id">xy2id</a></code></li>
 </ul>
 </li>
