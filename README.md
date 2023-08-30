@@ -55,11 +55,11 @@ To create the static webpage before upload it use
 ```bash
 pdoc --html --force --output-dir doc --config latex_math=True .
 ```
-To live prevew the pakage documentation make user you have installed the pakage and the requirements
+To live prevew the package documentation make user you have installed the pakage and the requirements
 ```bash
 pip install --editable .
 pip install --requirement requirements.doc.txt
-pdoc --html --http : fire2a
+pdoc --html --http : --config latex_math=True fire2a
 ```
 
 If you wan to uninstall the package use
