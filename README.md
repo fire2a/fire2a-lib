@@ -2,7 +2,7 @@
 ![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = '7937f19-dirty'
+__version__ = 'f264ed4-dirty'
 
 Welcome to Fire2a research group algorithms and tools python package.
 
@@ -15,6 +15,8 @@ Tools related to GIS, graphs, optimization, etc.
 User: https://fire2a.github.io/fire2a-lib
 
 [template package tutorial](development_tutorial.md) or https://github.com/fdobad/template-python-package
+
+About us: https://fire2a.github.io/docs
 
 ## Quickstart
 Installing [QGIS](https://qgis.org), cover most of our [requirements.txt](https://raw.githubusercontent.com/fire2a/fire2a-lib/main/requirements.txt)
