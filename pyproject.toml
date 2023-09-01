@@ -11,7 +11,7 @@ authors = [
 ]
 description = "Algorithms and tools python package for Forest Fire Research, Management and Analytics"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 keywords = ["forest fires", "fire management", "fire analytics", "fire research"]
 license = {text = "GPLv3"} # , file = "LICENSE.txt"
 classifiers = [
