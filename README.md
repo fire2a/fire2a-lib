@@ -55,7 +55,7 @@ pip install -r requirements.dev.txt
 pip install --editable .
 pdoc --html --http : --config latex_math=True fire2a  
 ```
-GDAL is not listed on requirements! 
+GDAL is not listed on requirements!  
 Install QGIS, make a venv with system-site-packages flag
 
 ### Live view a single installed package
