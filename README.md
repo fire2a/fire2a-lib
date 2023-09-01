@@ -41,7 +41,7 @@ fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@v1.2.3
 # commit
 fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@e855bdb96202db42dc9013ea5c5cf934cee3f8d1
 ```
-This is a developing repo, anchor your code to a commit to disable any incoming (possibly breaking) changes.
+This is a developing repo, __anchor your code to a commit to disable any incoming (possibly breaking) changes.__
 
 ## Development Setup
 __Fork it before cloning to contribute!__
