@@ -51,6 +51,8 @@ cd fire2a-lib
 git checkout -b my_branch
 cp hook/pre-commit .git/hooks/.
 chmod +x .git/hooks/pre-commit
+cp hook/pre-push .git/hooks/.
+chmod +x .git/hooks/pre-push
 pip install -r requirements.dev.txt
 pip install --editable .
 pdoc --html --http : --config latex_math=True fire2a  
