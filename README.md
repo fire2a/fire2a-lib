@@ -84,4 +84,4 @@ pip uninstall fire2a-lib
 
 Everyone interacting in the project's codebases, issue trackers,
 chat rooms, and fora is expected to follow the
-[PSF Code of Conduct](https://www.python.org/psf/conduct/).
+[PSF Code of Conduct](https://www.python.org/psf/conduct).
