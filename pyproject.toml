@@ -11,8 +11,8 @@ authors = [
 ]
 description = "Algorithms and tools python package for Forest Fire Research, Management and Analytics"
 readme = "README.md"
-requires-python = ">=3.11"
-keywords = ["forest fires", "fire management", "fire analytics", "fire research"]
+requires-python = ">=3.9"
+keywords = ["fire", "wildfires", "forest fires", "fire management", "fire analytics", "fire research", "fire modeling"]
 license = {text = "GPLv3"} # , file = "LICENSE.txt"
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -21,6 +21,10 @@ dependencies = [
     "importlib-metadata",
 ]
 dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {file = ".version"}
+readme = {file = ["README.md"], content-type = "text/markdown"}
 
 [tool.pytest.ini_options]
 minversion = "6.0"

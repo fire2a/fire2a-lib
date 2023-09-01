@@ -2,8 +2,6 @@
 ![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
-__version__ = 'f264ed4-dirty'
-
 Welcome to Fire2a research group algorithms and tools python package.
 
 Novel Algorithms to calculate metrics, clustering, placing firebreaks, measuring forest fire impacts, etc.
@@ -12,11 +10,13 @@ Tools related to GIS, graphs, optimization, etc.
 
 ## Documentation
 
-User: https://fire2a.github.io/fire2a-lib
+__User__: https://fire2a.github.io/fire2a-lib
 
-[template package tutorial](development_tutorial.md) or https://github.com/fdobad/template-python-package
+All our releases: https://fire2a.github.io/docs
 
-About us: https://fire2a.github.io/docs
+About us: https://www.fire2a.com
+
+__Developers__: [template package tutorial](development_tutorial.md) or https://github.com/fdobad/template-python-package
 
 ## Quickstart
 Installing [QGIS](https://qgis.org), cover most of our [requirements.txt](https://raw.githubusercontent.com/fire2a/fire2a-lib/main/requirements.txt)
@@ -42,29 +42,40 @@ fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@v1.2.3
 fire2a-lib @ git+https://github.com/fire2a/fire2a-lib.git@e855bdb96202db42dc9013ea5c5cf934cee3f8d1
 ```
 This is a developing repo, anchor your code to a commit to disable any incoming (possibly breaking) changes.
+
 ## Development Setup
-Fork it before cloning to contribute!
+__Fork it before cloning to contribute!__
 ```bash
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
+git checkout -b my_branch
 cp hook/pre-commit .git/hooks/.
 chmod +x .git/hooks/pre-commit
+pip install -r requirements.dev.txt
 pip install --editable .
+pdoc --html --http : --config latex_math=True fire2a  
 ```
+GDAL is not listed on requirements! 
+Install QGIS, make a venv with system-site-packages flag
 
-## Usage 
-To create the static webpage before upload it use 
+### Live view a single installed package
 ```bash
-pdoc --html --force --output-dir doc --config latex_math=True .
-```
-To live prevew the package documentation make user you have installed the pakage and the requirements
-```bash
-pip install --editable .
 pip install --requirement requirements.doc.txt
-pdoc --html --http : --config latex_math=True fire2a
+pip install --editable .
+pdoc --html --http : --config latex_math=True <fire2 package name>
+```
+Packages are directories under `src` with at least a `__init__.py` file inside
+
+### Build the full static webpage
+if directory exists remove, then build
+```bash
+if [ -d doc/fire2a-lib ]; then
+    rm -r doc/fire2a-lib
+fi
+pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
 ```
 
-If you wan to uninstall the package use
+### Uninstall
 ```bash
 pip uninstall fire2a-lib
 ```

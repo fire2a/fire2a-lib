@@ -1,22 +1,27 @@
 #!/bin/sh
 
-# Get the current version from git
-# version=$(git describe --dirty)
+# Get the current version number
 version=$(git describe --always --dirty --long)
 
+# Replace first dash with plus
+version=$(echo $version | sed "s/-/+/")
+
+# Save the version number to a file
+echo $version > .version
+
 # Find all Python files in the repository
-files=$(find . -type f -name "*.py")
+files=$(git diff --name-only --staged | grep ".py")
 
 # Replace the __version__ variable in each file
 for file in $files; do
     sed -i "s/__version__ = .*/__version__ = '$version'/" $file
 done
 
+# Build the documentation
+if [ -d doc/fire2a-lib ]; then
+    rm -r doc/fire2a-lib
+fi
+pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+
 # Add the modified files to the commit
-git add $files
-
-sed -i "5 s/__version__ = .*/__version__ = '$version'/" README.md
-git add README.md
-
-pdoc --html --force --output-dir doc --config latex_math=True .
-git add doc/fire2a-lib/*
+git add .version $files doc/fire2a-lib/*
