@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Build the documentation
+if [ -d doc/fire2a-lib ]; then
+    rm -r doc/fire2a-lib
+fi
+pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+
+# Add the modified files to the commit
+git add doc/fire2a-lib/*
