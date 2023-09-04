@@ -2,5 +2,14 @@
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none"
+    "terminal.integrated.profiles.windows": {
+        "Custom Init": {
+          "path": "cmd.exe",
+          "args": [
+             "/k",
+             "python-qgis-cmd.bat",
+          ]
+        }
+      },
+      "terminal.integrated.defaultProfile.windows": "Custom Init"
 }

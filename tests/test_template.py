@@ -1,4 +1,17 @@
-# content of test_class_demo.py
+#!python3
+import pytest
+
+# test Raise
+def f():
+    raise SystemExit(1)
+
+
+def test_mytest():
+    with pytest.raises(SystemExit):
+        f()
+
+
+# test class
 class TestClassDemoInstance:
     value = 0
 

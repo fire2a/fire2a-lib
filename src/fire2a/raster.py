@@ -110,7 +110,8 @@ def read_raster(filename: str) -> (_np.ndarray, dict):
     return data, info
 
 
-def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
+# def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
+def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
     """
     Get the cell size(s) of a raster.
 

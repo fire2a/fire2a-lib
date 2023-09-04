@@ -19,17 +19,26 @@ About us: https://www.fire2a.com
 __Developers__: [template package tutorial](development_tutorial.md) or https://github.com/fdobad/template-python-package
 
 ## Quickstart
-Installing [QGIS](https://qgis.org), cover most of our [requirements.txt](https://raw.githubusercontent.com/fire2a/fire2a-lib/main/requirements.txt)
+
+1. Installing [QGIS](https://qgis.org), cover most of our [requirements.txt](https://raw.githubusercontent.com/fire2a/fire2a-lib/main/requirements.txt).
+
+2. Activate QGIS python environment:  
+__Windows__ users run `python-qgis-cmd.bat` in a `cmd terminal`. [more info](https://fire2a.github.io/docs/docs/qgis/README.html#making-an-environment-launcher).  
+__Linux__ users: just launch QGIS from a venv activated terminal.
+
+3. Install
 ```bash
 (qgis_python_venv) $ pip install git+https://github.com/fire2a/fire2a-lib.git
 (qgis_python_venv) $ pip install -r requirements.txt
 ```
+
+4. Use
 Any language-server-protocol enabled environment is recommended:
 ```bash
 (qgis_python_venv) $ ipython
 In [1]: from fire2a.<press-tab-to-continue>
 ```
-### append to requirements.txt
+## On your project: append to requirements.txt
 Choose latest, branch, tag or commit
 ```
 # latest main
@@ -53,12 +62,21 @@ cp hook/pre-commit .git/hooks/.
 chmod +x .git/hooks/pre-commit
 cp hook/pre-push .git/hooks/.
 chmod +x .git/hooks/pre-push
+# activate python environment here
 pip install -r requirements.dev.txt
 pip install --editable .
 pdoc --html --http : --config latex_math=True fire2a  
 ```
-GDAL is not listed on requirements!  
-Install QGIS, make a venv with system-site-packages flag
+Watch out! GDAL is not listed on requirements! The easiest way is to install QGIS, then:  
+__Linux__ users should make a venv with the `--system-site-packages` flag  
+__Windows + VSCode__ users: this repo includes `.vscode\settings.json` that automates enabling the environment by  calling `python-qgis-cmd.bat`, so they should:
+- (all users will be affected) Make their QGIS python env [writable](https://fire2a.github.io/docs/docs/qgis/README.html#make-it-writable)
+- Open this repo folder as new window
+- (Ctrl+P) 'Python: Select Interpreter' > ... Select interpreter path: C:\Program Files\QGIS 3.32.2\apps\Python\python.exe
+- (Ctrl+P) 'Python: Create Terminal' enables the environment (now you can pip install...)
+- Also, selecting code and pressing Shift+Enter executes it on the python terminal.  
+A nice trick is exiting python and then opening ipython  
+Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and terminal windows
 
 ### Live view a single installed package
 ```bash
