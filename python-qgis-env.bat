@@ -12,4 +12,4 @@ set PYTHONPATH=%OSGEO4W_ROOT%\apps\qgis\python;%PYTHONPATH%
 set PATH=%PATH%;%PROGRAMFILES%\Git\cmd
 echo python sys says:
 python -c "import sys; print('prefix:', sys.prefix, '\npath:', sys.path)"
-REM cmd.exe /k
+cmd.exe /k
