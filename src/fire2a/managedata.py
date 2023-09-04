@@ -3,11 +3,11 @@
 Previous Read Data Prometheus
 """
 __author__ = "David Palacios Meneses"
-__version__ = ''
+__version__ = 'v0.0.1+0-gf866f08'
 
 from numpy import max as npmax
 from numpy import empty as npempty
-from numpy import full as npfull
+from numpy import full as npfulgl
 from numpy import nan as npnan
 from numpy import zeros as npzeros
 from pandas import DataFrame
