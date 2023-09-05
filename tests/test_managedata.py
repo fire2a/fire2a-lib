@@ -1,4 +1,9 @@
 #!python3
+"""
+managedata test
+"""
+__author__ = "David Palacios Meneses"
+__version__ = 'v0.0.1+0-gf866f08'
 import pytest
 from fire2a.managedata import GenDataFile
 from pathlib import Path
