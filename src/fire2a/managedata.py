@@ -7,11 +7,11 @@ __version__ = 'v0.0.1+0-gf866f08'
 
 from numpy import max as npmax
 from numpy import empty as npempty
-from numpy import full as npfulgl
+from numpy import full as npfull
 from numpy import nan as npnan
 from numpy import zeros as npzeros
 from pandas import DataFrame
-import os 
+from pathlib import Path
 
 def Lookupdict(filename: str) -> tuple[dict, dict]:
     """
@@ -59,7 +59,7 @@ def Lookupdict(filename: str) -> tuple[dict, dict]:
     return row, colors
 
 
-def ForestGrid(filename:str, Lookupdict:dict) -> tuple[list,list,int,int,list,list,int]:
+def ForestGrid(filename:str, Lookupdict:dict) -> tuple[(list,list,int,int,list,list,int)]:
 
     """
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
@@ -226,7 +226,7 @@ def ForestGrid(filename:str, Lookupdict:dict) -> tuple[list,list,int,int,list,li
 
 
 
-def DataGrids(InFolder:str, NCells:int) -> tuple[list,list, list, list, list, list, list,list,list]:
+def DataGrids(InFolder:str, NCells:int) -> tuple[(list,list, list, list, list, list, list,list,list)]:
     """
     Reads *.asc files and returns an array per each ASCII file with the correspondant information per each cell. Currently supports 
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
@@ -248,7 +248,7 @@ def DataGrids(InFolder:str, NCells:int) -> tuple[list,list, list, list, list, li
 
         
     """#fmt:skip
-
+    p=Path(InFolder)
     filenames = ["elevation.asc", "saz.asc", "slope.asc", "cur.asc", "cbd.asc", "cbh.asc", "ccf.asc","py.asc","fmc.asc"]
     Elevation =  npfull(NCells, npnan)
     SAZ = npfull(NCells, npnan)
@@ -261,8 +261,8 @@ def DataGrids(InFolder:str, NCells:int) -> tuple[list,list, list, list, list, li
     FMC=npfull(NCells,npnan)
     
     for name in filenames:
-        ff = os.path.join(InFolder, name)
-        if os.path.isfile(ff) == True:
+        ff = p/name
+        if ff.exists() == True:
             aux = 0
             with open(ff, "r") as f:
                 filelines = f.readlines()
@@ -347,6 +347,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
 
         
     """#fmt:skip
+    p=Path(InFolder)
     # DF columns
     Columns = ["fueltype", "lat", "lon", "elev", "ws", "waz", "ps", "saz", "cur", "cbd", "cbh", "ccf","ftypeN","fmc","py"]
     
@@ -369,14 +370,12 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
     #print(np.asarray(GFuelTypeN).flatten())
     
     # Data File
-    filename = os.path.join(InFolder, "Data.csv")
-    print(filename)
+    filename = p/"Data.csv"
     DF.to_csv(path_or_buf=filename, index=False, index_label=False, header=True)
-    
     return DF
 
 
-def GenDataFile(InFolder:str,Simulator:str):
+def GenDataFile(InFolder:str,Simulator:str)->None:
     """
     Main function that reads information available in folder and generates Data.csv file
 
@@ -389,17 +388,18 @@ def GenDataFile(InFolder:str,Simulator:str):
 
  
     """#fmt:skip
+    p=Path(InFolder)
     if Simulator=="K":
-        FBPlookup=os.path.join(InFolder, "kitral_lookup_table.csv")
+        FBPlookup=p/"kitral_lookup_table.csv"
     elif Simulator=="S":
-        FBPlookup = os.path.join(InFolder, "spain_lookup_table.csv")
+        FBPlookup = p/"spain_lookup_table.csv"
     else: #beta version
-        FBPlookup = os.path.join(InFolder, "spain_lookup_table.csv")
+        FBPlookup = p/"spain_lookup_table.csv"
 
-    FBPDict, ColorsDict =  Lookupdict(FBPlookup)
+    FBPDict, _ =  Lookupdict(FBPlookup)
     
-    FGrid = os.path.join(InFolder, "fuels.asc")
-    GFuelTypeN, GFuelType, Rows, Cols,AdjCells,CoordCells, CellSide = ForestGrid(FGrid, FBPDict)
+    FGrid = p/"fuels.asc"
+    GFuelTypeN, GFuelType,_,_,_,_,_= ForestGrid(FGrid, FBPDict)
     
     NCells = len(GFuelType)
     Elevation, SAZ, PS, Curing, CBD, CBH, CCF,PY,FMC = DataGrids(InFolder, NCells)
@@ -407,12 +407,12 @@ def GenDataFile(InFolder:str,Simulator:str):
 
 
 if __name__=="__main__":
-    tup1,tup2=Lookupdict("spain_lookup_table.csv")
-    a,b,colas,columnas,e,f,cellsize=ForestGrid("fuels.asc",tup1)
-    elev,saz,ps,curing,cbd,cbh,ccf,py,fmc=DataGrids("fuels.asc",colas*columnas)
-    df=GenerateDat(a,b,elev,saz,ps,curing,cbd,cbh,ccf,py,fmc,"")
-    print(GenDataFile("","S"))
-    print(help(GenDataFile))
+    p=Path("tests")
+    p_fuels=p/"fuels.asc"
+    p_lookup=p/"spain_lookup_table.csv"
+    GenDataFile("tests","S")
+    #check if generate data exists
+
 
 
 
