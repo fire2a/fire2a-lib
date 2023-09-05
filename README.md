@@ -76,6 +76,7 @@ __Windows + VSCode__ users: this repo includes `.vscode\settings.json` that auto
 - Open this repo folder as new window
 - (Ctrl+Shift+P) 'Python: Select Interpreter' > ... Select interpreter path: C:\Program Files\QGIS 3.32.2\apps\Python\python.exe
 - (Ctrl+Shift+P) 'Python: Create Terminal' enables the environment, __now you can pip install!__
+- __Bewate: git push__ only works from the terminal! Not the buttons!
 - Also, selecting code and pressing Shift+Enter executes it on the python terminal.  
 A nice trick is exiting python and then opening ipython  
 Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and terminal windows
