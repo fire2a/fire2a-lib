@@ -37,11 +37,11 @@ __version__ = &#39;v0.0.1+0-gf866f08&#39;
 
 from numpy import max as npmax
 from numpy import empty as npempty
-from numpy import full as npfulgl
+from numpy import full as npfull
 from numpy import nan as npnan
 from numpy import zeros as npzeros
 from pandas import DataFrame
-import os 
+from pathlib import Path
 
 def Lookupdict(filename: str) -&gt; tuple[dict, dict]:
     &#34;&#34;&#34;
@@ -89,7 +89,7 @@ def Lookupdict(filename: str) -&gt; tuple[dict, dict]:
     return row, colors
 
 
-def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[list,list,int,int,list,list,int]:
+def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[(list,list,int,int,list,list,int)]:
 
     &#34;&#34;&#34;
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
@@ -256,7 +256,7 @@ def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[list,list,int,int,list
 
 
 
-def DataGrids(InFolder:str, NCells:int) -&gt; tuple[list,list, list, list, list, list, list,list,list]:
+def DataGrids(InFolder:str, NCells:int) -&gt; tuple[(list,list, list, list, list, list, list,list,list)]:
     &#34;&#34;&#34;
     Reads *.asc files and returns an array per each ASCII file with the correspondant information per each cell. Currently supports 
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
@@ -278,7 +278,7 @@ def DataGrids(InFolder:str, NCells:int) -&gt; tuple[list,list, list, list, list,
 
         
     &#34;&#34;&#34;#fmt:skip
-
+    p=Path(InFolder)
     filenames = [&#34;elevation.asc&#34;, &#34;saz.asc&#34;, &#34;slope.asc&#34;, &#34;cur.asc&#34;, &#34;cbd.asc&#34;, &#34;cbh.asc&#34;, &#34;ccf.asc&#34;,&#34;py.asc&#34;,&#34;fmc.asc&#34;]
     Elevation =  npfull(NCells, npnan)
     SAZ = npfull(NCells, npnan)
@@ -291,8 +291,8 @@ def DataGrids(InFolder:str, NCells:int) -&gt; tuple[list,list, list, list, list,
     FMC=npfull(NCells,npnan)
     
     for name in filenames:
-        ff = os.path.join(InFolder, name)
-        if os.path.isfile(ff) == True:
+        ff = p/name
+        if ff.exists() == True:
             aux = 0
             with open(ff, &#34;r&#34;) as f:
                 filelines = f.readlines()
@@ -377,6 +377,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
 
         
     &#34;&#34;&#34;#fmt:skip
+    p=Path(InFolder)
     # DF columns
     Columns = [&#34;fueltype&#34;, &#34;lat&#34;, &#34;lon&#34;, &#34;elev&#34;, &#34;ws&#34;, &#34;waz&#34;, &#34;ps&#34;, &#34;saz&#34;, &#34;cur&#34;, &#34;cbd&#34;, &#34;cbh&#34;, &#34;ccf&#34;,&#34;ftypeN&#34;,&#34;fmc&#34;,&#34;py&#34;]
     
@@ -399,14 +400,12 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
     #print(np.asarray(GFuelTypeN).flatten())
     
     # Data File
-    filename = os.path.join(InFolder, &#34;Data.csv&#34;)
-    print(filename)
+    filename = p/&#34;Data.csv&#34;
     DF.to_csv(path_or_buf=filename, index=False, index_label=False, header=True)
-    
     return DF
 
 
-def GenDataFile(InFolder:str,Simulator:str):
+def GenDataFile(InFolder:str,Simulator:str)-&gt;None:
     &#34;&#34;&#34;
     Main function that reads information available in folder and generates Data.csv file
 
@@ -419,17 +418,18 @@ def GenDataFile(InFolder:str,Simulator:str):
 
  
     &#34;&#34;&#34;#fmt:skip
+    p=Path(InFolder)
     if Simulator==&#34;K&#34;:
-        FBPlookup=os.path.join(InFolder, &#34;kitral_lookup_table.csv&#34;)
+        FBPlookup=p/&#34;kitral_lookup_table.csv&#34;
     elif Simulator==&#34;S&#34;:
-        FBPlookup = os.path.join(InFolder, &#34;spain_lookup_table.csv&#34;)
+        FBPlookup = p/&#34;spain_lookup_table.csv&#34;
     else: #beta version
-        FBPlookup = os.path.join(InFolder, &#34;spain_lookup_table.csv&#34;)
+        FBPlookup = p/&#34;spain_lookup_table.csv&#34;
 
-    FBPDict, ColorsDict =  Lookupdict(FBPlookup)
+    FBPDict, _ =  Lookupdict(FBPlookup)
     
-    FGrid = os.path.join(InFolder, &#34;fuels.asc&#34;)
-    GFuelTypeN, GFuelType, Rows, Cols,AdjCells,CoordCells, CellSide = ForestGrid(FGrid, FBPDict)
+    FGrid = p/&#34;fuels.asc&#34;
+    GFuelTypeN, GFuelType,_,_,_,_,_= ForestGrid(FGrid, FBPDict)
     
     NCells = len(GFuelType)
     Elevation, SAZ, PS, Curing, CBD, CBH, CCF,PY,FMC = DataGrids(InFolder, NCells)
@@ -437,12 +437,11 @@ def GenDataFile(InFolder:str,Simulator:str):
 
 
 if __name__==&#34;__main__&#34;:
-    tup1,tup2=Lookupdict(&#34;spain_lookup_table.csv&#34;)
-    a,b,colas,columnas,e,f,cellsize=ForestGrid(&#34;fuels.asc&#34;,tup1)
-    elev,saz,ps,curing,cbd,cbh,ccf,py,fmc=DataGrids(&#34;fuels.asc&#34;,colas*columnas)
-    df=GenerateDat(a,b,elev,saz,ps,curing,cbd,cbh,ccf,py,fmc,&#34;&#34;)
-    print(GenDataFile(&#34;&#34;,&#34;S&#34;))
-    print(help(GenDataFile))</code></pre>
+    p=Path(&#34;tests&#34;)
+    p_fuels=p/&#34;fuels.asc&#34;
+    p_lookup=p/&#34;spain_lookup_table.csv&#34;
+    GenDataFile(&#34;tests&#34;,&#34;S&#34;)
+    #check if generate data exists</code></pre>
 </details>
 </section>
 <section>
@@ -490,7 +489,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def DataGrids(InFolder:str, NCells:int) -&gt; tuple[list,list, list, list, list, list, list,list,list]:
+<pre><code class="python">def DataGrids(InFolder:str, NCells:int) -&gt; tuple[(list,list, list, list, list, list, list,list,list)]:
     &#34;&#34;&#34;
     Reads *.asc files and returns an array per each ASCII file with the correspondant information per each cell. Currently supports 
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
@@ -512,7 +511,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 
         
     &#34;&#34;&#34;#fmt:skip
-
+    p=Path(InFolder)
     filenames = [&#34;elevation.asc&#34;, &#34;saz.asc&#34;, &#34;slope.asc&#34;, &#34;cur.asc&#34;, &#34;cbd.asc&#34;, &#34;cbh.asc&#34;, &#34;ccf.asc&#34;,&#34;py.asc&#34;,&#34;fmc.asc&#34;]
     Elevation =  npfull(NCells, npnan)
     SAZ = npfull(NCells, npnan)
@@ -525,8 +524,8 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     FMC=npfull(NCells,npnan)
     
     for name in filenames:
-        ff = os.path.join(InFolder, name)
-        if os.path.isfile(ff) == True:
+        ff = p/name
+        if ff.exists() == True:
             aux = 0
             with open(ff, &#34;r&#34;) as f:
                 filelines = f.readlines()
@@ -617,7 +616,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[list,list,int,int,list,list,int]:
+<pre><code class="python">def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[(list,list,int,int,list,list,int)]:
 
     &#34;&#34;&#34;
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
@@ -784,7 +783,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.managedata.GenDataFile"><code class="name flex">
-<span>def <span class="ident">GenDataFile</span></span>(<span>InFolder: str, Simulator: str)</span>
+<span>def <span class="ident">GenDataFile</span></span>(<span>InFolder: str, Simulator: str) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Main function that reads information available in folder and generates Data.csv file</p>
@@ -801,7 +800,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def GenDataFile(InFolder:str,Simulator:str):
+<pre><code class="python">def GenDataFile(InFolder:str,Simulator:str)-&gt;None:
     &#34;&#34;&#34;
     Main function that reads information available in folder and generates Data.csv file
 
@@ -814,17 +813,18 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 
  
     &#34;&#34;&#34;#fmt:skip
+    p=Path(InFolder)
     if Simulator==&#34;K&#34;:
-        FBPlookup=os.path.join(InFolder, &#34;kitral_lookup_table.csv&#34;)
+        FBPlookup=p/&#34;kitral_lookup_table.csv&#34;
     elif Simulator==&#34;S&#34;:
-        FBPlookup = os.path.join(InFolder, &#34;spain_lookup_table.csv&#34;)
+        FBPlookup = p/&#34;spain_lookup_table.csv&#34;
     else: #beta version
-        FBPlookup = os.path.join(InFolder, &#34;spain_lookup_table.csv&#34;)
+        FBPlookup = p/&#34;spain_lookup_table.csv&#34;
 
-    FBPDict, ColorsDict =  Lookupdict(FBPlookup)
+    FBPDict, _ =  Lookupdict(FBPlookup)
     
-    FGrid = os.path.join(InFolder, &#34;fuels.asc&#34;)
-    GFuelTypeN, GFuelType, Rows, Cols,AdjCells,CoordCells, CellSide = ForestGrid(FGrid, FBPDict)
+    FGrid = p/&#34;fuels.asc&#34;
+    GFuelTypeN, GFuelType,_,_,_,_,_= ForestGrid(FGrid, FBPDict)
     
     NCells = len(GFuelType)
     Elevation, SAZ, PS, Curing, CBD, CBH, CCF,PY,FMC = DataGrids(InFolder, NCells)
@@ -897,6 +897,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 
         
     &#34;&#34;&#34;#fmt:skip
+    p=Path(InFolder)
     # DF columns
     Columns = [&#34;fueltype&#34;, &#34;lat&#34;, &#34;lon&#34;, &#34;elev&#34;, &#34;ws&#34;, &#34;waz&#34;, &#34;ps&#34;, &#34;saz&#34;, &#34;cur&#34;, &#34;cbd&#34;, &#34;cbh&#34;, &#34;ccf&#34;,&#34;ftypeN&#34;,&#34;fmc&#34;,&#34;py&#34;]
     
@@ -919,10 +920,8 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     #print(np.asarray(GFuelTypeN).flatten())
     
     # Data File
-    filename = os.path.join(InFolder, &#34;Data.csv&#34;)
-    print(filename)
+    filename = p/&#34;Data.csv&#34;
     DF.to_csv(path_or_buf=filename, index=False, index_label=False, header=True)
-    
     return DF</code></pre>
 </details>
 </dd>
