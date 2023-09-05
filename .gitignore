@@ -164,6 +164,3 @@ cython_debug/
 # vim
 *.sw[pon]
 *~
-
-# webpage
-doc/fire2a-lib
