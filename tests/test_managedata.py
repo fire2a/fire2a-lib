@@ -3,30 +3,46 @@
 managedata test
 """
 __author__ = "David Palacios Meneses"
-__version__ = 'v0.0.1+0-gf866f08'
-import pytest
-from fire2a.managedata import GenDataFile
+__version__ = "v0.0.1+0-gf866f08"
 from pathlib import Path
-# test Raise
-def f():
-    raise SystemExit(1)
+
+from pandas import read_csv
+
+global assets_path
+assets_path = Path("tests", "assets")
 
 
-def test_mytest():
-    with pytest.raises(SystemExit):
-        f()
+def test_DataCsv_isGenerated():
+    """this test checks if the Data.csv file is generated
+    TODO generate the file in a temporary folder https://docs.pytest.org/en/7.4.x/how-to/tmp_path.html#tmp-path-handling
+    """
+    from fire2a.managedata import GenDataFile
 
-
-# test class
-class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path("tests") #define tests path
-        GenDataFile("tests","S") #call function
-        p_data=p/"Data.csv" #define target assertion file
-        self.value = p_data.exists() #check if exists
-        assert self.value == 1 #assert
-        p_data.unlink() #delete Data.csv file
-
+    output_file = assets_path / "Data.csv"
+    # prepare
+    if output_file.exists():
+        output_file.unlink()
+    GenDataFile(assets_path.absolute(), "S")
+    assert output_file.exists()
+    df = read_csv(output_file)
+    assert all(
+        df.columns
+        == [
+            "fueltype",
+            "lat",
+            "lon",
+            "elev",
+            "ws",
+            "waz",
+            "ps",
+            "saz",
+            "cur",
+            "cbd",
+            "cbh",
+            "ccf",
+            "ftypeN",
+            "fmc",
+            "py",
+        ]
+    )
+    output_file.unlink()
