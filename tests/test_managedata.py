@@ -5,24 +5,22 @@ managedata test
 __author__ = "David Palacios Meneses"
 __version__ = "v0.0.1+0-gf866f08"
 from pathlib import Path
+from shutil import copy
 
 from pandas import read_csv
 
-global assets_path
-assets_path = Path("tests", "assets")
 
-
-def test_DataCsv_isGenerated():
-    """this test checks if the Data.csv file is generated
-    TODO generate the file in a temporary folder https://docs.pytest.org/en/7.4.x/how-to/tmp_path.html#tmp-path-handling
+def test_DataCsv_isGenerated(request, tmp_path):
+    """this test checks if the Data.csv file is generated from a fire Instance Folder
+    TODO add more raster layer
     """
     from fire2a.managedata import GenDataFile
 
-    output_file = assets_path / "Data.csv"
-    # prepare
-    if output_file.exists():
-        output_file.unlink()
-    GenDataFile(assets_path.absolute(), "S")
+    assets_path = request.config.rootdir / "tests" / "assets"
+    copy(assets_path / "spain_lookup_table.csv", tmp_path)
+    copy(assets_path / "fuels.asc", tmp_path)
+    GenDataFile(tmp_path, "S")
+    output_file = tmp_path / "Data.csv"
     assert output_file.exists()
     df = read_csv(output_file)
     assert all(
@@ -45,4 +43,3 @@ def test_DataCsv_isGenerated():
             "py",
         ]
     )
-    output_file.unlink()
