@@ -18,7 +18,7 @@ def Lookupdict(filename: str) -> tuple[dict, dict]:
     Reads lookup_table.csv and creates dictionaries for the fuel types and cells' colors
 
     Args:
-        filename (string): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
+        filename (str): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
 
     Returns:
         dict [int,str]: Dictionary with fuel code number as key and fuel model name as value.
@@ -65,12 +65,12 @@ def ForestGrid(filename:str, Lookupdict:dict) -> tuple[(list,list,int,int,list,l
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
 
     Args:
-        filename (string): Path to fuel fuel model in ascii format (fuels.asc).
+        filename (str): Path to fuel fuel model in ascii format (fuels.asc).
         Lookupdict (int,str): Dictionary with fuel code number as key and fuel model name as value.
 
     Returns:
         list [int]: List of forest grid with fuel code number, where non fuel are represented as 0
-        list [string]: List of forest grid with fuel code name, where non fuel are represented as NF.
+        list [str]: List of forest grid with fuel code name, where non fuel are represented as NF.
         int: Number of rows of forest grid.
         int: Number of columns of forest grid.
         list [dict[str,list[int]]]: List of dictionaries that contains the neighbors of each cell in each compass rose direction
@@ -232,7 +232,7 @@ def DataGrids(InFolder:str, NCells:int) -> tuple[(list,list, list, list, list, l
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
 
     Args:
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
         NCells (int): Number of cells in grid.
 
     Returns:
@@ -328,7 +328,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
 
     Args:
         GFuelType (list [int]): List of forest grid with fuel code number, where non fuel are represented as 0
-        GFuelTypeN (list [string]): List of forest grid with fuel code name, where non fuel are represented as NF.
+        GFuelTypeN (list [str]): List of forest grid with fuel code name, where non fuel are represented as NF.
         Elevation (list [float]): List of elevations of each cell
         PS (list [float]): List of slope of each cell
         SAZ (list [float]): List of aspect of each cell
@@ -338,7 +338,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
         CCF (list [float]): List of conifer percent dead fir of each cell
         PY (list [float]): List of ignition probability of each cell
         FMC (list [float]): List of foliar moisture content of each cell
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
 
     Returns:
 
@@ -380,8 +380,8 @@ def GenDataFile(InFolder:str,Simulator:str)->None:
     Main function that reads information available in folder and generates Data.csv file
 
     Args:
-        InFolder (string): Path to data folder.
-        Simulator (string): Simulator version, currently only supports "K" (for kitral) and "S" (for Scott & Burgan)
+        InFolder (str): Path to data folder.
+        Simulator (str): Simulator version, currently only supports "K" (for kitral) and "S" (for Scott & Burgan)
 
     Return:
         None

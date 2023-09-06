@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>fire2a-lib.src.fire2a.clusteroptimization API documentation</title>
+<meta name="description" content="Optimization module" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>fire2a-lib.src.fire2a.clusteroptimization</code></h1>
+</header>
+<section id="section-intro">
+<p>Optimization module</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!python3
+&#34;&#34;&#34;
+Optimization module
+&#34;&#34;&#34;
+__author__ = &#34;David Palacios Meneses&#34;
+__version__ = &#39;XXXX&#39;
+
+import os
+import pandas as pd
+import pyomo.environ as pyo
+from collections import defaultdict
+import time
+from fire2a.managedata import Lookupdict, ForestGrid
+from fire2a.raster import read_raster
+from fire2a.treatmentpreproccessing import bin_to_nod
+
+def values_per_cluster(dpv:dict)-&gt;dict:
+  &#34;&#34;&#34;
+  Gets dpv values per each cell and returns the average dpv of each cluster
+
+  Args:
+    dpv (dict [int,list[tuple[float,int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
+    and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs
+
+  Returns:
+    dict [int, float] Dictionary with the mean dpv of each cluster
+  &#34;&#34;&#34; #fmt: skip
+
+  all_values=list(dpv.values())
+  out_dict={}
+  aux_counter={}
+  for value,rodal in all_values:
+    if rodal not in out_dict:
+      out_dict[rodal]=value
+      aux_counter[rodal]=1
+    else:
+      out_dict[rodal]+=value
+      aux_counter[rodal]+=1
+  for key in out_dict:
+    out_dict[key]=out_dict[key]/aux_counter[key]
+  return out_dict
+  
+
+
+
+def obj_rule(model:pyo.ConcreteModel) -&gt; pyo.linear_expression:
+    r&#34;&#34;&#34;
+    Pyomo model objective function:
+         
+    $$
+    \sum_{c \in C} x_{c} \cdot DPV_{c}
+    $$   
+    where C corresponds to a set of clusters, x corresponds to the decision of selecting fuel treatment and DPV corresponds
+    to the dpv of the respective cluster
+
+    Args:
+        model (pyo.ConcreteModel): A pyomo model
+
+    Returns:
+
+        pyo.linear_expression:  Objective function
+    &#34;&#34;&#34;
+        
+    return sum(model.fpv[i]*model.x[i] for i in model.I)
+
+def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; pyo.Var:
+    &#34;&#34;&#34;
+    Pyomo optimization model
+
+    Args:
+        treatment_percentage (float [0,1]): Max percentage of AvailCells to treat
+        AvailCells (set[int]): Set of Available Cells (do not includes cells with no data, no fuel or firebreak)
+        cluster_size (dict[int,int]): Dictionary with clusters as key and number of cells of each cluster as value
+        cluster_dpv (dict[int,float]): Dictionary with clusters as key and average DPV of each cluster as value 
+
+    Returns:
+
+        pyo.Var:  Decision variable that indicates objective clusters to treat
+    &#34;&#34;&#34;#fmt: skip
+     
+    max_percentage=int(treatment_percentage*len(AvailCells))
+
+    clusters=cluster_size.keys()
+
+    model= pyo.ConcreteModel()
+
+    model.I=pyo.Set(initialize=list(clusters))
+    model.x = pyo.Var(model.I, 
+                    domain=pyo.Binary, 
+                    initialize = 0)
+    model.fpv = pyo.Param(model.I, 
+                        initialize = cluster_dpv ,
+                        default = 0)
+    model.csize=pyo.Param(model.I, initialize=cluster_size)
+    
+    model.z = pyo.Objective(rule=obj_rule, sense=pyo.maximize)
+
+    model.cons= pyo.Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
+    solver = pyo.SolverFactory(&#39;glpk&#39;)
+    t0 = time.time()
+    print(&#34;solving...&#34;)
+    results = solver.solve(model,logfile=&#34;lg.log&#34;)
+    tf = time.time()
+    t = tf-t0
+    print(f&#39;Resolution Time: {t}&#39;)
+    print(&#34;Optimization Model Results:&#34;)
+    model.z.display()
+
+    return model.x
+
+def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
+    &#34;&#34;&#34;
+    Manages DPV and clusters data for optimization model format
+    
+    Args:
+        dpvFile (string): Downstream Protection Value ASCII file
+        clusterFile (string): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
+        NCells (int): Number of cells in the landscape
+
+    Returns:
+        dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
+        cluster_size (dict[int,int]): Dictionary with clusters as key and number of cells of each cluster as value
+        cells_in_clusters (dict[int,[list[int]]]): Dictionary with clusters as key and a list containing cells id \
+        inside that cluster as value
+        
+    &#34;&#34;&#34;
+
+    all_dpv_values,dpvmetadata=read_raster(dpvFile)  #array of dpv values
+    cluster_array,dpvmetadata=read_raster(clusterFile) #array
+    dpv_values = {i+1:[j] for i,j in enumerate(all_dpv_values)}
+    cluster_keys={i+1:int(j) for i,j in enumerate(cluster_array)}
+    cells_in_clusters=defaultdict(list)
+    for key, value in sorted(cluster_keys.items()):
+        cells_in_clusters[value].append(key) #dict with cluster id as key and list of cells id as value
+    cluster_size={}
+    for key in cells_in_clusters:
+        cluster_size[key]=len(cells_in_clusters[key]) #dict with cluster id as key and number of cells inside that cluster as value
+    for k, v in list(dpv_values.items()):
+        if v[0] &lt; 0:
+            del dpv_values[k]
+        else:
+            dpv_values[k].append(cluster_keys[k])
+
+    return dpv_values,cluster_size,cells_in_clusters
+
+
+def run_model(InFolder:str,lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_percentage:float):
+
+    FBPDict, ColorsDict = ManageData.Dictionary(lookupTable)
+    CellsGridNumber, CellsGridName, Rows, Cols, AdjCells, CoordCells, CellSide = ManageData.ForestGrid(ForestFile,FBPDict)
+    NCells = Rows * Cols
+    m = Rows
+    n = Cols
+    Colors = []
+
+    AvailSet = set()
+    NonAvailSet = set()
+    AvailCells=set()
+
+    setDir = [&#39;S&#39;, &#39;SE&#39;, &#39;E&#39;, &#39;NE&#39;, &#39;N&#39;, &#39;NW&#39;, &#39;W&#39;, &#39;SW&#39;]
+    aux = set([])
+    Adjacents = {} # dict of adjacency of availCells
+    for k in range(NCells):
+        aux = set([])
+        for i in setDir:
+            if AdjCells[k][i] != None:
+                if AdjCells[k][i][0] in AvailSet :
+                    aux = aux | set(AdjCells[k][i])
+        Adjacents[k + 1] = aux &amp; AvailSet
+    dpv_values,cluster_size,cells_in_clusters=manageClusterData(dpvFile,clusterFile,NCells)
+
+    cluster_dpv=values_per_cluster(dpv_values)
+
+    optimization_plan=optimization_model(treatment_percentage,AvailCells,cluster_size,cluster_dpv)
+
+    S = set()  
+
+    for i in cluster_size.keys():
+        if pyo.value(optimization_plan[i]) &gt; 0: 
+        # print &#39;x[&#39; + str(i) + &#39;] = &#39;, value(model.x[i])
+            S.add(i)
+    firebreaks=[]
+    for k in S:
+        for element in cells_in_clusters[k]:
+            firebreaks.append(element)
+    bin_to_nod(firebreaks)
+    print(&#34;success&#34;)
+
+    ###for version 2.0. generate raster version of the firebreak treatment
+    return None
+
+if __name__==&#34;__main__&#34;:
+    initial_time=time.time()
+    InFolder=&#34;C://Users//david//Desktop//FireGraphs&#34;
+    lookupTable=os.path.join(InFolder,&#34;spain_lookup_table.csv&#34;)
+    forestFile=os.path.join(InFolder,&#34;fuels.asc&#34;)
+    dpvFile=os.path.join(InFolder,&#34;dpv.asc&#34;)
+    clusterFile=os.path.join(InFolder,&#34;clusters.asc&#34;)
+
+    percentage=0.05
+    run_model(InFolder,lookupTable,forestFile,dpvFile,clusterFile,percentage)
+
+    print(&#34;end&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.manageClusterData"><code class="name flex">
+<span>def <span class="ident">manageClusterData</span></span>(<span>dpvFile: str, clusterFile: str, NCells: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Manages DPV and clusters data for optimization model format</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dpvFile</code></strong> :&ensp;<code>string</code></dt>
+<dd>Downstream Protection Value ASCII file</dd>
+<dt><strong><code>clusterFile</code></strong> :&ensp;<code>string</code></dt>
+<dd>Cluster ASCII file, where each cell has the cluster identifier to which it belongs</dd>
+<dt><strong><code>NCells</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of cells in the landscape</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
+cluster_size (dict[int,int]): Dictionary with clusters as key and number of cells of each cluster as value
+cells_in_clusters (dict[int,[list[int]]]): Dictionary with clusters as key and a list containing cells id
+inside that cluster as value</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
+    &#34;&#34;&#34;
+    Manages DPV and clusters data for optimization model format
+    
+    Args:
+        dpvFile (string): Downstream Protection Value ASCII file
+        clusterFile (string): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
+        NCells (int): Number of cells in the landscape
+
+    Returns:
+        dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
+        cluster_size (dict[int,int]): Dictionary with clusters as key and number of cells of each cluster as value
+        cells_in_clusters (dict[int,[list[int]]]): Dictionary with clusters as key and a list containing cells id \
+        inside that cluster as value
+        
+    &#34;&#34;&#34;
+
+    all_dpv_values,dpvmetadata=read_raster(dpvFile)  #array of dpv values
+    cluster_array,dpvmetadata=read_raster(clusterFile) #array
+    dpv_values = {i+1:[j] for i,j in enumerate(all_dpv_values)}
+    cluster_keys={i+1:int(j) for i,j in enumerate(cluster_array)}
+    cells_in_clusters=defaultdict(list)
+    for key, value in sorted(cluster_keys.items()):
+        cells_in_clusters[value].append(key) #dict with cluster id as key and list of cells id as value
+    cluster_size={}
+    for key in cells_in_clusters:
+        cluster_size[key]=len(cells_in_clusters[key]) #dict with cluster id as key and number of cells inside that cluster as value
+    for k, v in list(dpv_values.items()):
+        if v[0] &lt; 0:
+            del dpv_values[k]
+        else:
+            dpv_values[k].append(cluster_keys[k])
+
+    return dpv_values,cluster_size,cells_in_clusters</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.obj_rule"><code class="name flex">
+<span>def <span class="ident">obj_rule</span></span>(<span>model: pyomo.core.base.PyomoModel.ConcreteModel) ‑> pyomo.core.expr.numeric_expr.linear_expression</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pyomo model objective function:</p>
+<p><span><span class="MathJax_Preview">
+\sum_{c \in C} x_{c} \cdot DPV_{c}
+</span><script type="math/tex; mode=display">
+\sum_{c \in C} x_{c} \cdot DPV_{c}
+</script></span> <br>
+where C corresponds to a set of clusters, x corresponds to the decision of selecting fuel treatment and DPV corresponds
+to the dpv of the respective cluster</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>model</code></strong> :&ensp;<code>pyo.ConcreteModel</code></dt>
+<dd>A pyomo model</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pyo.linear_expression</code></dt>
+<dd>Objective function</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def obj_rule(model:pyo.ConcreteModel) -&gt; pyo.linear_expression:
+    r&#34;&#34;&#34;
+    Pyomo model objective function:
+         
+    $$
+    \sum_{c \in C} x_{c} \cdot DPV_{c}
+    $$   
+    where C corresponds to a set of clusters, x corresponds to the decision of selecting fuel treatment and DPV corresponds
+    to the dpv of the respective cluster
+
+    Args:
+        model (pyo.ConcreteModel): A pyomo model
+
+    Returns:
+
+        pyo.linear_expression:  Objective function
+    &#34;&#34;&#34;
+        
+    return sum(model.fpv[i]*model.x[i] for i in model.I)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.optimization_model"><code class="name flex">
+<span>def <span class="ident">optimization_model</span></span>(<span>treatment_percentage: float, AvailCells: set, cluster_size: dict, cluster_dpv: dict) ‑> pyomo.core.base.var.Var</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pyomo optimization model</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>treatment_percentage</code></strong> :&ensp;<code>float [0,1]</code></dt>
+<dd>Max percentage of AvailCells to treat</dd>
+<dt><strong><code>AvailCells</code></strong> :&ensp;<code>set[int]</code></dt>
+<dd>Set of Available Cells (do not includes cells with no data, no fuel or firebreak)</dd>
+<dt><strong><code>cluster_size</code></strong> :&ensp;<code>dict[int,int]</code></dt>
+<dd>Dictionary with clusters as key and number of cells of each cluster as value</dd>
+<dt><strong><code>cluster_dpv</code></strong> :&ensp;<code>dict[int,float]</code></dt>
+<dd>Dictionary with clusters as key and average DPV of each cluster as value </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>pyo.Var</code></dt>
+<dd>Decision variable that indicates objective clusters to treat</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; pyo.Var:
+    &#34;&#34;&#34;
+    Pyomo optimization model
+
+    Args:
+        treatment_percentage (float [0,1]): Max percentage of AvailCells to treat
+        AvailCells (set[int]): Set of Available Cells (do not includes cells with no data, no fuel or firebreak)
+        cluster_size (dict[int,int]): Dictionary with clusters as key and number of cells of each cluster as value
+        cluster_dpv (dict[int,float]): Dictionary with clusters as key and average DPV of each cluster as value 
+
+    Returns:
+
+        pyo.Var:  Decision variable that indicates objective clusters to treat
+    &#34;&#34;&#34;#fmt: skip
+     
+    max_percentage=int(treatment_percentage*len(AvailCells))
+
+    clusters=cluster_size.keys()
+
+    model= pyo.ConcreteModel()
+
+    model.I=pyo.Set(initialize=list(clusters))
+    model.x = pyo.Var(model.I, 
+                    domain=pyo.Binary, 
+                    initialize = 0)
+    model.fpv = pyo.Param(model.I, 
+                        initialize = cluster_dpv ,
+                        default = 0)
+    model.csize=pyo.Param(model.I, initialize=cluster_size)
+    
+    model.z = pyo.Objective(rule=obj_rule, sense=pyo.maximize)
+
+    model.cons= pyo.Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
+    solver = pyo.SolverFactory(&#39;glpk&#39;)
+    t0 = time.time()
+    print(&#34;solving...&#34;)
+    results = solver.solve(model,logfile=&#34;lg.log&#34;)
+    tf = time.time()
+    t = tf-t0
+    print(f&#39;Resolution Time: {t}&#39;)
+    print(&#34;Optimization Model Results:&#34;)
+    model.z.display()
+
+    return model.x</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.run_model"><code class="name flex">
+<span>def <span class="ident">run_model</span></span>(<span>InFolder: str, lookupTable: str, ForestFile: str, dpvFile: str, clusterFile: str, treatment_percentage: float)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_model(InFolder:str,lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_percentage:float):
+
+    FBPDict, ColorsDict = ManageData.Dictionary(lookupTable)
+    CellsGridNumber, CellsGridName, Rows, Cols, AdjCells, CoordCells, CellSide = ManageData.ForestGrid(ForestFile,FBPDict)
+    NCells = Rows * Cols
+    m = Rows
+    n = Cols
+    Colors = []
+
+    AvailSet = set()
+    NonAvailSet = set()
+    AvailCells=set()
+
+    setDir = [&#39;S&#39;, &#39;SE&#39;, &#39;E&#39;, &#39;NE&#39;, &#39;N&#39;, &#39;NW&#39;, &#39;W&#39;, &#39;SW&#39;]
+    aux = set([])
+    Adjacents = {} # dict of adjacency of availCells
+    for k in range(NCells):
+        aux = set([])
+        for i in setDir:
+            if AdjCells[k][i] != None:
+                if AdjCells[k][i][0] in AvailSet :
+                    aux = aux | set(AdjCells[k][i])
+        Adjacents[k + 1] = aux &amp; AvailSet
+    dpv_values,cluster_size,cells_in_clusters=manageClusterData(dpvFile,clusterFile,NCells)
+
+    cluster_dpv=values_per_cluster(dpv_values)
+
+    optimization_plan=optimization_model(treatment_percentage,AvailCells,cluster_size,cluster_dpv)
+
+    S = set()  
+
+    for i in cluster_size.keys():
+        if pyo.value(optimization_plan[i]) &gt; 0: 
+        # print &#39;x[&#39; + str(i) + &#39;] = &#39;, value(model.x[i])
+            S.add(i)
+    firebreaks=[]
+    for k in S:
+        for element in cells_in_clusters[k]:
+            firebreaks.append(element)
+    bin_to_nod(firebreaks)
+    print(&#34;success&#34;)
+
+    ###for version 2.0. generate raster version of the firebreak treatment
+    return None</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.values_per_cluster"><code class="name flex">
+<span>def <span class="ident">values_per_cluster</span></span>(<span>dpv: dict) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets dpv values per each cell and returns the average dpv of each cluster</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dpv</code></strong> :&ensp;<code>dict [int,list[tuple[float,int]]]</code></dt>
+<dd>DPV values of each cell as a dictionary, where each cell is represented as key,
+and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>dict [int, float] Dictionary with the mean dpv of each cluster</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def values_per_cluster(dpv:dict)-&gt;dict:
+  &#34;&#34;&#34;
+  Gets dpv values per each cell and returns the average dpv of each cluster
+
+  Args:
+    dpv (dict [int,list[tuple[float,int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
+    and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs
+
+  Returns:
+    dict [int, float] Dictionary with the mean dpv of each cluster
+  &#34;&#34;&#34; #fmt: skip
+
+  all_values=list(dpv.values())
+  out_dict={}
+  aux_counter={}
+  for value,rodal in all_values:
+    if rodal not in out_dict:
+      out_dict[rodal]=value
+      aux_counter[rodal]=1
+    else:
+      out_dict[rodal]+=value
+      aux_counter[rodal]+=1
+  for key in out_dict:
+    out_dict[key]=out_dict[key]/aux_counter[key]
+  return out_dict</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="fire2a-lib.src.fire2a" href="index.html">fire2a-lib.src.fire2a</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.manageClusterData" href="#fire2a-lib.src.fire2a.clusteroptimization.manageClusterData">manageClusterData</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.obj_rule" href="#fire2a-lib.src.fire2a.clusteroptimization.obj_rule">obj_rule</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.optimization_model" href="#fire2a-lib.src.fire2a.clusteroptimization.optimization_model">optimization_model</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.run_model" href="#fire2a-lib.src.fire2a.clusteroptimization.run_model">run_model</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.values_per_cluster" href="#fire2a-lib.src.fire2a.clusteroptimization.values_per_cluster">values_per_cluster</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>

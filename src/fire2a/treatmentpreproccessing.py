@@ -14,7 +14,7 @@ def bin_to_nod(solution:list, filename="treatment.csv")-> None:
     
     Args:
         solution (list[int]): List with id of treatment cell
-        filename (string): Path and name of the destiny folder (should be a .csv)
+        filename (str): Path and name of the destiny folder (should be a .csv)
 
     Returns:
         None
