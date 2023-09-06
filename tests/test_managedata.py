@@ -4,29 +4,41 @@ managedata test
 """
 __author__ = "David Palacios Meneses"
 __version__ = 'v0.0.1+0-gf866f08'
-import pytest
-from fire2a.managedata import GenDataFile
-from pathlib import Path
-# test Raise
-def f():
-    raise SystemExit(1)
+from shutil import copy
+
+from pandas import read_csv
 
 
-def test_mytest():
-    with pytest.raises(SystemExit):
-        f()
+def test_DataCsv_isGenerated(request, tmp_path):
+    """this test checks if the Data.csv file is generated from a fire Instance Folder
+    TODO add more raster layer
+    """
+    from fire2a.managedata import GenDataFile
 
-
-# test class
-class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path("tests") #define tests path
-        GenDataFile("tests","S") #call function
-        p_data=p/"Data.csv" #define target assertion file
-        self.value = p_data.exists() #check if exists
-        assert self.value == 1 #assert
-        p_data.unlink() #delete Data.csv file
-
+    assets_path = request.config.rootdir / "tests" / "assets"
+    copy(assets_path / "spain_lookup_table.csv", tmp_path)
+    copy(assets_path / "fuels.asc", tmp_path)
+    GenDataFile(tmp_path, "S")
+    output_file = tmp_path / "Data.csv"
+    assert output_file.exists()
+    df = read_csv(output_file)
+    assert all(
+        df.columns
+        == [
+            "fueltype",
+            "lat",
+            "lon",
+            "elev",
+            "ws",
+            "waz",
+            "ps",
+            "saz",
+            "cur",
+            "cbd",
+            "cbh",
+            "ccf",
+            "ftypeN",
+            "fmc",
+            "py",
+        ]
+    )

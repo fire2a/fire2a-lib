@@ -48,7 +48,7 @@ def Lookupdict(filename: str) -&gt; tuple[dict, dict]:
     Reads lookup_table.csv and creates dictionaries for the fuel types and cells&#39; colors
 
     Args:
-        filename (string): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
+        filename (str): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
 
     Returns:
         dict [int,str]: Dictionary with fuel code number as key and fuel model name as value.
@@ -95,12 +95,12 @@ def ForestGrid(filename:str, Lookupdict:dict) -&gt; tuple[(list,list,int,int,lis
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
 
     Args:
-        filename (string): Path to fuel fuel model in ascii format (fuels.asc).
+        filename (str): Path to fuel fuel model in ascii format (fuels.asc).
         Lookupdict (int,str): Dictionary with fuel code number as key and fuel model name as value.
 
     Returns:
         list [int]: List of forest grid with fuel code number, where non fuel are represented as 0
-        list [string]: List of forest grid with fuel code name, where non fuel are represented as NF.
+        list [str]: List of forest grid with fuel code name, where non fuel are represented as NF.
         int: Number of rows of forest grid.
         int: Number of columns of forest grid.
         list [dict[str,list[int]]]: List of dictionaries that contains the neighbors of each cell in each compass rose direction
@@ -262,7 +262,7 @@ def DataGrids(InFolder:str, NCells:int) -&gt; tuple[(list,list, list, list, list
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
 
     Args:
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
         NCells (int): Number of cells in grid.
 
     Returns:
@@ -358,7 +358,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
 
     Args:
         GFuelType (list [int]): List of forest grid with fuel code number, where non fuel are represented as 0
-        GFuelTypeN (list [string]): List of forest grid with fuel code name, where non fuel are represented as NF.
+        GFuelTypeN (list [str]): List of forest grid with fuel code name, where non fuel are represented as NF.
         Elevation (list [float]): List of elevations of each cell
         PS (list [float]): List of slope of each cell
         SAZ (list [float]): List of aspect of each cell
@@ -368,7 +368,7 @@ def GenerateDat(GFuelType:list, GFuelTypeN:list, Elevation:list, PS:list, SAZ:li
         CCF (list [float]): List of conifer percent dead fir of each cell
         PY (list [float]): List of ignition probability of each cell
         FMC (list [float]): List of foliar moisture content of each cell
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
 
     Returns:
 
@@ -410,8 +410,8 @@ def GenDataFile(InFolder:str,Simulator:str)-&gt;None:
     Main function that reads information available in folder and generates Data.csv file
 
     Args:
-        InFolder (string): Path to data folder.
-        Simulator (string): Simulator version, currently only supports &#34;K&#34; (for kitral) and &#34;S&#34; (for Scott &amp; Burgan)
+        InFolder (str): Path to data folder.
+        Simulator (str): Simulator version, currently only supports &#34;K&#34; (for kitral) and &#34;S&#34; (for Scott &amp; Burgan)
 
     Return:
         None
@@ -459,7 +459,7 @@ if __name__==&#34;__main__&#34;:
 elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>InFolder</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>InFolder</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path to data folder.</dd>
 <dt><strong><code>NCells</code></strong> :&ensp;<code>int</code></dt>
 <dd>Number of cells in grid.</dd>
@@ -495,7 +495,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.
 
     Args:
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
         NCells (int): Number of cells in grid.
 
     Returns:
@@ -590,7 +590,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <div class="desc"><p>Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>filename</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path to fuel fuel model in ascii format (fuels.asc).</dd>
 <dt><strong><code>Lookupdict</code></strong> :&ensp;<code>int,str</code></dt>
 <dd>Dictionary with fuel code number as key and fuel model name as value.</dd>
@@ -599,7 +599,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <dl>
 <dt><code>list [int]</code></dt>
 <dd>List of forest grid with fuel code number, where non fuel are represented as 0</dd>
-<dt><code>list [string]</code></dt>
+<dt><code>list [str]</code></dt>
 <dd>List of forest grid with fuel code name, where non fuel are represented as NF.</dd>
 <dt><code>int</code></dt>
 <dd>Number of rows of forest grid.</dd>
@@ -622,12 +622,12 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
 
     Args:
-        filename (string): Path to fuel fuel model in ascii format (fuels.asc).
+        filename (str): Path to fuel fuel model in ascii format (fuels.asc).
         Lookupdict (int,str): Dictionary with fuel code number as key and fuel model name as value.
 
     Returns:
         list [int]: List of forest grid with fuel code number, where non fuel are represented as 0
-        list [string]: List of forest grid with fuel code name, where non fuel are represented as NF.
+        list [str]: List of forest grid with fuel code name, where non fuel are represented as NF.
         int: Number of rows of forest grid.
         int: Number of columns of forest grid.
         list [dict[str,list[int]]]: List of dictionaries that contains the neighbors of each cell in each compass rose direction
@@ -789,9 +789,9 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <div class="desc"><p>Main function that reads information available in folder and generates Data.csv file</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>InFolder</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>InFolder</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path to data folder.</dd>
-<dt><strong><code>Simulator</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>Simulator</code></strong> :&ensp;<code>str</code></dt>
 <dd>Simulator version, currently only supports "K" (for kitral) and "S" (for Scott &amp; Burgan)</dd>
 </dl>
 <h2 id="return">Return</h2>
@@ -805,8 +805,8 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     Main function that reads information available in folder and generates Data.csv file
 
     Args:
-        InFolder (string): Path to data folder.
-        Simulator (string): Simulator version, currently only supports &#34;K&#34; (for kitral) and &#34;S&#34; (for Scott &amp; Burgan)
+        InFolder (str): Path to data folder.
+        Simulator (str): Simulator version, currently only supports &#34;K&#34; (for kitral) and &#34;S&#34; (for Scott &amp; Burgan)
 
     Return:
         None
@@ -840,7 +840,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <dl>
 <dt><strong><code>GFuelType</code></strong> :&ensp;<code>list [int]</code></dt>
 <dd>List of forest grid with fuel code number, where non fuel are represented as 0</dd>
-<dt><strong><code>GFuelTypeN</code></strong> :&ensp;<code>list [string]</code></dt>
+<dt><strong><code>GFuelTypeN</code></strong> :&ensp;<code>list [str]</code></dt>
 <dd>List of forest grid with fuel code name, where non fuel are represented as NF.</dd>
 <dt><strong><code>Elevation</code></strong> :&ensp;<code>list [float]</code></dt>
 <dd>List of elevations of each cell</dd>
@@ -860,7 +860,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <dd>List of ignition probability of each cell</dd>
 <dt><strong><code>FMC</code></strong> :&ensp;<code>list [float]</code></dt>
 <dd>List of foliar moisture content of each cell</dd>
-<dt><strong><code>InFolder</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>InFolder</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path to data folder.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -878,7 +878,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 
     Args:
         GFuelType (list [int]): List of forest grid with fuel code number, where non fuel are represented as 0
-        GFuelTypeN (list [string]): List of forest grid with fuel code name, where non fuel are represented as NF.
+        GFuelTypeN (list [str]): List of forest grid with fuel code name, where non fuel are represented as NF.
         Elevation (list [float]): List of elevations of each cell
         PS (list [float]): List of slope of each cell
         SAZ (list [float]): List of aspect of each cell
@@ -888,7 +888,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
         CCF (list [float]): List of conifer percent dead fir of each cell
         PY (list [float]): List of ignition probability of each cell
         FMC (list [float]): List of foliar moisture content of each cell
-        InFolder (string): Path to data folder.
+        InFolder (str): Path to data folder.
 
     Returns:
 
@@ -932,7 +932,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 <div class="desc"><p>Reads lookup_table.csv and creates dictionaries for the fuel types and cells' colors</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>filename</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -951,7 +951,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
     Reads lookup_table.csv and creates dictionaries for the fuel types and cells&#39; colors
 
     Args:
-        filename (string): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
+        filename (str): Path to fuel model lookup_table.csv, format is XXX_lookup_table.csv, e.g: spain_lookup_table.csv
 
     Returns:
         dict [int,str]: Dictionary with fuel code number as key and fuel model name as value.

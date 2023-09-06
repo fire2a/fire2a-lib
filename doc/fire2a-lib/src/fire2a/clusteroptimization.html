@@ -33,23 +33,21 @@
 Optimization module
 &#34;&#34;&#34;
 __author__ = &#34;David Palacios Meneses&#34;
-__version__ = &#39;XXXX&#39;
+__version__ = &#39;v0.0.1+0-gf866f08&#39;
 
-import os
-import pandas as pd
-import pyomo.environ as pyo
+from pyomo.environ import Var, value, ConcreteModel, Constraint, linear_expression, Set, Binary, Param, Objective, maximize, SolverFactory
 from collections import defaultdict
-import time
+from time import time
 from fire2a.managedata import Lookupdict, ForestGrid
 from fire2a.raster import read_raster
 from fire2a.treatmentpreproccessing import bin_to_nod
-
+from pathlib import Path
 def values_per_cluster(dpv:dict)-&gt;dict:
   &#34;&#34;&#34;
   Gets dpv values per each cell and returns the average dpv of each cluster
 
   Args:
-    dpv (dict [int,list[tuple[float,int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
+    dpv (dict [int, list [tuple [float, int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
     and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs
 
   Returns:
@@ -73,7 +71,7 @@ def values_per_cluster(dpv:dict)-&gt;dict:
 
 
 
-def obj_rule(model:pyo.ConcreteModel) -&gt; pyo.linear_expression:
+def obj_rule(model:ConcreteModel) -&gt; linear_expression:
     r&#34;&#34;&#34;
     Pyomo model objective function:
          
@@ -84,16 +82,16 @@ def obj_rule(model:pyo.ConcreteModel) -&gt; pyo.linear_expression:
     to the dpv of the respective cluster
 
     Args:
-        model (pyo.ConcreteModel): A pyomo model
+        model (ConcreteModel): A pyomo model
 
     Returns:
 
-        pyo.linear_expression:  Objective function
+        linear_expression:  Objective function
     &#34;&#34;&#34;
         
     return sum(model.fpv[i]*model.x[i] for i in model.I)
 
-def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; pyo.Var:
+def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; Var:
     &#34;&#34;&#34;
     Pyomo optimization model
 
@@ -105,32 +103,32 @@ def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:di
 
     Returns:
 
-        pyo.Var:  Decision variable that indicates objective clusters to treat
+        Var:  Decision variable that indicates objective clusters to treat
     &#34;&#34;&#34;#fmt: skip
      
     max_percentage=int(treatment_percentage*len(AvailCells))
 
     clusters=cluster_size.keys()
 
-    model= pyo.ConcreteModel()
+    model= ConcreteModel()
 
-    model.I=pyo.Set(initialize=list(clusters))
-    model.x = pyo.Var(model.I, 
-                    domain=pyo.Binary, 
+    model.I=Set(initialize=list(clusters))
+    model.x = Var(model.I, 
+                    domain=Binary, 
                     initialize = 0)
-    model.fpv = pyo.Param(model.I, 
+    model.fpv = Param(model.I, 
                         initialize = cluster_dpv ,
                         default = 0)
-    model.csize=pyo.Param(model.I, initialize=cluster_size)
+    model.csize=Param(model.I, initialize=cluster_size)
     
-    model.z = pyo.Objective(rule=obj_rule, sense=pyo.maximize)
+    model.z = Objective(rule=obj_rule, sense=maximize)
 
-    model.cons= pyo.Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
-    solver = pyo.SolverFactory(&#39;glpk&#39;)
-    t0 = time.time()
+    model.cons= Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
+    solver = SolverFactory(&#39;glpk&#39;,executable=&#34;C://Users//david//anaconda3//Library//bin//glpsol.exe&#34;)
+    t0 = time()
     print(&#34;solving...&#34;)
     results = solver.solve(model,logfile=&#34;lg.log&#34;)
-    tf = time.time()
+    tf = time()
     t = tf-t0
     print(f&#39;Resolution Time: {t}&#39;)
     print(&#34;Optimization Model Results:&#34;)
@@ -138,14 +136,13 @@ def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:di
 
     return model.x
 
-def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
+def manage_cluster_data(dpvFile:str,clusterFile:str):
     &#34;&#34;&#34;
     Manages DPV and clusters data for optimization model format
     
     Args:
-        dpvFile (string): Downstream Protection Value ASCII file
-        clusterFile (string): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
-        NCells (int): Number of cells in the landscape
+        dpvFile (str): Downstream Protection Value ASCII file
+        clusterFile (str): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
 
     Returns:
         dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
@@ -157,8 +154,19 @@ def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
 
     all_dpv_values,dpvmetadata=read_raster(dpvFile)  #array of dpv values
     cluster_array,dpvmetadata=read_raster(clusterFile) #array
-    dpv_values = {i+1:[j] for i,j in enumerate(all_dpv_values)}
-    cluster_keys={i+1:int(j) for i,j in enumerate(cluster_array)}
+    dpv_values={}
+    cluster_keys={}
+    c=1
+    for _, row in enumerate(all_dpv_values):
+        for _,value in enumerate(row):
+            dpv_values[c]=[value]
+            cluster_keys[c]=int(value)
+            c+=1
+    c=1
+    for _, row in enumerate(cluster_array):
+        for _,value in enumerate(row):
+            cluster_keys[c]=int(value)
+            c+=1
     cells_in_clusters=defaultdict(list)
     for key, value in sorted(cluster_keys.items()):
         cells_in_clusters[value].append(key) #dict with cluster id as key and list of cells id as value
@@ -174,17 +182,45 @@ def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
     return dpv_values,cluster_size,cells_in_clusters
 
 
-def run_model(InFolder:str,lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_percentage:float):
+def run_model(lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_file_name:str,treatment_percentage:float) -&gt; None:
+    &#34;&#34;&#34;
+    main function call for run model optimization for treatment to cluster
+    
+    Args:
+        lookupTable (str): location of lookuptable .csv
+        ForestFile (str): location of landscape data; a matrix that stores the fuel code of each cell
+        dpvFile (str): location of dpv file; a matrix that stores the dpv of each cell
+        clusterFile (str): location of cluster file; a matrix that stores the cluster id of each cell
+        treatment_file_name (str): target name of the treatment file to be written, it is mandatory a .csv extension
+        treatment_percentage (float[0,1]): target percentage of area of the landscape to treat; varies from 0 to 1
+    Returns:
+        None
 
-    FBPDict, ColorsDict = ManageData.Dictionary(lookupTable)
-    CellsGridNumber, CellsGridName, Rows, Cols, AdjCells, CoordCells, CellSide = ManageData.ForestGrid(ForestFile,FBPDict)
+    Raises:
+
+        ValueError: If the extension of the files are not correct, or treatment percentage is not between 0 and 1
+    
+    &#34;&#34;&#34;
+    if lookupTable[-4:]!=&#34;.csv&#34;:
+        raise ValueError(&#34;Extension must be .csv&#34;)
+    elif ForestFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif dpvFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif clusterFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif treatment_file_name[-4:]!=&#34;.csv&#34;:
+        raise ValueError(&#34;Extension must be .csv&#34;)
+    elif treatment_percentage&lt;0 or treatment_percentage&gt;1:
+        raise ValueError(&#34;Treatment percentage must be between 0 and 1&#34;)
+    
+
+    print(&#34;generating landscape data&#34;)
+    FBPDict, _ = Lookupdict(lookupTable)
+    _, _, Rows, Cols, AdjCells, _, _ = ForestGrid(ForestFile,FBPDict)
     NCells = Rows * Cols
-    m = Rows
-    n = Cols
-    Colors = []
 
     AvailSet = set()
-    NonAvailSet = set()
     AvailCells=set()
 
     setDir = [&#39;S&#39;, &#39;SE&#39;, &#39;E&#39;, &#39;NE&#39;, &#39;N&#39;, &#39;NW&#39;, &#39;W&#39;, &#39;SW&#39;]
@@ -197,40 +233,29 @@ def run_model(InFolder:str,lookupTable:str,ForestFile:str,dpvFile:str,clusterFil
                 if AdjCells[k][i][0] in AvailSet :
                     aux = aux | set(AdjCells[k][i])
         Adjacents[k + 1] = aux &amp; AvailSet
-    dpv_values,cluster_size,cells_in_clusters=manageClusterData(dpvFile,clusterFile,NCells)
-
+    print(&#34;calling cluster data&#34;)
+    dpv_values,cluster_size,cells_in_clusters=manage_cluster_data(dpvFile,clusterFile)
+    print(&#34;arranging cluster dpv&#34;)
     cluster_dpv=values_per_cluster(dpv_values)
-
+    print(&#34;calling model&#34;)
     optimization_plan=optimization_model(treatment_percentage,AvailCells,cluster_size,cluster_dpv)
 
+    print(&#34;arranging firebreak plan&#34;)
     S = set()  
 
     for i in cluster_size.keys():
-        if pyo.value(optimization_plan[i]) &gt; 0: 
+        if value(optimization_plan[i]) &gt; 0: 
         # print &#39;x[&#39; + str(i) + &#39;] = &#39;, value(model.x[i])
             S.add(i)
     firebreaks=[]
     for k in S:
         for element in cells_in_clusters[k]:
             firebreaks.append(element)
-    bin_to_nod(firebreaks)
+    bin_to_nod(firebreaks,treatment_file_name)
     print(&#34;success&#34;)
 
     ###for version 2.0. generate raster version of the firebreak treatment
-    return None
-
-if __name__==&#34;__main__&#34;:
-    initial_time=time.time()
-    InFolder=&#34;C://Users//david//Desktop//FireGraphs&#34;
-    lookupTable=os.path.join(InFolder,&#34;spain_lookup_table.csv&#34;)
-    forestFile=os.path.join(InFolder,&#34;fuels.asc&#34;)
-    dpvFile=os.path.join(InFolder,&#34;dpv.asc&#34;)
-    clusterFile=os.path.join(InFolder,&#34;clusters.asc&#34;)
-
-    percentage=0.05
-    run_model(InFolder,lookupTable,forestFile,dpvFile,clusterFile,percentage)
-
-    print(&#34;end&#34;)</code></pre>
+    return None</code></pre>
 </details>
 </section>
 <section>
@@ -240,19 +265,17 @@ if __name__==&#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.src.fire2a.clusteroptimization.manageClusterData"><code class="name flex">
-<span>def <span class="ident">manageClusterData</span></span>(<span>dpvFile: str, clusterFile: str, NCells: int)</span>
+<dt id="fire2a-lib.src.fire2a.clusteroptimization.manage_cluster_data"><code class="name flex">
+<span>def <span class="ident">manage_cluster_data</span></span>(<span>dpvFile: str, clusterFile: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Manages DPV and clusters data for optimization model format</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>dpvFile</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>dpvFile</code></strong> :&ensp;<code>str</code></dt>
 <dd>Downstream Protection Value ASCII file</dd>
-<dt><strong><code>clusterFile</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>clusterFile</code></strong> :&ensp;<code>str</code></dt>
 <dd>Cluster ASCII file, where each cell has the cluster identifier to which it belongs</dd>
-<dt><strong><code>NCells</code></strong> :&ensp;<code>int</code></dt>
-<dd>Number of cells in the landscape</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
@@ -263,14 +286,13 @@ inside that cluster as value</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def manageClusterData(dpvFile:str,clusterFile:str,NCells:int):
+<pre><code class="python">def manage_cluster_data(dpvFile:str,clusterFile:str):
     &#34;&#34;&#34;
     Manages DPV and clusters data for optimization model format
     
     Args:
-        dpvFile (string): Downstream Protection Value ASCII file
-        clusterFile (string): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
-        NCells (int): Number of cells in the landscape
+        dpvFile (str): Downstream Protection Value ASCII file
+        clusterFile (str): Cluster ASCII file, where each cell has the cluster identifier to which it belongs
 
     Returns:
         dpv_values (dict[int,float]): Dictionary with clusters as key and average DPV as value
@@ -282,8 +304,19 @@ inside that cluster as value</p></div>
 
     all_dpv_values,dpvmetadata=read_raster(dpvFile)  #array of dpv values
     cluster_array,dpvmetadata=read_raster(clusterFile) #array
-    dpv_values = {i+1:[j] for i,j in enumerate(all_dpv_values)}
-    cluster_keys={i+1:int(j) for i,j in enumerate(cluster_array)}
+    dpv_values={}
+    cluster_keys={}
+    c=1
+    for _, row in enumerate(all_dpv_values):
+        for _,value in enumerate(row):
+            dpv_values[c]=[value]
+            cluster_keys[c]=int(value)
+            c+=1
+    c=1
+    for _, row in enumerate(cluster_array):
+        for _,value in enumerate(row):
+            cluster_keys[c]=int(value)
+            c+=1
     cells_in_clusters=defaultdict(list)
     for key, value in sorted(cluster_keys.items()):
         cells_in_clusters[value].append(key) #dict with cluster id as key and list of cells id as value
@@ -313,19 +346,19 @@ where C corresponds to a set of clusters, x corresponds to the decision of selec
 to the dpv of the respective cluster</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>model</code></strong> :&ensp;<code>pyo.ConcreteModel</code></dt>
+<dt><strong><code>model</code></strong> :&ensp;<code>ConcreteModel</code></dt>
 <dd>A pyomo model</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>pyo.linear_expression</code></dt>
+<dt><code>linear_expression</code></dt>
 <dd>Objective function</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def obj_rule(model:pyo.ConcreteModel) -&gt; pyo.linear_expression:
+<pre><code class="python">def obj_rule(model:ConcreteModel) -&gt; linear_expression:
     r&#34;&#34;&#34;
     Pyomo model objective function:
          
@@ -336,11 +369,11 @@ to the dpv of the respective cluster</p>
     to the dpv of the respective cluster
 
     Args:
-        model (pyo.ConcreteModel): A pyomo model
+        model (ConcreteModel): A pyomo model
 
     Returns:
 
-        pyo.linear_expression:  Objective function
+        linear_expression:  Objective function
     &#34;&#34;&#34;
         
     return sum(model.fpv[i]*model.x[i] for i in model.I)</code></pre>
@@ -364,14 +397,14 @@ to the dpv of the respective cluster</p>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
-<dt><code>pyo.Var</code></dt>
+<dt><code>Var</code></dt>
 <dd>Decision variable that indicates objective clusters to treat</dd>
 </dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; pyo.Var:
+<pre><code class="python">def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:dict,cluster_dpv:dict) -&gt; Var:
     &#34;&#34;&#34;
     Pyomo optimization model
 
@@ -383,32 +416,32 @@ to the dpv of the respective cluster</p>
 
     Returns:
 
-        pyo.Var:  Decision variable that indicates objective clusters to treat
+        Var:  Decision variable that indicates objective clusters to treat
     &#34;&#34;&#34;#fmt: skip
      
     max_percentage=int(treatment_percentage*len(AvailCells))
 
     clusters=cluster_size.keys()
 
-    model= pyo.ConcreteModel()
+    model= ConcreteModel()
 
-    model.I=pyo.Set(initialize=list(clusters))
-    model.x = pyo.Var(model.I, 
-                    domain=pyo.Binary, 
+    model.I=Set(initialize=list(clusters))
+    model.x = Var(model.I, 
+                    domain=Binary, 
                     initialize = 0)
-    model.fpv = pyo.Param(model.I, 
+    model.fpv = Param(model.I, 
                         initialize = cluster_dpv ,
                         default = 0)
-    model.csize=pyo.Param(model.I, initialize=cluster_size)
+    model.csize=Param(model.I, initialize=cluster_size)
     
-    model.z = pyo.Objective(rule=obj_rule, sense=pyo.maximize)
+    model.z = Objective(rule=obj_rule, sense=maximize)
 
-    model.cons= pyo.Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
-    solver = pyo.SolverFactory(&#39;glpk&#39;)
-    t0 = time.time()
+    model.cons= Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
+    solver = SolverFactory(&#39;glpk&#39;,executable=&#34;C://Users//david//anaconda3//Library//bin//glpsol.exe&#34;)
+    t0 = time()
     print(&#34;solving...&#34;)
     results = solver.solve(model,logfile=&#34;lg.log&#34;)
-    tf = time.time()
+    tf = time()
     t = tf-t0
     print(f&#39;Resolution Time: {t}&#39;)
     print(&#34;Optimization Model Results:&#34;)
@@ -418,25 +451,75 @@ to the dpv of the respective cluster</p>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.clusteroptimization.run_model"><code class="name flex">
-<span>def <span class="ident">run_model</span></span>(<span>InFolder: str, lookupTable: str, ForestFile: str, dpvFile: str, clusterFile: str, treatment_percentage: float)</span>
+<span>def <span class="ident">run_model</span></span>(<span>lookupTable: str, ForestFile: str, dpvFile: str, clusterFile: str, treatment_file_name: str, treatment_percentage: float) ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>main function call for run model optimization for treatment to cluster</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lookupTable</code></strong> :&ensp;<code>str</code></dt>
+<dd>location of lookuptable .csv</dd>
+<dt><strong><code>ForestFile</code></strong> :&ensp;<code>str</code></dt>
+<dd>location of landscape data; a matrix that stores the fuel code of each cell</dd>
+<dt><strong><code>dpvFile</code></strong> :&ensp;<code>str</code></dt>
+<dd>location of dpv file; a matrix that stores the dpv of each cell</dd>
+<dt><strong><code>clusterFile</code></strong> :&ensp;<code>str</code></dt>
+<dd>location of cluster file; a matrix that stores the cluster id of each cell</dd>
+<dt><strong><code>treatment_file_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>target name of the treatment file to be written, it is mandatory a .csv extension</dd>
+<dt><strong><code>treatment_percentage</code></strong> :&ensp;<code>float[0,1]</code></dt>
+<dd>target percentage of area of the landscape to treat; varies from 0 to 1</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If the extension of the files are not correct, or treatment percentage is not between 0 and 1</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def run_model(InFolder:str,lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_percentage:float):
+<pre><code class="python">def run_model(lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatment_file_name:str,treatment_percentage:float) -&gt; None:
+    &#34;&#34;&#34;
+    main function call for run model optimization for treatment to cluster
+    
+    Args:
+        lookupTable (str): location of lookuptable .csv
+        ForestFile (str): location of landscape data; a matrix that stores the fuel code of each cell
+        dpvFile (str): location of dpv file; a matrix that stores the dpv of each cell
+        clusterFile (str): location of cluster file; a matrix that stores the cluster id of each cell
+        treatment_file_name (str): target name of the treatment file to be written, it is mandatory a .csv extension
+        treatment_percentage (float[0,1]): target percentage of area of the landscape to treat; varies from 0 to 1
+    Returns:
+        None
 
-    FBPDict, ColorsDict = ManageData.Dictionary(lookupTable)
-    CellsGridNumber, CellsGridName, Rows, Cols, AdjCells, CoordCells, CellSide = ManageData.ForestGrid(ForestFile,FBPDict)
+    Raises:
+
+        ValueError: If the extension of the files are not correct, or treatment percentage is not between 0 and 1
+    
+    &#34;&#34;&#34;
+    if lookupTable[-4:]!=&#34;.csv&#34;:
+        raise ValueError(&#34;Extension must be .csv&#34;)
+    elif ForestFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif dpvFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif clusterFile[-4:]!=&#34;.asc&#34;:
+        raise ValueError(&#34;Extension must be .asc&#34;)
+    elif treatment_file_name[-4:]!=&#34;.csv&#34;:
+        raise ValueError(&#34;Extension must be .csv&#34;)
+    elif treatment_percentage&lt;0 or treatment_percentage&gt;1:
+        raise ValueError(&#34;Treatment percentage must be between 0 and 1&#34;)
+    
+
+    print(&#34;generating landscape data&#34;)
+    FBPDict, _ = Lookupdict(lookupTable)
+    _, _, Rows, Cols, AdjCells, _, _ = ForestGrid(ForestFile,FBPDict)
     NCells = Rows * Cols
-    m = Rows
-    n = Cols
-    Colors = []
 
     AvailSet = set()
-    NonAvailSet = set()
     AvailCells=set()
 
     setDir = [&#39;S&#39;, &#39;SE&#39;, &#39;E&#39;, &#39;NE&#39;, &#39;N&#39;, &#39;NW&#39;, &#39;W&#39;, &#39;SW&#39;]
@@ -449,23 +532,25 @@ to the dpv of the respective cluster</p>
                 if AdjCells[k][i][0] in AvailSet :
                     aux = aux | set(AdjCells[k][i])
         Adjacents[k + 1] = aux &amp; AvailSet
-    dpv_values,cluster_size,cells_in_clusters=manageClusterData(dpvFile,clusterFile,NCells)
-
+    print(&#34;calling cluster data&#34;)
+    dpv_values,cluster_size,cells_in_clusters=manage_cluster_data(dpvFile,clusterFile)
+    print(&#34;arranging cluster dpv&#34;)
     cluster_dpv=values_per_cluster(dpv_values)
-
+    print(&#34;calling model&#34;)
     optimization_plan=optimization_model(treatment_percentage,AvailCells,cluster_size,cluster_dpv)
 
+    print(&#34;arranging firebreak plan&#34;)
     S = set()  
 
     for i in cluster_size.keys():
-        if pyo.value(optimization_plan[i]) &gt; 0: 
+        if value(optimization_plan[i]) &gt; 0: 
         # print &#39;x[&#39; + str(i) + &#39;] = &#39;, value(model.x[i])
             S.add(i)
     firebreaks=[]
     for k in S:
         for element in cells_in_clusters[k]:
             firebreaks.append(element)
-    bin_to_nod(firebreaks)
+    bin_to_nod(firebreaks,treatment_file_name)
     print(&#34;success&#34;)
 
     ###for version 2.0. generate raster version of the firebreak treatment
@@ -479,7 +564,7 @@ to the dpv of the respective cluster</p>
 <div class="desc"><p>Gets dpv values per each cell and returns the average dpv of each cluster</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>dpv</code></strong> :&ensp;<code>dict [int,list[tuple[float,int]]]</code></dt>
+<dt><strong><code>dpv</code></strong> :&ensp;<code>dict [int, list [tuple [float, int]]]</code></dt>
 <dd>DPV values of each cell as a dictionary, where each cell is represented as key,
 and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs</dd>
 </dl>
@@ -494,7 +579,7 @@ and the value corresponds to a list containing both dpv value of the cell and id
   Gets dpv values per each cell and returns the average dpv of each cluster
 
   Args:
-    dpv (dict [int,list[tuple[float,int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
+    dpv (dict [int, list [tuple [float, int]]]): DPV values of each cell as a dictionary, where each cell is represented as key,\
     and the value corresponds to a list containing both dpv value of the cell and id cluster to which said cell belongs
 
   Returns:
@@ -534,7 +619,7 @@ and the value corresponds to a list containing both dpv value of the cell and id
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.manageClusterData" href="#fire2a-lib.src.fire2a.clusteroptimization.manageClusterData">manageClusterData</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.manage_cluster_data" href="#fire2a-lib.src.fire2a.clusteroptimization.manage_cluster_data">manage_cluster_data</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.obj_rule" href="#fire2a-lib.src.fire2a.clusteroptimization.obj_rule">obj_rule</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.optimization_model" href="#fire2a-lib.src.fire2a.clusteroptimization.optimization_model">optimization_model</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.clusteroptimization.run_model" href="#fire2a-lib.src.fire2a.clusteroptimization.run_model">run_model</a></code></li>

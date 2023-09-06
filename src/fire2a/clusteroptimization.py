@@ -11,7 +11,9 @@ from time import time
 from fire2a.managedata import Lookupdict, ForestGrid
 from fire2a.raster import read_raster
 from fire2a.treatmentpreproccessing import bin_to_nod
-from pathlib import Path
+from pyomo.opt import TerminationCondition
+
+
 def values_per_cluster(dpv:dict)->dict:
   """
   Gets dpv values per each cell and returns the average dpv of each cluster
@@ -94,10 +96,12 @@ def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:di
     model.z = Objective(rule=obj_rule, sense=maximize)
 
     model.cons= Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) <= max_percentage)
-    solver = SolverFactory('glpk',executable="C://Users//david//anaconda3//Library//bin//glpsol.exe")
+    solver = SolverFactory('glpk')
     t0 = time()
     print("solving...")
     results = solver.solve(model,logfile="lg.log")
+    if (results.solver.termination_condition == TerminationCondition.infeasible):
+        raise RuntimeError("Model infeasible")
     tf = time()
     t = tf-t0
     print(f'Resolution Time: {t}')
@@ -168,19 +172,20 @@ def run_model(lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatme
 
     Raises:
 
-        ValueError: If the extension of the files are not correct, or treatment percentage is not between 0 and 1
+        TypeError: If the extension of the files are not correct
+        ValueError: If treatment percentage is not between 0 and 1
     
     """
     if lookupTable[-4:]!=".csv":
-        raise ValueError("Extension must be .csv")
+        raise TypeError("Extension must be .csv")
     elif ForestFile[-4:]!=".asc":
-        raise ValueError("Extension must be .asc")
+        raise TypeError("Extension must be .asc")
     elif dpvFile[-4:]!=".asc":
-        raise ValueError("Extension must be .asc")
+        raise TypeError("Extension must be .asc")
     elif clusterFile[-4:]!=".asc":
-        raise ValueError("Extension must be .asc")
+        raise TypeError("Extension must be .asc")
     elif treatment_file_name[-4:]!=".csv":
-        raise ValueError("Extension must be .csv")
+        raise TypeError("Extension must be .csv")
     elif treatment_percentage<0 or treatment_percentage>1:
         raise ValueError("Treatment percentage must be between 0 and 1")
     

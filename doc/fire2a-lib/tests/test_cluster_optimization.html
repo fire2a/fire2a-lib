@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>fire2a-lib.tests API documentation</title>
-<meta name="description" content="" />
+<title>fire2a-lib.tests.test_cluster_optimization API documentation</title>
+<meta name="description" content="managedata test" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,36 +20,161 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Namespace <code>fire2a-lib.tests</code></h1>
+<h1 class="title">Module <code>fire2a-lib.tests.test_cluster_optimization</code></h1>
 </header>
 <section id="section-intro">
+<p>managedata test</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!python3
+&#34;&#34;&#34;
+managedata test
+&#34;&#34;&#34;
+__author__ = &#34;David Palacios Meneses&#34;
+__version__ = &#39;v0.0.1+0-gf866f08&#39;
+import pytest
+from fire2a.clusteroptimization import run_model
+from pathlib import Path
+
+pytestmark = pytest.mark.filterwarnings(&#34;ignore::FutureWarning&#34;)
+
+# test Raise
+def f():
+    raise SystemExit(1)
+
+
+def test_mytest():
+    with pytest.raises(SystemExit):
+        f()
+
+
+# test class
+class TestClassDemoInstance:
+
+    value=0
+
+    def test_one(self):
+        p=Path(&#34;tests&#34;) #define tests path
+        lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
+        forestFile=p/&#34;fuels_2.asc&#34; #forest path
+        dpvFile=p/&#34;dpv.asc&#34; #dpv path
+        clusterFile=p/&#34;clusters.asc&#34; #clusters path
+        percentage=0.01 #percentage of treatment
+        p_treatment=p/&#34;treatment.csv&#34;
+        run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
+        self.value = p_treatment.exists() #check if exists
+        assert self.value == 1 #assert
+        p_treatment.unlink() #delete Data.csv file
+
+    
+    
+    
+    
+    </code></pre>
+</details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="fire2a-lib.tests.test_cluster_optimization" href="test_cluster_optimization.html">fire2a-lib.tests.test_cluster_optimization</a></code></dt>
-<dd>
-<div class="desc"><p>managedata test</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.tests.test_managedata" href="test_managedata.html">fire2a-lib.tests.test_managedata</a></code></dt>
-<dd>
-<div class="desc"><p>managedata test</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.tests.test_template" href="test_template.html">fire2a-lib.tests.test_template</a></code></dt>
+<dt id="fire2a-lib.tests.test_cluster_optimization.f"><code class="name flex">
+<span>def <span class="ident">f</span></span>(<span>)</span>
+</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def f():
+    raise SystemExit(1)</code></pre>
+</details>
 </dd>
-<dt><code class="name"><a title="fire2a-lib.tests.test_treatmentpreproccessing" href="test_treatmentpreproccessing.html">fire2a-lib.tests.test_treatmentpreproccessing</a></code></dt>
+<dt id="fire2a-lib.tests.test_cluster_optimization.test_mytest"><code class="name flex">
+<span>def <span class="ident">test_mytest</span></span>(<span>)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>managedata test</p></div>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_mytest():
+    with pytest.raises(SystemExit):
+        f()</code></pre>
+</details>
 </dd>
 </dl>
 </section>
 <section>
-</section>
-<section>
-</section>
-<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance"><code class="flex name class">
+<span>class <span class="ident">TestClassDemoInstance</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TestClassDemoInstance:
+
+    value=0
+
+    def test_one(self):
+        p=Path(&#34;tests&#34;) #define tests path
+        lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
+        forestFile=p/&#34;fuels_2.asc&#34; #forest path
+        dpvFile=p/&#34;dpv.asc&#34; #dpv path
+        clusterFile=p/&#34;clusters.asc&#34; #clusters path
+        percentage=0.01 #percentage of treatment
+        p_treatment=p/&#34;treatment.csv&#34;
+        run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
+        self.value = p_treatment.exists() #check if exists
+        assert self.value == 1 #assert
+        p_treatment.unlink() #delete Data.csv file</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value"><code class="name">var <span class="ident">value</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one"><code class="name flex">
+<span>def <span class="ident">test_one</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_one(self):
+    p=Path(&#34;tests&#34;) #define tests path
+    lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
+    forestFile=p/&#34;fuels_2.asc&#34; #forest path
+    dpvFile=p/&#34;dpv.asc&#34; #dpv path
+    clusterFile=p/&#34;clusters.asc&#34; #clusters path
+    percentage=0.01 #percentage of treatment
+    p_treatment=p/&#34;treatment.csv&#34;
+    run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
+    self.value = p_treatment.exists() #check if exists
+    assert self.value == 1 #assert
+    p_treatment.unlink() #delete Data.csv file</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -60,15 +185,24 @@
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="fire2a-lib" href="../index.html">fire2a-lib</a></code></li>
+<li><code><a title="fire2a-lib.tests" href="index.html">fire2a-lib.tests</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fire2a-lib.tests.test_cluster_optimization.f" href="#fire2a-lib.tests.test_cluster_optimization.f">f</a></code></li>
+<li><code><a title="fire2a-lib.tests.test_cluster_optimization.test_mytest" href="#fire2a-lib.tests.test_cluster_optimization.test_mytest">test_mytest</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
-<li><code><a title="fire2a-lib.tests.test_cluster_optimization" href="test_cluster_optimization.html">fire2a-lib.tests.test_cluster_optimization</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_managedata" href="test_managedata.html">fire2a-lib.tests.test_managedata</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_template" href="test_template.html">fire2a-lib.tests.test_template</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing" href="test_treatmentpreproccessing.html">fire2a-lib.tests.test_treatmentpreproccessing</a></code></li>
+<li>
+<h4><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance">TestClassDemoInstance</a></code></h4>
+<ul class="">
+<li><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one">test_one</a></code></li>
+<li><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value">value</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
