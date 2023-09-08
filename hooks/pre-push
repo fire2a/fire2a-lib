@@ -2,7 +2,7 @@
 
 # Build the documentation
 if [ -d doc/fire2a-lib ]; then
-    rm -r doc/fire2a-lib
+    rm -r doc/fire2a-lib/*
 fi
 pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
 
