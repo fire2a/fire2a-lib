@@ -58,10 +58,8 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
-cp hook/pre-commit .git/hooks/.
-chmod +x .git/hooks/pre-commit
-cp hook/pre-push .git/hooks/.
-chmod +x .git/hooks/pre-push
+cp hooks/* .git/hooks/.
+chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
 ## activate QGIS python environment (check next paragraph)
 #

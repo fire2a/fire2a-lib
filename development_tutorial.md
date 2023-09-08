@@ -9,7 +9,7 @@ __version__ = 'v0.0.1-0-gecfa54c-dirty'
 * A [source layout][src-layout] python project/distribution with 2 packages/modules
 * [pyproject.toml][pyproject_config] configuration file
 * Auto-documentation using pdoc3, publishing pages in `doc/my-repo-name` to [`https://user.github.io/my-repo-name`](https://fdobad.github.io/template-python-package)
-* A simple precommit hook to auto-update versions in python files
+* A simple precommit hooks to auto-update versions in python files
 
 # Goal
 
@@ -80,11 +80,10 @@ __version__ = "v0.0.1"
 
 1. Fork, rename, clone
 2. Enable github pages for the repo ?
-3. Enable the version updating hook:
+3. Enable the version-auto-updating, web-page-creating hooks:
 ```bash
-cp hook/pre-commit .git/hooks/.
-chmod +x .git/hooks/pre-commit
-# TODO test on windows
+cp hooks/* .git/hooks/.
+chmod +x .git/hooks/pre-commit .git/hooks/pre-push
 ```
 4. Install requirements.dev.txt
 5. Change something, rebuilding the docs (`pdoc`) or run tests (`pytest`)
