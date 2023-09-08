@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = 'c05b435+dirty'
+__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = '$Format:%H$'
 
 import logging as _logging
@@ -17,14 +17,14 @@ _logging.basicConfig(level=_logging.INFO)
 _logger.debug("Hello world!")
 
 
-def id2xy(idx: int, w: int, h: int) -> (int, int):
+def id2xy(idx: int, w: int, h: int) -> tuple[int, int]:
     """Transform a pixel or cell index, into x,y coordinates.
 
     Args:
 
     param idx: index of the pixel or cell (0,..,w*h-1)  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -45,7 +45,7 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -58,7 +58,7 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     return y * w + x
 
 
-def read_raster_band(filename: str, band: int = 1) -> (_np.ndarray, int, int):
+def read_raster_band(filename: str, band: int = 1) -> tuple[_np.ndarray, int, int]:
     """Read a raster file and return the data as a numpy array, along width and height.
 
     Args:
@@ -80,7 +80,7 @@ def read_raster_band(filename: str, band: int = 1) -> (_np.ndarray, int, int):
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str) -> (_np.ndarray, dict):
+def read_raster(filename: str) -> tuple[_np.ndarray, dict]:
     """Read a raster file and return the data as a numpy array.  
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -157,7 +157,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray()
+    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -199,7 +199,7 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array:
+def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array: # FIXME returns is tuple
     """
     Stack raster files from a list into a 3D NumPy array.
 
@@ -234,11 +234,11 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f"There are rasters with different cell sizes: {cell_sizes}"
-    stacked_array = _np.stack(array_list, axis=0)
+    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
     return stacked_array, layer_names
 
 
 if __name__ == "__main__":
-    file_list = Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc")
+    file_list = list(Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc"))
     array = stack_rasters(file_list)
     print(array)
