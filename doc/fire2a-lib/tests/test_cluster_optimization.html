@@ -34,39 +34,25 @@ managedata test
 &#34;&#34;&#34;
 __author__ = &#34;David Palacios Meneses&#34;
 __version__ = &#39;v0.0.1+0-gf866f08&#39;
-import pytest
-from fire2a.clusteroptimization import run_model
-from pathlib import Path
 
-pytestmark = pytest.mark.filterwarnings(&#34;ignore::FutureWarning&#34;)
+from pytest import mark
+pytestmark = mark.filterwarnings(&#34;ignore::FutureWarning&#34;)
 
-# test Raise
-def f():
-    raise SystemExit(1)
+def test_treatment_csv_exists(request,tmp_path):
+    from fire2a.clusteroptimization import run_model
 
+    assets_path = request.config.rootdir / &#34;tests&#34; / &#34;assets&#34;
 
-def test_mytest():
-    with pytest.raises(SystemExit):
-        f()
-
-
-# test class
-class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
-        forestFile=p/&#34;fuels_2.asc&#34; #forest path
-        dpvFile=p/&#34;dpv.asc&#34; #dpv path
-        clusterFile=p/&#34;clusters.asc&#34; #clusters path
-        percentage=0.01 #percentage of treatment
-        p_treatment=p/&#34;treatment.csv&#34;
-        run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
-        self.value = p_treatment.exists() #check if exists
-        assert self.value == 1 #assert
-        p_treatment.unlink() #delete Data.csv file
+    lookupTable=assets_path/&#34;spain_lookup_table.csv&#34; #lookuptable path
+    forestFile=assets_path/&#34;fuels_2.asc&#34; #forest path
+    dpvFile=assets_path/&#34;dpv.asc&#34; #dpv path
+    clusterFile=assets_path/&#34;clusters.asc&#34; #clusters path
+    percentage=0.01 #percentage of treatment
+    p_treatment=tmp_path/&#34;treatment.csv&#34;
+    run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
+    value = p_treatment.exists() #check if exists
+    assert value == 1 #assert
+    p_treatment.unlink() #delete Data.csv file
 
     
     
@@ -82,8 +68,8 @@ class TestClassDemoInstance:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.tests.test_cluster_optimization.f"><code class="name flex">
-<span>def <span class="ident">f</span></span>(<span>)</span>
+<dt id="fire2a-lib.tests.test_cluster_optimization.test_treatment_csv_exists"><code class="name flex">
+<span>def <span class="ident">test_treatment_csv_exists</span></span>(<span>request, tmp_path)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -91,90 +77,26 @@ class TestClassDemoInstance:
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def f():
-    raise SystemExit(1)</code></pre>
-</details>
-</dd>
-<dt id="fire2a-lib.tests.test_cluster_optimization.test_mytest"><code class="name flex">
-<span>def <span class="ident">test_mytest</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_mytest():
-    with pytest.raises(SystemExit):
-        f()</code></pre>
+<pre><code class="python">def test_treatment_csv_exists(request,tmp_path):
+    from fire2a.clusteroptimization import run_model
+
+    assets_path = request.config.rootdir / &#34;tests&#34; / &#34;assets&#34;
+
+    lookupTable=assets_path/&#34;spain_lookup_table.csv&#34; #lookuptable path
+    forestFile=assets_path/&#34;fuels_2.asc&#34; #forest path
+    dpvFile=assets_path/&#34;dpv.asc&#34; #dpv path
+    clusterFile=assets_path/&#34;clusters.asc&#34; #clusters path
+    percentage=0.01 #percentage of treatment
+    p_treatment=tmp_path/&#34;treatment.csv&#34;
+    run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
+    value = p_treatment.exists() #check if exists
+    assert value == 1 #assert
+    p_treatment.unlink() #delete Data.csv file</code></pre>
 </details>
 </dd>
 </dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance"><code class="flex name class">
-<span>class <span class="ident">TestClassDemoInstance</span></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
-        forestFile=p/&#34;fuels_2.asc&#34; #forest path
-        dpvFile=p/&#34;dpv.asc&#34; #dpv path
-        clusterFile=p/&#34;clusters.asc&#34; #clusters path
-        percentage=0.01 #percentage of treatment
-        p_treatment=p/&#34;treatment.csv&#34;
-        run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
-        self.value = p_treatment.exists() #check if exists
-        assert self.value == 1 #assert
-        p_treatment.unlink() #delete Data.csv file</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value"><code class="name">var <span class="ident">value</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one"><code class="name flex">
-<span>def <span class="ident">test_one</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_one(self):
-    p=Path(&#34;tests&#34;) #define tests path
-    lookupTable=p/&#34;spain_lookup_table.csv&#34; #lookuptable path
-    forestFile=p/&#34;fuels_2.asc&#34; #forest path
-    dpvFile=p/&#34;dpv.asc&#34; #dpv path
-    clusterFile=p/&#34;clusters.asc&#34; #clusters path
-    percentage=0.01 #percentage of treatment
-    p_treatment=p/&#34;treatment.csv&#34;
-    run_model(str(lookupTable),str(forestFile),str(dpvFile),str(clusterFile),str(p_treatment),percentage) #run model
-    self.value = p_treatment.exists() #check if exists
-    assert self.value == 1 #assert
-    p_treatment.unlink() #delete Data.csv file</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -190,19 +112,7 @@ class TestClassDemoInstance:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.tests.test_cluster_optimization.f" href="#fire2a-lib.tests.test_cluster_optimization.f">f</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_cluster_optimization.test_mytest" href="#fire2a-lib.tests.test_cluster_optimization.test_mytest">test_mytest</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance">TestClassDemoInstance</a></code></h4>
-<ul class="">
-<li><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.test_one">test_one</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value" href="#fire2a-lib.tests.test_cluster_optimization.TestClassDemoInstance.value">value</a></code></li>
-</ul>
-</li>
+<li><code><a title="fire2a-lib.tests.test_cluster_optimization.test_treatment_csv_exists" href="#fire2a-lib.tests.test_cluster_optimization.test_treatment_csv_exists">test_treatment_csv_exists</a></code></li>
 </ul>
 </li>
 </ul>

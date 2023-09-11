@@ -9,6 +9,7 @@ from pytest import mark
 pytestmark = mark.filterwarnings("ignore::FutureWarning")
 
 def test_treatment_csv_exists(request,tmp_path):
+    """this tests checks if the treatment output from the optimization model is generated"""
     from fire2a.clusteroptimization import run_model
 
     assets_path = request.config.rootdir / "tests" / "assets"

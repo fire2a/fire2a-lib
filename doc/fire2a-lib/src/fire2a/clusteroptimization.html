@@ -41,7 +41,9 @@ from time import time
 from fire2a.managedata import Lookupdict, ForestGrid
 from fire2a.raster import read_raster
 from fire2a.treatmentpreproccessing import bin_to_nod
-from pathlib import Path
+from pyomo.opt import TerminationCondition
+
+
 def values_per_cluster(dpv:dict)-&gt;dict:
   &#34;&#34;&#34;
   Gets dpv values per each cell and returns the average dpv of each cluster
@@ -124,10 +126,12 @@ def optimization_model(treatment_percentage:float,AvailCells:set,cluster_size:di
     model.z = Objective(rule=obj_rule, sense=maximize)
 
     model.cons= Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
-    solver = SolverFactory(&#39;glpk&#39;,executable=&#34;C://Users//david//anaconda3//Library//bin//glpsol.exe&#34;)
+    solver = SolverFactory(&#39;glpk&#39;)
     t0 = time()
     print(&#34;solving...&#34;)
     results = solver.solve(model,logfile=&#34;lg.log&#34;)
+    if (results.solver.termination_condition == TerminationCondition.infeasible):
+        raise RuntimeError(&#34;Model infeasible&#34;)
     tf = time()
     t = tf-t0
     print(f&#39;Resolution Time: {t}&#39;)
@@ -198,19 +202,20 @@ def run_model(lookupTable:str,ForestFile:str,dpvFile:str,clusterFile:str,treatme
 
     Raises:
 
-        ValueError: If the extension of the files are not correct, or treatment percentage is not between 0 and 1
+        TypeError: If the extension of the files are not correct
+        ValueError: If treatment percentage is not between 0 and 1
     
     &#34;&#34;&#34;
     if lookupTable[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv&#34;)
+        raise TypeError(&#34;Extension must be .csv&#34;)
     elif ForestFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif dpvFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif clusterFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif treatment_file_name[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv&#34;)
+        raise TypeError(&#34;Extension must be .csv&#34;)
     elif treatment_percentage&lt;0 or treatment_percentage&gt;1:
         raise ValueError(&#34;Treatment percentage must be between 0 and 1&#34;)
     
@@ -437,10 +442,12 @@ to the dpv of the respective cluster</p>
     model.z = Objective(rule=obj_rule, sense=maximize)
 
     model.cons= Constraint(expr=sum(model.x[i]*model.csize[i] for i in model.I) &lt;= max_percentage)
-    solver = SolverFactory(&#39;glpk&#39;,executable=&#34;C://Users//david//anaconda3//Library//bin//glpsol.exe&#34;)
+    solver = SolverFactory(&#39;glpk&#39;)
     t0 = time()
     print(&#34;solving...&#34;)
     results = solver.solve(model,logfile=&#34;lg.log&#34;)
+    if (results.solver.termination_condition == TerminationCondition.infeasible):
+        raise RuntimeError(&#34;Model infeasible&#34;)
     tf = time()
     t = tf-t0
     print(f&#39;Resolution Time: {t}&#39;)
@@ -474,8 +481,10 @@ to the dpv of the respective cluster</p>
 <p>None</p>
 <h2 id="raises">Raises</h2>
 <dl>
+<dt><code>TypeError</code></dt>
+<dd>If the extension of the files are not correct</dd>
 <dt><code>ValueError</code></dt>
-<dd>If the extension of the files are not correct, or treatment percentage is not between 0 and 1</dd>
+<dd>If treatment percentage is not between 0 and 1</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -497,19 +506,20 @@ to the dpv of the respective cluster</p>
 
     Raises:
 
-        ValueError: If the extension of the files are not correct, or treatment percentage is not between 0 and 1
+        TypeError: If the extension of the files are not correct
+        ValueError: If treatment percentage is not between 0 and 1
     
     &#34;&#34;&#34;
     if lookupTable[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv&#34;)
+        raise TypeError(&#34;Extension must be .csv&#34;)
     elif ForestFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif dpvFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif clusterFile[-4:]!=&#34;.asc&#34;:
-        raise ValueError(&#34;Extension must be .asc&#34;)
+        raise TypeError(&#34;Extension must be .asc&#34;)
     elif treatment_file_name[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv&#34;)
+        raise TypeError(&#34;Extension must be .csv&#34;)
     elif treatment_percentage&lt;0 or treatment_percentage&gt;1:
         raise ValueError(&#34;Treatment percentage must be between 0 and 1&#34;)
     

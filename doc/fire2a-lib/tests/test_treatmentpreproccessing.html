@@ -34,33 +34,21 @@ managedata test
 &#34;&#34;&#34;
 __author__ = &#34;David Palacios Meneses&#34;
 __version__ = &#39;v0.0.1+0-gf866f08&#39;
-import pytest
-from fire2a.treatmentpreproccessing import bin_to_nod
-from pathlib import Path
-# test Raise
-def f():
-    raise SystemExit(1)
+
+from pandas import read_csv
 
 
-def test_mytest():
-    with pytest.raises(SystemExit):
-        f()
+def test_ids2firebreak_csv(tmp_path):
+    &#34;&#34;&#34;this test checks if the firebreak csv plan is correctly generated
+    TODO generate a random vector to test
+    &#34;&#34;&#34;
+    from fire2a.treatmentpreproccessing import bin_to_nod
 
-
-# test class
-class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        vector_test=[1,1,0,0,0,0,0,0,1,1,0,1] #define set of firebreak plan
-        filename=&#34;test_treatment.csv&#34; #define filename
-        file_path=p/filename #define path
-        bin_to_nod(vector_test,str(file_path)) #call method
-        self.value = file_path.exists() #check if exists file_path
-        assert self.value == 1 #assert
-        file_path.unlink() #delete Data.csv file</code></pre>
+    tmpfile = tmp_path / &#34;treatment.csv&#34;
+    vector_test = [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1]  # define set of firebreak plan
+    bin_to_nod(vector_test, str(tmpfile))
+    df = read_csv(tmpfile)
+    assert all(df.values[0][1:] - 1 == vector_test)</code></pre>
 </details>
 </section>
 <section>
@@ -70,93 +58,32 @@ class TestClassDemoInstance:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.tests.test_treatmentpreproccessing.f"><code class="name flex">
-<span>def <span class="ident">f</span></span>(<span>)</span>
+<dt id="fire2a-lib.tests.test_treatmentpreproccessing.test_ids2firebreak_csv"><code class="name flex">
+<span>def <span class="ident">test_ids2firebreak_csv</span></span>(<span>tmp_path)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>this test checks if the firebreak csv plan is correctly generated
+TODO generate a random vector to test</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def f():
-    raise SystemExit(1)</code></pre>
-</details>
-</dd>
-<dt id="fire2a-lib.tests.test_treatmentpreproccessing.test_mytest"><code class="name flex">
-<span>def <span class="ident">test_mytest</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_mytest():
-    with pytest.raises(SystemExit):
-        f()</code></pre>
+<pre><code class="python">def test_ids2firebreak_csv(tmp_path):
+    &#34;&#34;&#34;this test checks if the firebreak csv plan is correctly generated
+    TODO generate a random vector to test
+    &#34;&#34;&#34;
+    from fire2a.treatmentpreproccessing import bin_to_nod
+
+    tmpfile = tmp_path / &#34;treatment.csv&#34;
+    vector_test = [1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1]  # define set of firebreak plan
+    bin_to_nod(vector_test, str(tmpfile))
+    df = read_csv(tmpfile)
+    assert all(df.values[0][1:] - 1 == vector_test)</code></pre>
 </details>
 </dd>
 </dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance"><code class="flex name class">
-<span>class <span class="ident">TestClassDemoInstance</span></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        vector_test=[1,1,0,0,0,0,0,0,1,1,0,1] #define set of firebreak plan
-        filename=&#34;test_treatment.csv&#34; #define filename
-        file_path=p/filename #define path
-        bin_to_nod(vector_test,str(file_path)) #call method
-        self.value = file_path.exists() #check if exists file_path
-        assert self.value == 1 #assert
-        file_path.unlink() #delete Data.csv file</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.value"><code class="name">var <span class="ident">value</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.test_one"><code class="name flex">
-<span>def <span class="ident">test_one</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_one(self):
-    p=Path(&#34;tests&#34;) #define tests path
-    vector_test=[1,1,0,0,0,0,0,0,1,1,0,1] #define set of firebreak plan
-    filename=&#34;test_treatment.csv&#34; #define filename
-    file_path=p/filename #define path
-    bin_to_nod(vector_test,str(file_path)) #call method
-    self.value = file_path.exists() #check if exists file_path
-    assert self.value == 1 #assert
-    file_path.unlink() #delete Data.csv file</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -172,19 +99,7 @@ class TestClassDemoInstance:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.f" href="#fire2a-lib.tests.test_treatmentpreproccessing.f">f</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.test_mytest" href="#fire2a-lib.tests.test_treatmentpreproccessing.test_mytest">test_mytest</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance" href="#fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance">TestClassDemoInstance</a></code></h4>
-<ul class="">
-<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.test_one" href="#fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.test_one">test_one</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.value" href="#fire2a-lib.tests.test_treatmentpreproccessing.TestClassDemoInstance.value">value</a></code></li>
-</ul>
-</li>
+<li><code><a title="fire2a-lib.tests.test_treatmentpreproccessing.test_ids2firebreak_csv" href="#fire2a-lib.tests.test_treatmentpreproccessing.test_ids2firebreak_csv">test_ids2firebreak_csv</a></code></li>
 </ul>
 </li>
 </ul>

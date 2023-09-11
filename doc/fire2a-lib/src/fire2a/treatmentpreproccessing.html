@@ -51,10 +51,10 @@ def bin_to_nod(solution:list, filename=&#34;treatment.csv&#34;)-&gt; None:
 
     Raises:
 
-        ValueError: If the extension of the filename is not a csv
+        TypeError: If the extension of the filename is not a csv
     &#34;&#34;&#34;
     if filename[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv or .txt&#34;)
+        raise TypeError(&#34;Extension must be .csv or .txt&#34;)
     nod = [i+1 for i in solution]
     datos = [npinsert(nod, 0, 1)]
     if len(nod) == 0:
@@ -95,7 +95,7 @@ if __name__==&#34;__main__&#34;:
 <p>None</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>ValueError</code></dt>
+<dt><code>TypeError</code></dt>
 <dd>If the extension of the filename is not a csv</dd>
 </dl></div>
 <details class="source">
@@ -115,10 +115,10 @@ if __name__==&#34;__main__&#34;:
 
     Raises:
 
-        ValueError: If the extension of the filename is not a csv
+        TypeError: If the extension of the filename is not a csv
     &#34;&#34;&#34;
     if filename[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv or .txt&#34;)
+        raise TypeError(&#34;Extension must be .csv or .txt&#34;)
     nod = [i+1 for i in solution]
     datos = [npinsert(nod, 0, 1)]
     if len(nod) == 0:
