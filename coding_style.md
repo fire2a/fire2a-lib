@@ -2,25 +2,26 @@
 
 ## Python tools 
 python-language-server python-lsp, with:
-- formatter: black 
-	--line-length=120
-	# fmt: skip/on/off
-- linter: pylint 
-	--max-line-length=120
-- type checker: python-mypy
+- formatter: black  
+	`--line-length=120`  
+	`# fmt: skip/on/off`  
+- linter: pylint  
+	`--max-line-length=120`
+- type checker: python-mypy  
 	install stubs
-- code actions: python-rope
+- [code actions: python-rope]
 
-pip:
-* see requirements.dev.txt
-* see pyproject.toml
-
-vscode extensions:
-	ms-python.black-formatter
-	ms-python.vscode-pylance
-	ms-python.python 
+* venv install see requirements.dev.txt
+* wide project configuration see pyproject.toml
+* alternative vscode extensions:  
+	ms-python.black-formatter  
+	ms-python.vscode-pylance  
+	ms-python.python  
 
 ## Guiding principles
+
+* avoid reinventing the wheel
+  - research before coding
 
 * avoid complexity
   - each function should
@@ -29,7 +30,7 @@ vscode extensions:
     - try avoiding not returning anything
   - extract 
     - methods where possible
-    - hard-coded strings where where possible
+    - hard-coded strings where possible
   - prefer functions over classes
 
 * descriptive naming is key
@@ -44,8 +45,6 @@ vscode extensions:
     - Args, Returns, Raises sections
   - type annotations for functions, classes and notable variables
 
-- botar argparse de python
-- mejora de argparse para especificar cada raster y no una carpeta
-- desde asc hasta tif
-- listado archivos output
-- futuro: ver si pasamos a tif con hartas bands o gpkg
+* pytest writing
+  - when developing use `if __name__ == '__main__':` section to quickly test
+  - then migrate that method to it's standalone pytest
