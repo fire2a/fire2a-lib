@@ -100,6 +100,9 @@ pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True
 ```bash
 pip uninstall fire2a-lib
 ```
+# Coding style
+[Here](./coding_style.md)  
+TL;DR: Use black formatter, pytests; write standard docstrings and avoid needless complexity.
 
 # Code of Conduct
 
