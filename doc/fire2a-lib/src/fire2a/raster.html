@@ -35,14 +35,15 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;v0.0.1+0-gf866f08&#39;
-__revision__ = &#39;$Format:%H$&#39;
+__version__ = &#34;v0.0.1+0-gf866f08&#34;
+__revision__ = &#34;$Format:%H$&#34;
 
 import logging as _logging
+from pathlib import Path
 
 import numpy as _np
-from osgeo import gdal as _gdal, ogr as _ogr
-from pathlib import Path
+from osgeo import gdal as _gdal
+from osgeo import ogr as _ogr
 
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
@@ -142,6 +143,45 @@ def read_raster(filename: str) -&gt; tuple[_np.ndarray, dict]:
     return data, info
 
 
+def get_geotransform(raster_filename: str) -&gt; tuple[float, float, float, float, float, float]:
+    &#34;&#34;&#34; Get geotransform from raster file.
+    Args:
+        raster_filename (str):
+
+    Returns:
+        tuple: geotransform
+        GT[0] x-coordinate of the upper-left corner of the upper-left pixel.
+        GT[1] w-e pixel resolution / pixel width.
+        GT[2] row rotation (typically zero).
+        GT[3] y-coordinate of the upper-left corner of the upper-left pixel.
+        GT[4] column rotation (typically zero).
+        GT[5] n-s pixel resolution / pixel height (negative value for a north-up image).
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    &#34;&#34;&#34;  # fmt: skip
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise Exception(f&#34;Data set is None, could not open {filename}&#34;)
+    return dataset.GetGeoTransform()
+
+
+def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -&gt; tuple[float, float]:
+    &#34;&#34;&#34; Transform pixel coordinates to georeferenced coordinates.
+    Args:
+        x_pixel (int): x pixel coordinate.
+        y_line (int): y pixel coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_geo, y_geo.
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    &#34;&#34;&#34;  # fmt: skip
+    x_geo = GT[0] + x_pixel * GT[1] + y_line * GT[2]
+    y_geo = GT[3] + x_pixel * GT[4] + y_line * GT[5]
+    return x_geo, y_geo
+
+
 # def get_cell_size(raster: _gdal.Dataset | str) -&gt; float | tuple[float, float]:
 def get_cell_size(raster: _gdal.Dataset) -&gt; tuple[float, float]:
     &#34;&#34;&#34;
@@ -189,7 +229,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
+    original_data = band.ReadAsArray()  #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -231,7 +271,9 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array: # FIXME returns is tuple
+def stack_rasters(
+    file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None
+) -&gt; _np.array:  # FIXME returns is tuple
     &#34;&#34;&#34;
     Stack raster files from a list into a 3D NumPy array.
 
@@ -266,7 +308,7 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
-    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
+    stacked_array = _np.stack(array_list, axis=0)  #  type: _np.array
     return stacked_array, layer_names
 
 
@@ -323,6 +365,51 @@ if __name__ == &#34;__main__&#34;:
         cell_size = affine[1]  # Return as a single float
 
     return cell_size</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.get_geotransform"><code class="name flex">
+<span>def <span class="ident">get_geotransform</span></span>(<span>raster_filename: str) ‑> tuple[float, float, float, float, float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get geotransform from raster file.</p>
+<h2 id="args">Args</h2>
+<p>raster_filename (str):</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>geotransform</dd>
+</dl>
+<p>GT[0] x-coordinate of the upper-left corner of the upper-left pixel.
+GT[1] w-e pixel resolution / pixel width.
+GT[2] row rotation (typically zero).
+GT[3] y-coordinate of the upper-left corner of the upper-left pixel.
+GT[4] column rotation (typically zero).
+GT[5] n-s pixel resolution / pixel height (negative value for a north-up image).
+reference: <a href="https://gdal.org/tutorials/geotransforms_tut.html">https://gdal.org/tutorials/geotransforms_tut.html</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_geotransform(raster_filename: str) -&gt; tuple[float, float, float, float, float, float]:
+    &#34;&#34;&#34; Get geotransform from raster file.
+    Args:
+        raster_filename (str):
+
+    Returns:
+        tuple: geotransform
+        GT[0] x-coordinate of the upper-left corner of the upper-left pixel.
+        GT[1] w-e pixel resolution / pixel width.
+        GT[2] row rotation (typically zero).
+        GT[3] y-coordinate of the upper-left corner of the upper-left pixel.
+        GT[4] column rotation (typically zero).
+        GT[5] n-s pixel resolution / pixel height (negative value for a north-up image).
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    &#34;&#34;&#34;  # fmt: skip
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise Exception(f&#34;Data set is None, could not open {filename}&#34;)
+    return dataset.GetGeoTransform()</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.id2xy"><code class="name flex">
@@ -404,7 +491,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
+    original_data = band.ReadAsArray()  #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -579,7 +666,9 @@ param band: band number to read (default 1)</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array: # FIXME returns is tuple
+<pre><code class="python">def stack_rasters(
+    file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None
+) -&gt; _np.array:  # FIXME returns is tuple
     &#34;&#34;&#34;
     Stack raster files from a list into a 3D NumPy array.
 
@@ -614,8 +703,49 @@ param band: band number to read (default 1)</p>
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
-    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
+    stacked_array = _np.stack(array_list, axis=0)  #  type: _np.array
     return stacked_array, layer_names</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.raster.transform_coords_to_georef"><code class="name flex">
+<span>def <span class="ident">transform_coords_to_georef</span></span>(<span>x_pixel: int, y_line: int, GT: tuple) ‑> tuple[float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Transform pixel coordinates to georeferenced coordinates.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x_pixel</code></strong> :&ensp;<code>int</code></dt>
+<dd>x pixel coordinate.</dd>
+<dt><strong><code>y_line</code></strong> :&ensp;<code>int</code></dt>
+<dd>y pixel coordinate.</dd>
+<dt><strong><code>GT</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>geotransform, see get_geotransform(filename)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>x_geo, y_geo.</dd>
+</dl>
+<p>reference: <a href="https://gdal.org/tutorials/geotransforms_tut.html">https://gdal.org/tutorials/geotransforms_tut.html</a></p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -&gt; tuple[float, float]:
+    &#34;&#34;&#34; Transform pixel coordinates to georeferenced coordinates.
+    Args:
+        x_pixel (int): x pixel coordinate.
+        y_line (int): y pixel coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_geo, y_geo.
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    &#34;&#34;&#34;  # fmt: skip
+    x_geo = GT[0] + x_pixel * GT[1] + y_line * GT[2]
+    y_geo = GT[3] + x_pixel * GT[4] + y_line * GT[5]
+    return x_geo, y_geo</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.xy2id"><code class="name flex">
@@ -675,14 +805,16 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
-<ul class="two-column">
+<ul class="">
 <li><code><a title="fire2a-lib.src.fire2a.raster.get_cell_size" href="#fire2a-lib.src.fire2a.raster.get_cell_size">get_cell_size</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.get_geotransform" href="#fire2a-lib.src.fire2a.raster.get_geotransform">get_geotransform</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.id2xy" href="#fire2a-lib.src.fire2a.raster.id2xy">id2xy</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.mask_raster" href="#fire2a-lib.src.fire2a.raster.mask_raster">mask_raster</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.rasterize_polygons" href="#fire2a-lib.src.fire2a.raster.rasterize_polygons">rasterize_polygons</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster" href="#fire2a-lib.src.fire2a.raster.read_raster">read_raster</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster_band" href="#fire2a-lib.src.fire2a.raster.read_raster_band">read_raster_band</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.stack_rasters" href="#fire2a-lib.src.fire2a.raster.stack_rasters">stack_rasters</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.transform_coords_to_georef" href="#fire2a-lib.src.fire2a.raster.transform_coords_to_georef">transform_coords_to_georef</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.xy2id" href="#fire2a-lib.src.fire2a.raster.xy2id">xy2id</a></code></li>
 </ul>
 </li>

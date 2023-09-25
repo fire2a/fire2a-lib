@@ -4,13 +4,14 @@ This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
 __version__ = 'v0.0.1+0-gf866f08'
-__revision__ = '$Format:%H$'
+__revision__ = "$Format:%H$"
 
 import logging as _logging
+from pathlib import Path
 
 import numpy as _np
-from osgeo import gdal as _gdal, ogr as _ogr
-from pathlib import Path
+from osgeo import gdal as _gdal
+from osgeo import ogr as _ogr
 
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
@@ -110,6 +111,45 @@ def read_raster(filename: str) -> tuple[_np.ndarray, dict]:
     return data, info
 
 
+def get_geotransform(raster_filename: str) -> tuple[float, float, float, float, float, float]:
+    """ Get geotransform from raster file.
+    Args:
+        raster_filename (str):
+
+    Returns:
+        tuple: geotransform
+        GT[0] x-coordinate of the upper-left corner of the upper-left pixel.
+        GT[1] w-e pixel resolution / pixel width.
+        GT[2] row rotation (typically zero).
+        GT[3] y-coordinate of the upper-left corner of the upper-left pixel.
+        GT[4] column rotation (typically zero).
+        GT[5] n-s pixel resolution / pixel height (negative value for a north-up image).
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    """  # fmt: skip
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+    if dataset is None:
+        raise Exception(f"Data set is None, could not open {filename}")
+    return dataset.GetGeoTransform()
+
+
+def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -> tuple[float, float]:
+    """ Transform pixel coordinates to georeferenced coordinates.
+    Args:
+        x_pixel (int): x pixel coordinate.
+        y_line (int): y pixel coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_geo, y_geo.
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
+    """  # fmt: skip
+    x_geo = GT[0] + x_pixel * GT[1] + y_line * GT[2]
+    y_geo = GT[3] + x_pixel * GT[4] + y_line * GT[5]
+    return x_geo, y_geo
+
+
 # def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
 def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
     """
@@ -157,7 +197,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
+    original_data = band.ReadAsArray()  #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -199,7 +239,9 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array: # FIXME returns is tuple
+def stack_rasters(
+    file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None
+) -> _np.array:  # FIXME returns is tuple
     """
     Stack raster files from a list into a 3D NumPy array.
 
@@ -234,7 +276,7 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f"There are rasters with different cell sizes: {cell_sizes}"
-    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
+    stacked_array = _np.stack(array_list, axis=0)  #  type: _np.array
     return stacked_array, layer_names
 
 
