@@ -35,7 +35,7 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;c05b435+dirty&#39;
+__version__ = &#39;v0.0.1+0-gf866f08&#39;
 __revision__ = &#39;$Format:%H$&#39;
 
 import logging as _logging
@@ -49,14 +49,14 @@ _logging.basicConfig(level=_logging.INFO)
 _logger.debug(&#34;Hello world!&#34;)
 
 
-def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
+def id2xy(idx: int, w: int, h: int) -&gt; tuple[int, int]:
     &#34;&#34;&#34;Transform a pixel or cell index, into x,y coordinates.
 
     Args:
 
     param idx: index of the pixel or cell (0,..,w*h-1)  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -77,7 +77,7 @@ def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -90,7 +90,7 @@ def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     return y * w + x
 
 
-def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
+def read_raster_band(filename: str, band: int = 1) -&gt; tuple[_np.ndarray, int, int]:
     &#34;&#34;&#34;Read a raster file and return the data as a numpy array, along width and height.
 
     Args:
@@ -112,7 +112,7 @@ def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int)
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str) -&gt; (_np.ndarray, dict):
+def read_raster(filename: str) -&gt; tuple[_np.ndarray, dict]:
     &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -189,7 +189,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray()
+    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -231,7 +231,7 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array:
+def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array: # FIXME returns is tuple
     &#34;&#34;&#34;
     Stack raster files from a list into a 3D NumPy array.
 
@@ -266,12 +266,12 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
-    stacked_array = _np.stack(array_list, axis=0)
+    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
     return stacked_array, layer_names
 
 
 if __name__ == &#34;__main__&#34;:
-    file_list = Path(&#34;/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO&#34;).glob(&#34;*.asc&#34;)
+    file_list = list(Path(&#34;/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO&#34;).glob(&#34;*.asc&#34;))
     array = stack_rasters(file_list)
     print(array)</code></pre>
 </details>
@@ -284,7 +284,7 @@ if __name__ == &#34;__main__&#34;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="fire2a-lib.src.fire2a.raster.get_cell_size"><code class="name flex">
-<span>def <span class="ident">get_cell_size</span></span>(<span>raster: osgeo.gdal.Dataset) ‑> tuple</span>
+<span>def <span class="ident">get_cell_size</span></span>(<span>raster: osgeo.gdal.Dataset) ‑> tuple[float, float]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the cell size(s) of a raster.</p>
@@ -326,14 +326,14 @@ if __name__ == &#34;__main__&#34;:
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.id2xy"><code class="name flex">
-<span>def <span class="ident">id2xy</span></span>(<span>idx: int, w: int, h: int) ‑> (<class 'int'>, <class 'int'>)</span>
+<span>def <span class="ident">id2xy</span></span>(<span>idx: int, w: int, h: int) ‑> tuple[int, int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Transform a pixel or cell index, into x,y coordinates.</p>
 <p>Args:</p>
 <p>param idx: index of the pixel or cell (0,..,w*h-1)<br>
 param w: width of the image or grid<br>
-param h: height of the image or grid</p>
+param h: height of the image or grid (not really used!)</p>
 <p>Returns:</p>
 <p>tuple: (x, y) coordinates of the pixel or cell
 </p>
@@ -344,14 +344,14 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def id2xy(idx: int, w: int, h: int) -&gt; (int, int):
+<pre><code class="python">def id2xy(idx: int, w: int, h: int) -&gt; tuple[int, int]:
     &#34;&#34;&#34;Transform a pixel or cell index, into x,y coordinates.
 
     Args:
 
     param idx: index of the pixel or cell (0,..,w*h-1)  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -365,7 +365,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.mask_raster"><code class="name flex">
-<span>def <span class="ident">mask_raster</span></span>(<span>raster_ds: osgeo.gdal.Dataset, band: int, polygons: list) ‑> <built-in function array></span>
+<span>def <span class="ident">mask_raster</span></span>(<span>raster_ds: osgeo.gdal.Dataset, band: int, polygons: list[osgeo.ogr.Geometry]) ‑> <built-in function array></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Mask a raster with polygons using GDAL.</p>
@@ -404,7 +404,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray()
+    original_data = band.ReadAsArray() #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -413,7 +413,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.rasterize_polygons"><code class="name flex">
-<span>def <span class="ident">rasterize_polygons</span></span>(<span>polygons: list, width: int, height: int) ‑> <built-in function array></span>
+<span>def <span class="ident">rasterize_polygons</span></span>(<span>polygons: list[osgeo.ogr.Geometry], width: int, height: int) ‑> <built-in function array></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Rasterize polygons to a boolean array.</p>
@@ -472,7 +472,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster"><code class="name flex">
-<span>def <span class="ident">read_raster</span></span>(<span>filename: str) ‑> (<class 'numpy.ndarray'>, <class 'dict'>)</span>
+<span>def <span class="ident">read_raster</span></span>(<span>filename: str) ‑> tuple[numpy.ndarray, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read a raster file and return the data as a numpy array.<br>
@@ -488,7 +488,7 @@ info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "Raster
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_raster(filename: str) -&gt; (_np.ndarray, dict):
+<pre><code class="python">def read_raster(filename: str) -&gt; tuple[_np.ndarray, dict]:
     &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -519,7 +519,7 @@ info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "Raster
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster_band"><code class="name flex">
-<span>def <span class="ident">read_raster_band</span></span>(<span>filename: str, band: int = 1) ‑> (<class 'numpy.ndarray'>, <class 'int'>, <class 'int'>)</span>
+<span>def <span class="ident">read_raster_band</span></span>(<span>filename: str, band: int = 1) ‑> tuple[numpy.ndarray, int, int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Read a raster file and return the data as a numpy array, along width and height.</p>
@@ -534,7 +534,7 @@ param band: band number to read (default 1)</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_raster_band(filename: str, band: int = 1) -&gt; (_np.ndarray, int, int):
+<pre><code class="python">def read_raster_band(filename: str, band: int = 1) -&gt; tuple[_np.ndarray, int, int]:
     &#34;&#34;&#34;Read a raster file and return the data as a numpy array, along width and height.
 
     Args:
@@ -557,7 +557,7 @@ param band: band number to read (default 1)</p>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.stack_rasters"><code class="name flex">
-<span>def <span class="ident">stack_rasters</span></span>(<span>file_list: list, mask_polygon: list = None) ‑> <built-in function array></span>
+<span>def <span class="ident">stack_rasters</span></span>(<span>file_list: list[pathlib.Path], mask_polygon: list[osgeo.ogr.Geometry] = None) ‑> <built-in function array></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Stack raster files from a list into a 3D NumPy array.</p>
@@ -579,7 +579,7 @@ param band: band number to read (default 1)</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array:
+<pre><code class="python">def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -&gt; _np.array: # FIXME returns is tuple
     &#34;&#34;&#34;
     Stack raster files from a list into a 3D NumPy array.
 
@@ -614,7 +614,7 @@ param band: band number to read (default 1)</p>
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f&#34;There are rasters with different cell sizes: {cell_sizes}&#34;
-    stacked_array = _np.stack(array_list, axis=0)
+    stacked_array = _np.stack(array_list, axis=0) #  type: _np.array
     return stacked_array, layer_names</code></pre>
 </details>
 </dd>
@@ -627,7 +627,7 @@ param band: band number to read (default 1)</p>
 <p>param x: width or horizontal coordinate of the pixel or cell<br>
 param y: height or vertical coordinate of the pixel or cell<br>
 param w: width of the image or grid<br>
-param h: height of the image or grid</p>
+param h: height of the image or grid (not really used!)</p>
 <p>Returns:</p>
 <p>int: index of the pixel or cell (0,..,w*h-1)</p>
 <p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
@@ -645,7 +645,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid
+    param h: height of the image or grid (not really used!)
 
     Returns:
 

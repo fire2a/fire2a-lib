@@ -33,32 +33,46 @@
 managedata test
 &#34;&#34;&#34;
 __author__ = &#34;David Palacios Meneses&#34;
-__version__ = &#39;v0.0.1+0-gf866f08&#39;
-import pytest
-from fire2a.managedata import GenDataFile
+__version__ = &#34;v0.0.1+0-gf866f08&#34;
 from pathlib import Path
-# test Raise
-def f():
-    raise SystemExit(1)
+from shutil import copy
+
+from pandas import read_csv
 
 
-def test_mytest():
-    with pytest.raises(SystemExit):
-        f()
+def test_DataCsv_isGenerated(request, tmp_path):
+    &#34;&#34;&#34;this test checks if the Data.csv file is generated from a fire Instance Folder
+    TODO add more raster layer
+    &#34;&#34;&#34;
+    from fire2a.managedata import GenDataFile
 
-
-# test class
-class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        GenDataFile(&#34;tests&#34;,&#34;S&#34;) #call function
-        p_data=p/&#34;Data.csv&#34; #define target assertion file
-        self.value = p_data.exists() #check if exists
-        assert self.value == 1 #assert
-        p_data.unlink() #delete Data.csv file</code></pre>
+    assets_path = request.config.rootdir / &#34;tests&#34; / &#34;assets&#34;
+    copy(assets_path / &#34;spain_lookup_table.csv&#34;, tmp_path)
+    copy(assets_path / &#34;fuels.asc&#34;, tmp_path)
+    GenDataFile(tmp_path, &#34;S&#34;)
+    output_file = tmp_path / &#34;Data.csv&#34;
+    assert output_file.exists()
+    df = read_csv(output_file)
+    assert all(
+        df.columns
+        == [
+            &#34;fueltype&#34;,
+            &#34;lat&#34;,
+            &#34;lon&#34;,
+            &#34;elev&#34;,
+            &#34;ws&#34;,
+            &#34;waz&#34;,
+            &#34;ps&#34;,
+            &#34;saz&#34;,
+            &#34;cur&#34;,
+            &#34;cbd&#34;,
+            &#34;cbh&#34;,
+            &#34;ccf&#34;,
+            &#34;ftypeN&#34;,
+            &#34;fmc&#34;,
+            &#34;py&#34;,
+        ]
+    )</code></pre>
 </details>
 </section>
 <section>
@@ -68,89 +82,54 @@ class TestClassDemoInstance:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.tests.test_managedata.f"><code class="name flex">
-<span>def <span class="ident">f</span></span>(<span>)</span>
+<dt id="fire2a-lib.tests.test_managedata.test_DataCsv_isGenerated"><code class="name flex">
+<span>def <span class="ident">test_DataCsv_isGenerated</span></span>(<span>request, tmp_path)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>this test checks if the Data.csv file is generated from a fire Instance Folder
+TODO add more raster layer</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def f():
-    raise SystemExit(1)</code></pre>
-</details>
-</dd>
-<dt id="fire2a-lib.tests.test_managedata.test_mytest"><code class="name flex">
-<span>def <span class="ident">test_mytest</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_mytest():
-    with pytest.raises(SystemExit):
-        f()</code></pre>
+<pre><code class="python">def test_DataCsv_isGenerated(request, tmp_path):
+    &#34;&#34;&#34;this test checks if the Data.csv file is generated from a fire Instance Folder
+    TODO add more raster layer
+    &#34;&#34;&#34;
+    from fire2a.managedata import GenDataFile
+
+    assets_path = request.config.rootdir / &#34;tests&#34; / &#34;assets&#34;
+    copy(assets_path / &#34;spain_lookup_table.csv&#34;, tmp_path)
+    copy(assets_path / &#34;fuels.asc&#34;, tmp_path)
+    GenDataFile(tmp_path, &#34;S&#34;)
+    output_file = tmp_path / &#34;Data.csv&#34;
+    assert output_file.exists()
+    df = read_csv(output_file)
+    assert all(
+        df.columns
+        == [
+            &#34;fueltype&#34;,
+            &#34;lat&#34;,
+            &#34;lon&#34;,
+            &#34;elev&#34;,
+            &#34;ws&#34;,
+            &#34;waz&#34;,
+            &#34;ps&#34;,
+            &#34;saz&#34;,
+            &#34;cur&#34;,
+            &#34;cbd&#34;,
+            &#34;cbh&#34;,
+            &#34;ccf&#34;,
+            &#34;ftypeN&#34;,
+            &#34;fmc&#34;,
+            &#34;py&#34;,
+        ]
+    )</code></pre>
 </details>
 </dd>
 </dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="fire2a-lib.tests.test_managedata.TestClassDemoInstance"><code class="flex name class">
-<span>class <span class="ident">TestClassDemoInstance</span></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class TestClassDemoInstance:
-
-    value=0
-
-    def test_one(self):
-        p=Path(&#34;tests&#34;) #define tests path
-        GenDataFile(&#34;tests&#34;,&#34;S&#34;) #call function
-        p_data=p/&#34;Data.csv&#34; #define target assertion file
-        self.value = p_data.exists() #check if exists
-        assert self.value == 1 #assert
-        p_data.unlink() #delete Data.csv file</code></pre>
-</details>
-<h3>Class variables</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_managedata.TestClassDemoInstance.value"><code class="name">var <span class="ident">value</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-<h3>Methods</h3>
-<dl>
-<dt id="fire2a-lib.tests.test_managedata.TestClassDemoInstance.test_one"><code class="name flex">
-<span>def <span class="ident">test_one</span></span>(<span>self)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def test_one(self):
-    p=Path(&#34;tests&#34;) #define tests path
-    GenDataFile(&#34;tests&#34;,&#34;S&#34;) #call function
-    p_data=p/&#34;Data.csv&#34; #define target assertion file
-    self.value = p_data.exists() #check if exists
-    assert self.value == 1 #assert
-    p_data.unlink() #delete Data.csv file</code></pre>
-</details>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -166,19 +145,7 @@ class TestClassDemoInstance:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.tests.test_managedata.f" href="#fire2a-lib.tests.test_managedata.f">f</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_managedata.test_mytest" href="#fire2a-lib.tests.test_managedata.test_mytest">test_mytest</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="fire2a-lib.tests.test_managedata.TestClassDemoInstance" href="#fire2a-lib.tests.test_managedata.TestClassDemoInstance">TestClassDemoInstance</a></code></h4>
-<ul class="">
-<li><code><a title="fire2a-lib.tests.test_managedata.TestClassDemoInstance.test_one" href="#fire2a-lib.tests.test_managedata.TestClassDemoInstance.test_one">test_one</a></code></li>
-<li><code><a title="fire2a-lib.tests.test_managedata.TestClassDemoInstance.value" href="#fire2a-lib.tests.test_managedata.TestClassDemoInstance.value">value</a></code></li>
-</ul>
-</li>
+<li><code><a title="fire2a-lib.tests.test_managedata.test_DataCsv_isGenerated" href="#fire2a-lib.tests.test_managedata.test_DataCsv_isGenerated">test_DataCsv_isGenerated</a></code></li>
 </ul>
 </li>
 </ul>
