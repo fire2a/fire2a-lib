@@ -3,13 +3,18 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = "7147b66-dirty"
+__version__ = 'e76e8e5-dirty'
 
 import logging as _logging
 
 import numpy as _np
-from osgeo import gdal as _gdal, ogr as _ogr
+from osgeo import gdal as _gdal, ogr as _ogr, osr as _osr
+from osgeo.gdalconst import GDT_Int16
 from pathlib import Path
+from tempfile import NamedTemporaryFile, mkdtemp
+from statistics import mode
+from typing import Dict, List
+from scipy import ndimage
 
 _logger = _logging.getLogger(__name__)
 _logging.basicConfig(level=_logging.INFO)
@@ -194,7 +199,79 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array:
+def stack_bands_to_raster(asc_list: [], layer_names=[], output_file: str = None):
+    if not output_file:
+        output_file = NamedTemporaryFile(delete=False).name
+
+    options = _gdal.BuildVRTOptions(separate=True, bandList=layer_names)
+    vrt_ds = _gdal.BuildVRT(output_file + ".vrt", asc_list, options=options)
+
+    # Create a new dataset with multiple layers
+    _gdal.Translate(output_file, vrt_ds, format="GTiff")
+
+    # Close all the source files and the VRT dataset
+    for src_ds in asc_list:
+        src_ds = None
+    vrt_ds = None
+
+
+def array2raster(array, metadata, band_name: str = None, output_filename: str = None) -> _gdal.Dataset:
+    # array = array[::-1]  # reverse array so the tif looks like the array
+    cols = array.shape[1]
+    rows = array.shape[0]
+    originX = metadata["geotransform"][0]
+    originY = metadata["geotransform"][3]
+    width = metadata["geotransform"][1]
+    height = metadata["geotransform"][5]
+    crs = metadata["crs"]
+    dtype = _gdal.GDT_Float32
+    crs = crs if crs else 4326
+    band_name = band_name if band_name else "cluster"
+    nbands = 1
+
+    if output_filename is None:
+        # If output_filename is not provided, create a temporary file
+        output_filename = NamedTemporaryFile(suffix=".tif", delete=False).name
+
+    driver = _gdal.GetDriverByName("GTiff")
+    outRaster = driver.Create(output_filename, cols, rows, nbands, dtype)
+    outRaster.SetGeoTransform((originX, width, 0, originY, 0, height))
+    outband = outRaster.GetRasterBand(1)
+    outband.SetDescription(band_name)
+    outband.WriteArray(array)
+    outRasterSRS = _osr.SpatialReference()
+    outRasterSRS.ImportFromEPSG(crs)
+    outRaster.SetProjection(outRasterSRS.ExportToWkt())
+    outband.SetNoDataValue(-9999.9)
+    outband.FlushCache()
+    outRaster = None
+    return _gdal.Open(output_filename)
+
+
+def get_metadata(raster_path: Path) -> dict:
+    """metadata["geotransform"] = {
+        "upper left x": geotransform[0],
+        "x pixel size": geotransform[1],
+        "x rotation": geotransform[2],
+        "upper left y": geotransform[3],
+        "y rotation": geotransform[4],
+        "y pixel size": geotransform[5],
+    }"""
+    ds = _gdal.Open(raster_path)
+    metadata = {
+        "width": ds.RasterXSize,
+        "height": ds.RasterYSize,
+        "dtype": _gdal.GetDataTypeName(ds.GetRasterBand(1).DataType),
+        "crs": ds.GetProjection(),
+        "geotransform": ds.GetGeoTransform(),
+        "nbands": ds.RasterCount,
+    }
+
+    ds = None
+    return metadata
+
+
+def stack_rasters_to_ndarray(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array:
     """
     Stack raster files from a list into a 3D NumPy array.
 
@@ -233,7 +310,94 @@ def stack_rasters(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = Non
     return stacked_array, layer_names
 
 
+def polygonize(raster, output_filename) -> _ogr.DataSource:
+    # Read the input raster's band (assuming a single-band raster)
+    band = raster.GetRasterBand(1)
+    try:
+        crs = band.GetProjection()
+    except:
+        crs = "EPSG:4326"
+
+    dst_layer_name = "cluster"
+    driver = _ogr.GetDriverByName("ESRI Shapefile")
+    output_ds = driver.CreateDataSource(output_filename)
+
+    spacial_reference = _osr.SpatialReference()
+    spacial_reference.SetFromUserInput(crs)
+
+    shape_layer = output_ds.CreateLayer(dst_layer_name, srs=spacial_reference)
+    field = _ogr.FieldDefn("Cluster", _ogr.OFTInteger)
+    shape_layer.CreateField(field)
+    dst_field = shape_layer.GetLayerDefn().GetFieldIndex("Cluster")
+
+    _gdal.Polygonize(band, None, shape_layer, dst_field, [], callback=None)
+
+    return driver.Open(output_filename, 1)
+
+    # # Create a new vector layer to store the polygons
+    # output_layer = output_ds.CreateLayer("cluster", srs=None)
+
+    # # Use gdal.Polygonize to convert the raster to polygons
+    # # fd = ogr.FieldDefn("Cluster", ogr.OFTInteger)
+    # # dst_layer.CreateField(fd)
+    # # dst_field = dst_layer.GetLayerDefn().GetFieldIndex("Cluster")
+    # _gdal.Polygonize(band, None, output_layer, -1, [], callback=None)
+
+    # # Close the output vector dataset
+    # output_ds = None
+
+    # # Close the input raster dataset
+    # input_raster = None
+    # return output_filename
+
+
+def plot_array(array: _np.array) -> None:
+    import matplotlib.pyplot as plt
+
+    plt.imshow(array, cmap="viridis")  # You can change the colormap as needed
+    plt.colorbar()  # Add a colorbar to the plot
+    plt.title("2D NumPy Array")
+    plt.xlabel("X Axis")
+    plt.ylabel("Y Axis")
+    plt.show()
+
+
+def add_features(shape: _ogr.DataSource, features_dct: Dict[str, List[float or int]], output_path) -> None:
+    layer = shape.GetLayer()
+    for feature in features_dct.keys():
+        feature_field = _ogr.FieldDefn(feature, _ogr.OFSTFloat32)
+        layer.CreateField(feature_field)
+
+    for feature in layer:
+        print(feature)
+
+
 if __name__ == "__main__":
     file_list = Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc")
-    array = stack_rasters(file_list)
-    print(array)
+    file_list = list(file_list)
+    (file_list[0].__str__())
+    metadata = get_metadata(file_list[0].__str__())
+    array = stack_rasters_to_ndarray(file_list)
+    # (array)
+    # Example usage:
+    output_raster = "output_shapefile.tif"
+    array = array[0][0]
+    rst = array2raster(array, metadata)
+
+    shape = polygonize(rst, "output_polygons.shp")
+
+    # driver = _ogr.GetDriverByName("ESRI Shapefile")
+    # dataSource = driver.Open(shapefile_path, 1)  # 1 para abrir en modo de escritura
+    # if dataSource is None:
+    #     print("No se pudo abrir el archivo shapefile.")
+    #     exit()
+    # layer = dataSource.GetLayer()
+
+    # for feature in layer:
+    #     key = feature.GetField("FID")  # Reemplaza "tu_llave" con el nombre real del campo de la llave en tu shapefile
+    # if key in dct:
+    #     valor = dct[key]
+    #     feature.SetField(
+    #         "nuevo_campo", valor
+    #     )  # Reemplaza "nuevo_campo" con el nombre del campo donde deseas agregar el valor
+    #     layer.SetFeature(feature)
