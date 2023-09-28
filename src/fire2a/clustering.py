@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Rodrigo Mahaluf Recasens"
-__version__ = 'e76e8e5-dirty'
+__version__ = '005725b-dirty'
 
 import logging as _logging
 import numpy as _np
@@ -20,6 +20,40 @@ from osgeo import gdal as _gdal, ogr as _ogr, osr as _osr
 
 
 def array_aggregation(array: _np.array, criteria: str) -> float:
+    """
+    Aggregate values in a NumPy array based on the specified criteria.
+
+    Parameters:
+    - array (np.array): A NumPy array containing numerical data.
+    - criteria (str): A string specifying the aggregation criteria. Supported criteria:
+        - "sum": Calculate the sum of all elements in the array.
+        - "mean": Calculate the mean (average) of all elements in the array.
+        - "min": Find the minimum value in the array.
+        - "max": Find the maximum value in the array.
+        - "prod": Calculate the product of all elements in the array.
+        - "mode": Calculate the mode (most frequent value) in the flattened array.
+
+    Returns:
+    - float: The result of the aggregation operation based on the specified criteria.
+
+    Raises:
+    - LookupError: If the specified criteria is not supported.
+
+    Example:
+    >>> import numpy as np
+    >>> data = np.array([1, 2, 3, 4, 5])
+    >>> array_aggregation(data, "sum")
+    15.0
+    >>> array_aggregation(data, "mean")
+    3.0
+    >>> array_aggregation(data, "min")
+    1.0
+    >>> array_aggregation(data, "max")
+    5.0
+    >>> array_aggregation(data, "prod")
+    120.0
+    >>> array_aggregation(data, "mode")
+    1.0 """# fmt: skip
     aggregation_functions = {
         "sum": _np.sum,
         "mean": _np.mean,
@@ -28,7 +62,6 @@ def array_aggregation(array: _np.array, criteria: str) -> float:
         "prod": _np.prod,
         "mode": lambda x: mode(x.flatten()),
     }
-
     # Use a dictionary.get() with a default value to handle the "else" case
     aggregation_function = aggregation_functions.get(criteria, None)
 
@@ -48,24 +81,39 @@ def raster_clusters(
     connectivity: int = None,
 ) -> _np.array:
     """
-    Transform a pixel or cell index into x, y coordinates.
+    Perform clustering on a stack of rasters and labeled clusters based on surface area, if they fit in max-min criteria or not. If a cluster does not fit in, it is label its negative, and if it is positive the opposite is true.
 
-    Args:
-        stacked_rasters (numpy.ndarray): An array with the raster paths.
-        cellsize (float): Size of each cell (assuming square cells).
-        min_surface (float): Minimum area to consider in the cells aggregation process.
-        max_surface (float): Maximum area to consider in the cells aggregation process.
-        distance_threshold (float, optional): Distance threshold for clustering (default is 50.0).
-        total_clusters (int, optional): Number of clusters defined by the user.
-        connectivity (int, optional): Connectivity for adjacent cells (4 or 8).
+    Parameters:
+    - stacked_rasters (np.ndarray): A 3D NumPy array representing a stack of rasters.
+    - cellsize (float): The size of each square cell in the raster data.
+    - min_surface (float): The minimum surface area for a cluster to be retained.
+    - max_surface (float): The maximum surface area for a cluster to be retained.
+    - distance_threshold (float, optional): The distance threshold for Agglomerative Clustering.
+    - total_clusters (int, optional): The desired number of clusters. If not provided, clusters are determined by distance_threshold.
+    - connectivity (int, optional): The connectivity of adjacent cells for clustering. Should be either 4 or 8.
 
     Returns:
-        numpy.array: Clustered raster.
+    - np.ndarray: A 2D NumPy array representing the clustered raster with filtered clusters.
 
-    In GIS, the origin is at the top-left corner, read from left to right, top to bottom.
-    If you're used to matplotlib, the y-axis is inverted.
-    Also, as a numpy array, the index of the pixel is [y, x].
+    Raises:
+    - ValueError: If min_surface is greater than or equal to max_surface.
+    - AssertionError: If connectivity is not 4 or 8.
+
+    Example:
+    >>> import numpy as np
+    >>> raster_data = np.random.rand(3, 5, 5)  # Create a stack of rasters (3 bands, 5x5 pixels each)
+    >>> cell_size = 10.0  # Square cells with a side length of 10 units
+    >>> min_area = 50.0  # Minimum cluster surface area
+    >>> max_area = 200.0  # Maximum cluster surface area
+    >>> clustered_raster = raster_clusters(raster_data, cell_size, min_area, max_area)
+    >>> print(clustered_raster)
+    [[-1 -1  0  0  0]
+     [ 0  0  1  1  1]
+     [ 2  2  3  3  3]
+     [ 2  2  4  4  4]
+     [ 5  5  5  5  5]]
     """  # fmt: skip
+        
     if min_surface >= max_surface:
         raise ValueError("min_surface must be less than max_surface.")
 
@@ -132,6 +180,28 @@ def raster_clusters(
 
 
 def aggregate_cells_at_cluster_level(stacked_raster: _np.ndarray, band_aggregation_criteria: dict) -> dict:
+    """
+    Aggregate values in a stack of rasters at the cluster level based on specified criteria.
+
+    Parameters:
+    - stacked_raster (np.ndarray): A 3D NumPy array representing a stack of rasters.
+    - band_aggregation_criteria (dict): A dictionary specifying aggregation criteria for each band.
+        - Keys: Band names (e.g., "band1", "band2").
+        - Values: Aggregation criteria (e.g., "sum", "mean", "min", "max", "prod", "mode").
+
+    Returns:
+    - dict: A dictionary containing aggregated values for each band at the cluster level.
+        - Keys: Band names.
+        - Values: Lists of aggregated values, one for each cluster.
+
+    Example:
+    >>> import numpy as np
+    >>> stacked_rasters = np.random.rand(3, 5, 5)  # Create a stack of rasters (3 bands, 5x5 pixels each)
+    >>> criteria = {"band1": "sum", "band2": "mean", "band3": "max"}
+    >>> aggregated_data = aggregate_cells_at_cluster_level(stacked_rasters, criteria)
+    >>> print(aggregated_data)
+    {'band1': [5.456, 6.789, ...], 'band2': [1.234, 2.345, ...], 'band3': [0.987, 1.678, ...]}
+    """ # fmt: skip
     band_names = list(band_aggregation_criteria.keys())
     cluster_index = band_names.index("cluster")
     band_indices = [band_names.index(x) for x in band_names if x != "cluster"]
