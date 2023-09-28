@@ -30,6 +30,10 @@
 <pre><code class="python">#!python3
 import pytest
 
+def test_get_root(request):
+    rootdir = request.config.rootdir
+    assert (rootdir / &#39;pyproject.toml&#39;).isfile()
+
 # test Raise
 def f():
     raise SystemExit(1)
@@ -70,6 +74,20 @@ class TestClassDemoInstance:
 </summary>
 <pre><code class="python">def f():
     raise SystemExit(1)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.tests.test_template.test_get_root"><code class="name flex">
+<span>def <span class="ident">test_get_root</span></span>(<span>request)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def test_get_root(request):
+    rootdir = request.config.rootdir
+    assert (rootdir / &#39;pyproject.toml&#39;).isfile()</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.tests.test_template.test_mytest"><code class="name flex">
@@ -165,6 +183,7 @@ class TestClassDemoInstance:
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
 <li><code><a title="fire2a-lib.tests.test_template.f" href="#fire2a-lib.tests.test_template.f">f</a></code></li>
+<li><code><a title="fire2a-lib.tests.test_template.test_get_root" href="#fire2a-lib.tests.test_template.test_get_root">test_get_root</a></code></li>
 <li><code><a title="fire2a-lib.tests.test_template.test_mytest" href="#fire2a-lib.tests.test_template.test_mytest">test_mytest</a></code></li>
 </ul>
 </li>

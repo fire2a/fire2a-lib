@@ -3,7 +3,8 @@
 managedata test
 """
 __author__ = "David Palacios Meneses"
-__version__ = 'v0.0.1+0-gf866f08'
+__version__ = "v0.0.1+0-gf866f08"
+from pathlib import Path
 from shutil import copy
 
 from pandas import read_csv

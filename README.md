@@ -58,10 +58,8 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
-cp hook/pre-commit .git/hooks/.
-chmod +x .git/hooks/pre-commit
-cp hook/pre-push .git/hooks/.
-chmod +x .git/hooks/pre-push
+cp hooks/* .git/hooks/.
+chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
 ## activate QGIS python environment (check next paragraph)
 #
@@ -76,6 +74,7 @@ __Windows + VSCode__ users: this repo includes `.vscode\settings.json` that auto
 - Open this repo folder as new window
 - (Ctrl+Shift+P) 'Python: Select Interpreter' > ... Select interpreter path: C:\Program Files\QGIS 3.32.2\apps\Python\python.exe
 - (Ctrl+Shift+P) 'Python: Create Terminal' enables the environment, __now you can pip install!__
+- __Bewate: git push__ only works from the terminal! Not the buttons!
 - Also, selecting code and pressing Shift+Enter executes it on the python terminal.  
 A nice trick is exiting python and then opening ipython  
 Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and terminal windows
@@ -101,6 +100,9 @@ pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True
 ```bash
 pip uninstall fire2a-lib
 ```
+# Coding style
+[Here](./coding_style.md)  
+TL;DR: Use black formatter, pytests; write standard docstrings and avoid needless complexity.
 
 # Code of Conduct
 

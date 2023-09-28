@@ -226,7 +226,7 @@ has 0 indent</p></div>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="fire2a-lib.src.fire2a.template.a_method"><code class="name flex">
-<span>def <span class="ident">a_method</span></span>(<span>a_required_argument: tuple, *args, an_optional_argument: dict = {'key': 0}, **kwargs) ‑> tuple</span>
+<span>def <span class="ident">a_method</span></span>(<span>a_required_argument: tuple[int, str, float], *args, an_optional_argument: dict[str, float] = {'key': 0}, **kwargs) ‑> tuple[bool, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>a_method implementing type hinting and checking</p>

@@ -452,7 +452,7 @@ if __name__==&#34;__main__&#34;:
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="fire2a-lib.src.fire2a.managedata.DataGrids"><code class="name flex">
-<span>def <span class="ident">DataGrids</span></span>(<span>InFolder: str, NCells: int) ‑> tuple</span>
+<span>def <span class="ident">DataGrids</span></span>(<span>InFolder: str, NCells: int) ‑> tuple[list, list, list, list, list, list, list, list, list]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads *.asc files and returns an array per each ASCII file with the correspondant information per each cell. Currently supports
@@ -584,7 +584,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.managedata.ForestGrid"><code class="name flex">
-<span>def <span class="ident">ForestGrid</span></span>(<span>filename: str, Lookupdict: dict) ‑> tuple</span>
+<span>def <span class="ident">ForestGrid</span></span>(<span>filename: str, Lookupdict: dict) ‑> tuple[list, list, int, int, list, list, int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm</p>
@@ -926,7 +926,7 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.managedata.Lookupdict"><code class="name flex">
-<span>def <span class="ident">Lookupdict</span></span>(<span>filename: str) ‑> tuple</span>
+<span>def <span class="ident">Lookupdict</span></span>(<span>filename: str) ‑> tuple[dict, dict]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Reads lookup_table.csv and creates dictionaries for the fuel types and cells' colors</p>

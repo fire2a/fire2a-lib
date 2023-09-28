@@ -1,6 +1,10 @@
 #!python3
 import pytest
 
+def test_get_root(request):
+    rootdir = request.config.rootdir
+    assert (rootdir / 'pyproject.toml').isfile()
+
 # test Raise
 def f():
     raise SystemExit(1)
