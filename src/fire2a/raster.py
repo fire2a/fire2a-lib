@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = '005725b-dirty'
+__version__ = 'b92e7c0-dirty'
 
 import logging as _logging
 
@@ -62,28 +62,7 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     return y * w + x
 
 
-def read_raster_band(filename: str, band: int = 1) -> (_np.ndarray, int, int):
-    """Read a raster file and return the data as a numpy array, along width and height.
-
-    Args:
-
-    param filename: name of the raster file  
-    param band: band number to read (default 1)
-
-    Returns:
-
-    tuple: (data, width, height)
-
-    Raises:
-    FileNotFoundError: if the file is not found
-    """  # fmt: skip
-    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    if dataset is None:
-        raise FileNotFoundError(filename)
-    return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
-
-
-def read_raster(filename: str) -> (_np.ndarray, dict):
+def read_raster(filename: str, data: bool = True, info: bool = True, band: int = 1) -> (_np.ndarray, dict):
     """Read a raster file and return the data as a numpy array.  
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -96,19 +75,21 @@ def read_raster(filename: str) -> (_np.ndarray, dict):
     Raises:
     FileNotFoundError: if the file is not found
     """  # fmt: skip
-    ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    if ds is None:
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
         raise FileNotFoundError(filename)
-    data = ds.ReadAsArray()
+    raster_band = dataset.GetRasterBand(band)
+    data_output = raster_band.ReadAsArray() if data else None
 
-    info = {
-        "Transform": ds.GetGeoTransform(),
-        "Projection": ds.GetProjection(),
-        "RasterCount": ds.RasterCount,
-        "RasterXSize": ds.RasterXSize,
-        "RasterYSize": ds.RasterYSize,
-    }
-    return data, info
+    info_output = {
+        "Transform": dataset.GetGeoTransform(),
+        "Projection": dataset.GetProjection(),
+        "RasterCount": dataset.RasterCount,
+        "RasterXSize": dataset.RasterXSize,
+        "RasterYSize": dataset.RasterYSize,
+        "DataType": _gdal.GetDataTypeName(raster_band.DataType),
+    } if info else None
+    return data_output, info_output
 
 
 def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
@@ -199,12 +180,12 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
     return mask_array
 
 
-def stack_bands_to_raster(asc_list: [], layer_names=[], output_file: str = None):
+def stack_bands_to_raster(raster_list: [], layer_names=[], output_file: str = None):
     if not output_file:
         output_file = NamedTemporaryFile(delete=False).name
 
     options = _gdal.BuildVRTOptions(separate=True, bandList=layer_names)
-    vrt_ds = _gdal.BuildVRT(output_file + ".vrt", asc_list, options=options)
+    vrt_ds = _gdal.BuildVRT(output_file + ".vrt", raster_list, options=options)
 
     # Create a new dataset with multiple layers
     _gdal.Translate(output_file, vrt_ds, format="GTiff")
@@ -219,10 +200,7 @@ def array2raster(array, metadata, band_name: str = None, output_filename: str = 
     # array = array[::-1]  # reverse array so the tif looks like the array
     cols = array.shape[1]
     rows = array.shape[0]
-    originX = metadata["geotransform"][0]
-    originY = metadata["geotransform"][3]
-    width = metadata["geotransform"][1]
-    height = metadata["geotransform"][5]
+    geotransform = metadata["geotransform"]
     crs = metadata["crs"]
     dtype = _gdal.GDT_Float32
     crs = crs if crs else 4326
@@ -235,7 +213,7 @@ def array2raster(array, metadata, band_name: str = None, output_filename: str = 
 
     driver = _gdal.GetDriverByName("GTiff")
     outRaster = driver.Create(output_filename, cols, rows, nbands, dtype)
-    outRaster.SetGeoTransform((originX, width, 0, originY, 0, height))
+    outRaster.SetGeoTransform(*geotransform)
     outband = outRaster.GetRasterBand(1)
     outband.SetDescription(band_name)
     outband.WriteArray(array)
@@ -248,30 +226,7 @@ def array2raster(array, metadata, band_name: str = None, output_filename: str = 
     return _gdal.Open(output_filename)
 
 
-def get_metadata(raster_path: Path) -> dict:
-    """metadata["geotransform"] = {
-        "upper left x": geotransform[0],
-        "x pixel size": geotransform[1],
-        "x rotation": geotransform[2],
-        "upper left y": geotransform[3],
-        "y rotation": geotransform[4],
-        "y pixel size": geotransform[5],
-    }"""
-    ds = _gdal.Open(raster_path)
-    metadata = {
-        "width": ds.RasterXSize,
-        "height": ds.RasterYSize,
-        "dtype": _gdal.GetDataTypeName(ds.GetRasterBand(1).DataType),
-        "crs": ds.GetProjection(),
-        "geotransform": ds.GetGeoTransform(),
-        "nbands": ds.RasterCount,
-    }
-
-    ds = None
-    return metadata
-
-
-def stack_rasters_to_ndarray(file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None) -> _np.array:
+def stack_rasters_to_ndarray(file_list: list[str], mask_polygon: list[_ogr.Geometry] = None) -> _np.array:
     """
     Stack raster files from a list into a 3D NumPy array.
 
@@ -375,8 +330,8 @@ def add_features(shape: _ogr.DataSource, features_dct: Dict[str, List[float or i
 if __name__ == "__main__":
     file_list = Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc")
     file_list = list(file_list)
-    (file_list[0].__str__())
-    metadata = get_metadata(file_list[0].__str__())
+    sample_file = file_list[0].__str__()
+    _, metadata = read_raster(sample_file, data = False)
     array = stack_rasters_to_ndarray(file_list)
     # (array)
     # Example usage:

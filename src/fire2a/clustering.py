@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Rodrigo Mahaluf Recasens"
-__version__ = '005725b-dirty'
+__version__ = 'b92e7c0-dirty'
 
 import logging as _logging
 import numpy as _np
@@ -17,6 +17,7 @@ from raster import stack_rasters_to_ndarray
 from scipy.sparse import csr_matrix, find
 from pathlib import Path
 from osgeo import gdal as _gdal, ogr as _ogr, osr as _osr
+from argparse import ArgumentParser
 
 
 def array_aggregation(array: _np.array, criteria: str) -> float:
@@ -247,14 +248,14 @@ def main(argv=None):
     args = parse_args(argv)
 
     from pathlib import Path
-    from raster import get_metadata, array2raster, polygonize, add_features
+    from raster import array2raster, polygonize, add_features, read_raster
 
     file_list = Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc")
     file_list = list(file_list)
-    metadata = get_metadata(file_list[0].__str__())
+    _, metadata = read_raster(file_list[0].__str__(), data = False)
 
-    asciis = Path("tests", "data").glob("*.asc")
-    stacked_rasters, layer_names = stack_rasters_to_ndarray(asciis)
+    rasters = Path("tests", "data").glob("*.asc")
+    stacked_rasters, layer_names = stack_rasters_to_ndarray(rasters)
     print(layer_names)
 
     cell_size = 100
