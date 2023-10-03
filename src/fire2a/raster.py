@@ -150,6 +150,18 @@ def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -> tuple[fl
     return x_geo, y_geo
 
 
+def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float, float]:
+    """Inverse of transform_coords_to_georef.
+    import sympy
+    a, b, c, d, e, f, g, i, j, x, y = sympy.symbols('a, b, c, d, e, f, g, i, j, x, y', real=True)
+    sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
+    {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    """
+    a, b, c, d, e, f = GT
+    x, y = x_geo, y_geo
+    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))
+
+
 # def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
 def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
     """
