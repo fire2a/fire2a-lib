@@ -35,7 +35,7 @@ This is the raster module docstring</p>
 This is the raster module docstring
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#34;v0.0.1+0-gf866f08&#34;
+__version__ = &#39;v0.0.1+0-gf866f08&#39;
 __revision__ = &#34;$Format:%H$&#34;
 
 import logging as _logging
@@ -180,6 +180,18 @@ def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -&gt; tuple
     x_geo = GT[0] + x_pixel * GT[1] + y_line * GT[2]
     y_geo = GT[3] + x_pixel * GT[4] + y_line * GT[5]
     return x_geo, y_geo
+
+
+def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -&gt; tuple[float, float]:
+    &#34;&#34;&#34;Inverse of transform_coords_to_georef.
+    import sympy
+    a, b, c, d, e, f, g, i, j, x, y = sympy.symbols(&#39;a, b, c, d, e, f, g, i, j, x, y&#39;, real=True)
+    sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
+    {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    &#34;&#34;&#34;
+    a, b, c, d, e, f = GT
+    x, y = x_geo, y_geo
+    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))
 
 
 # def get_cell_size(raster: _gdal.Dataset | str) -&gt; float | tuple[float, float]:
@@ -748,6 +760,31 @@ param band: band number to read (default 1)</p>
     return x_geo, y_geo</code></pre>
 </details>
 </dd>
+<dt id="fire2a-lib.src.fire2a.raster.transform_georef_to_coords"><code class="name flex">
+<span>def <span class="ident">transform_georef_to_coords</span></span>(<span>x_geo: int, y_geo: int, GT: tuple) ‑> tuple[float, float]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Inverse of transform_coords_to_georef.
+import sympy
+a, b, c, d, e, f, g, i, j, x, y = sympy.symbols('a, b, c, d, e, f, g, i, j, x, y', real=True)
+sympy.linsolve([a+i<em>b+j</em>c - x,d+i<em>e+j</em>f-y],(i,j))
+{((-a<em>f + c</em>d - c<em>y + f</em>x)/(b<em>f - c</em>e), (a<em>e - b</em>d + b<em>y - e</em>x)/(b<em>f - c</em>e))}</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -&gt; tuple[float, float]:
+    &#34;&#34;&#34;Inverse of transform_coords_to_georef.
+    import sympy
+    a, b, c, d, e, f, g, i, j, x, y = sympy.symbols(&#39;a, b, c, d, e, f, g, i, j, x, y&#39;, real=True)
+    sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
+    {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    &#34;&#34;&#34;
+    a, b, c, d, e, f = GT
+    x, y = x_geo, y_geo
+    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))</code></pre>
+</details>
+</dd>
 <dt id="fire2a-lib.src.fire2a.raster.xy2id"><code class="name flex">
 <span>def <span class="ident">xy2id</span></span>(<span>x: int, y: int, w: int, h: int) ‑> int</span>
 </code></dt>
@@ -815,6 +852,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 <li><code><a title="fire2a-lib.src.fire2a.raster.read_raster_band" href="#fire2a-lib.src.fire2a.raster.read_raster_band">read_raster_band</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.stack_rasters" href="#fire2a-lib.src.fire2a.raster.stack_rasters">stack_rasters</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.transform_coords_to_georef" href="#fire2a-lib.src.fire2a.raster.transform_coords_to_georef">transform_coords_to_georef</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.raster.transform_georef_to_coords" href="#fire2a-lib.src.fire2a.raster.transform_georef_to_coords">transform_georef_to_coords</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster.xy2id" href="#fire2a-lib.src.fire2a.raster.xy2id">xy2id</a></code></li>
 </ul>
 </li>

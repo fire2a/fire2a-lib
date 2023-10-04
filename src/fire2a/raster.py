@@ -38,7 +38,7 @@ def id2xy(idx: int, w: int, h: int) -> tuple[int, int]:
     return idx % w, idx // w
 
 
-def xy2id(x: int, y: int, w: int, h: int) -> int:
+def xy2id(x: int, y: int, w: int) -> int:
     """Transform a x,y coordinates into a pixel or cell index.
 
     Args:
@@ -46,7 +46,6 @@ def xy2id(x: int, y: int, w: int, h: int) -> int:
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -81,34 +80,41 @@ def read_raster_band(filename: str, band: int = 1) -> tuple[_np.ndarray, int, in
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str) -> tuple[_np.ndarray, dict]:
-    """Read a raster file and return the data as a numpy array.  
+def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[_np.ndarray, dict]:
+    """Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
     Args:
-    param filename: name of the raster file
+        param filename: name of the raster file
+        param band: band number to read (default 1)
+        param data: if True, return the data as a numpy array (default True)
+        param info: if True, return the raster info (default True)
 
     Returns:
-    tuple: (data np.array, info dict)
-    info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "RasterYSize"
+        tuple: (data, geotransform, projection)
 
     Raises:
-
     FileNotFoundError: if the file is not found
     """  # fmt: skip
-    ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    if ds is None:
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
         raise FileNotFoundError(filename)
-    data = ds.ReadAsArray()
+    raster_band = dataset.GetRasterBand(band)
+    data_output = raster_band.ReadAsArray() if data else None
 
-    info = {
-        "Transform": ds.GetGeoTransform(),
-        "Projection": ds.GetProjection(),
-        "RasterCount": ds.RasterCount,
-        "RasterXSize": ds.RasterXSize,
-        "RasterYSize": ds.RasterYSize,
-    }
-    return data, info
+    info_output = (
+        {
+            "Transform": dataset.GetGeoTransform(),
+            "Projection": dataset.GetProjection(),
+            "RasterCount": dataset.RasterCount,
+            "RasterXSize": dataset.RasterXSize,
+            "RasterYSize": dataset.RasterYSize,
+            "DataType": _gdal.GetDataTypeName(raster_band.DataType),
+        }
+        if info
+        else None
+    )
+    return data_output, info_output
 
 
 def get_geotransform(raster_filename: str) -> tuple[float, float, float, float, float, float]:
@@ -156,10 +162,25 @@ def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float
     a, b, c, d, e, f, g, i, j, x, y = sympy.symbols('a, b, c, d, e, f, g, i, j, x, y', real=True)
     sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
     {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    Args:
+        x_geo (int): x georeferenced coordinate.
+        y_geo (int): y georeferenced coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_pixel, y_line.
+    
+    TODO Raises:
+        Exception: if x_pixel or y_line are not integer coordinates. by tolerance?
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
     """
     a, b, c, d, e, f = GT
     x, y = x_geo, y_geo
-    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))
+    i, j = (-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e)
+    # if i % 1 != 0 or j % 1 != 0:
+    #     raise Exception("Not integer coordinates!")
+    return int(i), int(j)
 
 
 # def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
