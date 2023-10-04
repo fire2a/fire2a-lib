@@ -3,7 +3,7 @@
 This is the raster module docstring
 """
 __author__ = "Fernando Badilla"
-__version__ = 'b92e7c0-dirty'
+__version__ = 'e06c899-dirty'
 
 import logging as _logging
 
@@ -92,36 +92,7 @@ def read_raster(filename: str, data: bool = True, info: bool = True, band: int =
     return data_output, info_output
 
 
-def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
-    """
-    Get the cell size(s) of a raster.
-
-    Parameters:
-        raster (gdal.Dataset | str): The GDAL dataset or path to the raster.
-
-    Returns:
-        float | tuple[float, float]: The cell size(s) as a single float or a tuple (x, y).
-    """  # fmt: skip
-    if isinstance(raster, str):
-        ds = _gdal.Open(raster, _gdal.GA_ReadOnly)
-    elif isinstance(raster, _gdal.Dataset):
-        ds = raster
-    else:
-        raise ValueError("Invalid input type for raster")
-
-    # Get the affine transformation parameters
-    affine = ds.GetGeoTransform()
-
-    if affine[1] != -affine[5]:
-        # If x and y cell sizes are not equal
-        cell_size = (affine[1], -affine[5])  # Return as a tuple
-    else:
-        cell_size = affine[1]  # Return as a single float
-
-    return cell_size
-
-
-def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometry]) -> _np.array:
+def mask_raster(raster_ds: _gdal.Dataset, polygons: list[_ogr.Geometry]) -> _np.array:
     """
     Mask a raster with polygons using GDAL.
 
@@ -138,7 +109,7 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     mask_array = rasterize_polygons(polygons, raster_ds.RasterXSize, raster_ds.RasterYSize)
 
     # Read the original raster data
-    original_data = band.ReadAsArray()
+    original_data = raster_ds.ReadAsArray()
 
     # Apply the mask
     masked_data = _np.where(mask_array, original_data, _np.nan)
@@ -191,7 +162,7 @@ def stack_bands_to_raster(raster_list: [], layer_names=[], output_file: str = No
     _gdal.Translate(output_file, vrt_ds, format="GTiff")
 
     # Close all the source files and the VRT dataset
-    for src_ds in asc_list:
+    for src_ds in raster_list:
         src_ds = None
     vrt_ds = None
 
@@ -246,19 +217,16 @@ def stack_rasters_to_ndarray(file_list: list[str], mask_polygon: list[_ogr.Geome
         layer_name = raster_path.stem
         layer_names.append(layer_name)
 
-        ds = _gdal.Open(str(raster_path))
-        if ds is None:
-            raise ValueError(f"Failed to open raster file: {raster_path}")
-
-        band = ds.GetRasterBand(1)
+        band, metadata = read_raster(raster_path)
 
         if mask_polygon:
-            flatten_array = mask_raster(ds, band, mask_polygon)
+            flatten_array = mask_raster(band, mask_polygon)
         else:
             flatten_array = band.ReadAsArray()
 
         array_list.append(flatten_array)
-        cell_sizes.add(get_cell_size(ds))
+        raster_cell_size = (metadata["RasterXSize"],metadata["RasterYSize"])
+        cell_sizes.add(raster_cell_size)
 
     assert len(cell_sizes) == 1, f"There are rasters with different cell sizes: {cell_sizes}"
     stacked_array = _np.stack(array_list, axis=0)
