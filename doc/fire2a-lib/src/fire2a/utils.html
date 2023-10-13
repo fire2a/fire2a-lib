@@ -4,11 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>fire2a-lib.src.fire2a API documentation</title>
-<meta name="description" content="👋🌎 🌲🔥
-Hello World Forest Fire!
-This is fire2a-lib distribution, fire2a package docstring
-More info on: …" />
+<title>fire2a-lib.src.fire2a.utils API documentation</title>
+<meta name="description" content="👋🌎
+Miscellaneous utility functions that simplify common tasks." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,82 +21,139 @@ More info on: …" />
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>fire2a-lib.src.fire2a</code></h1>
+<h1 class="title">Module <code>fire2a-lib.src.fire2a.utils</code></h1>
 </header>
 <section id="section-intro">
-<p>👋🌎 🌲🔥
-Hello World Forest Fire!
-This is fire2a-lib distribution, fire2a package docstring
-More info on:</p>
-<pre><code>fire2a.github.io/fire2a-lib  
-fire2a.github.io/docs  
-www.fire2a.com
-</code></pre>
+<p>👋🌎<br>
+Miscellaneous utility functions that simplify common tasks.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!python3
-&#34;&#34;&#34;👋🌎 🌲🔥
-Hello World Forest Fire!
-This is fire2a-lib distribution, fire2a package docstring
-More info on:
-
-    fire2a.github.io/fire2a-lib  
-    fire2a.github.io/docs  
-    www.fire2a.com  
-&#34;&#34;&#34; # fmt: skip
+&#34;&#34;&#34;👋🌎  
+Miscellaneous utility functions that simplify common tasks.
+&#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
 __version__ = &#39;v0.0.1+0-gf866f08&#39;
-__revision__ = &#39;$Format:%H$&#39;
+__revision__ = &#34;$Format:%H$&#34;
+from numpy import loadtxt, float32
+from functools import partial
 
-import logging as _logging
+def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
+    &#34;&#34;&#34; Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
+    Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
 
-_logger = _logging.getLogger(__name__)
-_logging.basicConfig(level=_logging.DEBUG)
-_logger.info(&#34;Hello world! version %s&#34;, __version__)</code></pre>
+    Args:
+        fname : file, str, pathlib.Path, list of str, generator
+            File, filename, list, or generator to read.  If the filename
+            extension is ``.gz`` or ``.bz2``, the file is first decompressed. Note
+            that generators must return bytes or strings. The strings
+            in a list or produced by a generator are treated as lines.
+        dtype : data-type, optional
+            Data-type of the resulting array; default: float32.  If this is a
+            structured data-type, the resulting array will be 1-dimensional, and
+            each row will be interpreted as an element of the array.  In this
+            case, the number of columns used must match the number of fields in
+            the data-type.
+        no_data (numeric, optional): No data value. Defaults to -9999.
+        **kwargs: Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
+
+    Returns:
+        out : numpy.ndarray: Data read from the text file.
+
+    See Also:
+        numpy: loadtxt, load, fromstring, fromregex
+    &#34;&#34;&#34;
+    def conv(no_data, dtype, val):
+        try:
+            return dtype(val)
+        except ValueError:
+            return no_data
+    conv = partial(conv, no_data, dtype)
+    return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.adjacency" href="adjacency.html">fire2a-lib.src.fire2a.adjacency</a></code></dt>
+<dt id="fire2a-lib.src.fire2a.utils.loadtxt_nodata"><code class="name flex">
+<span>def <span class="ident">loadtxt_nodata</span></span>(<span>fname, no_data=-9999, dtype=numpy.float32, **kwargs)</span>
+</code></dt>
 <dd>
-<div class="desc"><p>👋🌎 🌲🔥
-This is the raster module docstring</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.clustering" href="clustering.html">fire2a-lib.src.fire2a.clustering</a></code></dt>
-<dd>
-<div class="desc"><p>👋🌎 🌲🔥
-This is the raster module docstring</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.managedata" href="managedata.html">fire2a-lib.src.fire2a.managedata</a></code></dt>
-<dd>
-<div class="desc"><p>Previous Read Data Prometheus</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.raster" href="raster.html">fire2a-lib.src.fire2a.raster</a></code></dt>
-<dd>
-<div class="desc"><p>👋🌎 🌲🔥
-This is the raster module docstring</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.template" href="template.html">fire2a-lib.src.fire2a.template</a></code></dt>
-<dd>
-<div class="desc"><p>👋🌎 This docstring is called a module docstring. Describes the general purpose of the module …</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.treatmentpreproccessing" href="treatmentpreproccessing.html">fire2a-lib.src.fire2a.treatmentpreproccessing</a></code></dt>
-<dd>
-<div class="desc"><p>Fuelbreak treatment pre proccessing functions</p></div>
-</dd>
-<dt><code class="name"><a title="fire2a-lib.src.fire2a.utils" href="utils.html">fire2a-lib.src.fire2a.utils</a></code></dt>
-<dd>
-<div class="desc"><p>👋🌎<br>
-Miscellaneous utility functions that simplify common tasks.</p></div>
+<div class="desc"><p>Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
+Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>fname : file, str, pathlib.Path, list of str, generator</dt>
+<dt>File, filename, list, or generator to read.
+If the filename</dt>
+<dt>extension is <code>.gz</code> or <code>.bz2</code>, the file is first decompressed. Note</dt>
+<dt>that generators must return bytes or strings. The strings</dt>
+<dt>in a list or produced by a generator are treated as lines.</dt>
+<dt>dtype : data-type, optional</dt>
+<dt>Data-type of the resulting array; default: float32.
+If this is a</dt>
+<dt>structured data-type, the resulting array will be 1-dimensional, and</dt>
+<dt>each row will be interpreted as an element of the array.
+In this</dt>
+<dt>case, the number of columns used must match the number of fields in</dt>
+<dt>the data-type.</dt>
+<dt><strong><code>no_data</code></strong> :&ensp;<code>numeric</code>, optional</dt>
+<dd>No data value. Defaults to -9999.</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>out </code></dt>
+<dd>numpy.ndarray: Data read from the text file.</dd>
+</dl>
+<p>See Also:
+numpy: loadtxt, load, fromstring, fromregex</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
+    &#34;&#34;&#34; Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
+    Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
+
+    Args:
+        fname : file, str, pathlib.Path, list of str, generator
+            File, filename, list, or generator to read.  If the filename
+            extension is ``.gz`` or ``.bz2``, the file is first decompressed. Note
+            that generators must return bytes or strings. The strings
+            in a list or produced by a generator are treated as lines.
+        dtype : data-type, optional
+            Data-type of the resulting array; default: float32.  If this is a
+            structured data-type, the resulting array will be 1-dimensional, and
+            each row will be interpreted as an element of the array.  In this
+            case, the number of columns used must match the number of fields in
+            the data-type.
+        no_data (numeric, optional): No data value. Defaults to -9999.
+        **kwargs: Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
+
+    Returns:
+        out : numpy.ndarray: Data read from the text file.
+
+    See Also:
+        numpy: loadtxt, load, fromstring, fromregex
+    &#34;&#34;&#34;
+    def conv(no_data, dtype, val):
+        try:
+            return dtype(val)
+        except ValueError:
+            return no_data
+    conv = partial(conv, no_data, dtype)
+    return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)</code></pre>
+</details>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
 </section>
 <section>
 </section>
@@ -111,18 +166,12 @@ Miscellaneous utility functions that simplify common tasks.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="fire2a-lib.src" href="../index.html">fire2a-lib.src</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a" href="index.html">fire2a-lib.src.fire2a</a></code></li>
 </ul>
 </li>
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
-<ul>
-<li><code><a title="fire2a-lib.src.fire2a.adjacency" href="adjacency.html">fire2a-lib.src.fire2a.adjacency</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.clustering" href="clustering.html">fire2a-lib.src.fire2a.clustering</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.managedata" href="managedata.html">fire2a-lib.src.fire2a.managedata</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.raster" href="raster.html">fire2a-lib.src.fire2a.raster</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.template" href="template.html">fire2a-lib.src.fire2a.template</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.treatmentpreproccessing" href="treatmentpreproccessing.html">fire2a-lib.src.fire2a.treatmentpreproccessing</a></code></li>
-<li><code><a title="fire2a-lib.src.fire2a.utils" href="utils.html">fire2a-lib.src.fire2a.utils</a></code></li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.utils.loadtxt_nodata" href="#fire2a-lib.src.fire2a.utils.loadtxt_nodata">loadtxt_nodata</a></code></li>
 </ul>
 </li>
 </ul>

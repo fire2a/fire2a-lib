@@ -70,7 +70,7 @@ def id2xy(idx: int, w: int, h: int) -&gt; tuple[int, int]:
     return idx % w, idx // w
 
 
-def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
+def xy2id(x: int, y: int, w: int) -&gt; int:
     &#34;&#34;&#34;Transform a x,y coordinates into a pixel or cell index.
 
     Args:
@@ -78,7 +78,6 @@ def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid (not really used!)
 
     Returns:
 
@@ -113,34 +112,41 @@ def read_raster_band(filename: str, band: int = 1) -&gt; tuple[_np.ndarray, int,
     return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str) -&gt; tuple[_np.ndarray, dict]:
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
+def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -&gt; tuple[_np.ndarray, dict]:
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
     Args:
-    param filename: name of the raster file
+        param filename: name of the raster file
+        param band: band number to read (default 1)
+        param data: if True, return the data as a numpy array (default True)
+        param info: if True, return the raster info (default True)
 
     Returns:
-    tuple: (data np.array, info dict)
-    info dict keys: &#34;Transform&#34;, &#34;Projection&#34;, &#34;RasterCount&#34;, &#34;RasterXSize&#34;, &#34;RasterYSize&#34;
+        tuple: (data, geotransform, projection)
 
     Raises:
-
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
-    ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    if ds is None:
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
         raise FileNotFoundError(filename)
-    data = ds.ReadAsArray()
+    raster_band = dataset.GetRasterBand(band)
+    data_output = raster_band.ReadAsArray() if data else None
 
-    info = {
-        &#34;Transform&#34;: ds.GetGeoTransform(),
-        &#34;Projection&#34;: ds.GetProjection(),
-        &#34;RasterCount&#34;: ds.RasterCount,
-        &#34;RasterXSize&#34;: ds.RasterXSize,
-        &#34;RasterYSize&#34;: ds.RasterYSize,
-    }
-    return data, info
+    info_output = (
+        {
+            &#34;Transform&#34;: dataset.GetGeoTransform(),
+            &#34;Projection&#34;: dataset.GetProjection(),
+            &#34;RasterCount&#34;: dataset.RasterCount,
+            &#34;RasterXSize&#34;: dataset.RasterXSize,
+            &#34;RasterYSize&#34;: dataset.RasterYSize,
+            &#34;DataType&#34;: _gdal.GetDataTypeName(raster_band.DataType),
+        }
+        if info
+        else None
+    )
+    return data_output, info_output
 
 
 def get_geotransform(raster_filename: str) -&gt; tuple[float, float, float, float, float, float]:
@@ -188,10 +194,25 @@ def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -&gt; tuple[fl
     a, b, c, d, e, f, g, i, j, x, y = sympy.symbols(&#39;a, b, c, d, e, f, g, i, j, x, y&#39;, real=True)
     sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
     {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    Args:
+        x_geo (int): x georeferenced coordinate.
+        y_geo (int): y georeferenced coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_pixel, y_line.
+    
+    TODO Raises:
+        Exception: if x_pixel or y_line are not integer coordinates. by tolerance?
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
     &#34;&#34;&#34;
     a, b, c, d, e, f = GT
     x, y = x_geo, y_geo
-    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))
+    i, j = (-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e)
+    # if i % 1 != 0 or j % 1 != 0:
+    #     raise Exception(&#34;Not integer coordinates!&#34;)
+    return int(i), int(j)
 
 
 # def get_cell_size(raster: _gdal.Dataset | str) -&gt; float | tuple[float, float]:
@@ -571,50 +592,62 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster"><code class="name flex">
-<span>def <span class="ident">read_raster</span></span>(<span>filename: str) ‑> tuple[numpy.ndarray, dict]</span>
+<span>def <span class="ident">read_raster</span></span>(<span>filename: str, band: int = 1, data: bool = True, info: bool = True) ‑> tuple[numpy.ndarray, dict]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Read a raster file and return the data as a numpy array.<br>
+<div class="desc"><p>Read a raster file and return the data as a numpy array.
 Along raster info: transform, projection, raster count, raster width, raster height.</p>
-<p>Args:
-param filename: name of the raster file</p>
-<p>Returns:
-tuple: (data np.array, info dict)
-info dict keys: "Transform", "Projection", "RasterCount", "RasterXSize", "RasterYSize"</p>
-<p>Raises:</p>
-<p>FileNotFoundError: if the file is not found</p></div>
+<h2 id="args">Args</h2>
+<p>param filename: name of the raster file
+param band: band number to read (default 1)
+param data: if True, return the data as a numpy array (default True)
+param info: if True, return the raster info (default True)</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>(data, geotransform, projection)</dd>
+</dl>
+<p>Raises:
+FileNotFoundError: if the file is not found</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def read_raster(filename: str) -&gt; tuple[_np.ndarray, dict]:
-    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.  
+<pre><code class="python">def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -&gt; tuple[_np.ndarray, dict]:
+    &#34;&#34;&#34;Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
     Args:
-    param filename: name of the raster file
+        param filename: name of the raster file
+        param band: band number to read (default 1)
+        param data: if True, return the data as a numpy array (default True)
+        param info: if True, return the raster info (default True)
 
     Returns:
-    tuple: (data np.array, info dict)
-    info dict keys: &#34;Transform&#34;, &#34;Projection&#34;, &#34;RasterCount&#34;, &#34;RasterXSize&#34;, &#34;RasterYSize&#34;
+        tuple: (data, geotransform, projection)
 
     Raises:
-
     FileNotFoundError: if the file is not found
     &#34;&#34;&#34;  # fmt: skip
-    ds = _gdal.Open(filename, _gdal.GA_ReadOnly)
-    if ds is None:
+    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    if dataset is None:
         raise FileNotFoundError(filename)
-    data = ds.ReadAsArray()
+    raster_band = dataset.GetRasterBand(band)
+    data_output = raster_band.ReadAsArray() if data else None
 
-    info = {
-        &#34;Transform&#34;: ds.GetGeoTransform(),
-        &#34;Projection&#34;: ds.GetProjection(),
-        &#34;RasterCount&#34;: ds.RasterCount,
-        &#34;RasterXSize&#34;: ds.RasterXSize,
-        &#34;RasterYSize&#34;: ds.RasterYSize,
-    }
-    return data, info</code></pre>
+    info_output = (
+        {
+            &#34;Transform&#34;: dataset.GetGeoTransform(),
+            &#34;Projection&#34;: dataset.GetProjection(),
+            &#34;RasterCount&#34;: dataset.RasterCount,
+            &#34;RasterXSize&#34;: dataset.RasterXSize,
+            &#34;RasterYSize&#34;: dataset.RasterYSize,
+            &#34;DataType&#34;: _gdal.GetDataTypeName(raster_band.DataType),
+        }
+        if info
+        else None
+    )
+    return data_output, info_output</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.read_raster_band"><code class="name flex">
@@ -768,7 +801,24 @@ param band: band number to read (default 1)</p>
 import sympy
 a, b, c, d, e, f, g, i, j, x, y = sympy.symbols('a, b, c, d, e, f, g, i, j, x, y', real=True)
 sympy.linsolve([a+i<em>b+j</em>c - x,d+i<em>e+j</em>f-y],(i,j))
-{((-a<em>f + c</em>d - c<em>y + f</em>x)/(b<em>f - c</em>e), (a<em>e - b</em>d + b<em>y - e</em>x)/(b<em>f - c</em>e))}</p></div>
+{((-a<em>f + c</em>d - c<em>y + f</em>x)/(b<em>f - c</em>e), (a<em>e - b</em>d + b<em>y - e</em>x)/(b<em>f - c</em>e))}</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>x_geo</code></strong> :&ensp;<code>int</code></dt>
+<dd>x georeferenced coordinate.</dd>
+<dt><strong><code>y_geo</code></strong> :&ensp;<code>int</code></dt>
+<dd>y georeferenced coordinate.</dd>
+<dt><strong><code>GT</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>geotransform, see get_geotransform(filename)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>x_pixel, y_line.</dd>
+</dl>
+<p>TODO Raises:
+Exception: if x_pixel or y_line are not integer coordinates. by tolerance?</p>
+<p>reference: <a href="https://gdal.org/tutorials/geotransforms_tut.html">https://gdal.org/tutorials/geotransforms_tut.html</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -779,22 +829,37 @@ sympy.linsolve([a+i<em>b+j</em>c - x,d+i<em>e+j</em>f-y],(i,j))
     a, b, c, d, e, f, g, i, j, x, y = sympy.symbols(&#39;a, b, c, d, e, f, g, i, j, x, y&#39;, real=True)
     sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
     {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+    Args:
+        x_geo (int): x georeferenced coordinate.
+        y_geo (int): y georeferenced coordinate.
+        GT (tuple): geotransform, see get_geotransform(filename)
+
+    Returns:
+        tuple: x_pixel, y_line.
+    
+    TODO Raises:
+        Exception: if x_pixel or y_line are not integer coordinates. by tolerance?
+
+    reference: https://gdal.org/tutorials/geotransforms_tut.html
     &#34;&#34;&#34;
     a, b, c, d, e, f = GT
     x, y = x_geo, y_geo
-    return ((-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e))</code></pre>
+    i, j = (-a * f + c * d - c * y + f * x) / (b * f - c * e), (a * e - b * d + b * y - e * x) / (b * f - c * e)
+    # if i % 1 != 0 or j % 1 != 0:
+    #     raise Exception(&#34;Not integer coordinates!&#34;)
+    return int(i), int(j)</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.raster.xy2id"><code class="name flex">
-<span>def <span class="ident">xy2id</span></span>(<span>x: int, y: int, w: int, h: int) ‑> int</span>
+<span>def <span class="ident">xy2id</span></span>(<span>x: int, y: int, w: int) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Transform a x,y coordinates into a pixel or cell index.</p>
 <p>Args:</p>
 <p>param x: width or horizontal coordinate of the pixel or cell<br>
 param y: height or vertical coordinate of the pixel or cell<br>
-param w: width of the image or grid<br>
-param h: height of the image or grid (not really used!)</p>
+param w: width of the image or grid
+</p>
 <p>Returns:</p>
 <p>int: index of the pixel or cell (0,..,w*h-1)</p>
 <p>In GIS, the origin is at the top-left corner, read from left to right, top to bottom.<br>
@@ -804,7 +869,7 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def xy2id(x: int, y: int, w: int, h: int) -&gt; int:
+<pre><code class="python">def xy2id(x: int, y: int, w: int) -&gt; int:
     &#34;&#34;&#34;Transform a x,y coordinates into a pixel or cell index.
 
     Args:
@@ -812,7 +877,6 @@ Also as numpy array, the index of the pixel is [y, x].</p></div>
     param x: width or horizontal coordinate of the pixel or cell  
     param y: height or vertical coordinate of the pixel or cell  
     param w: width of the image or grid  
-    param h: height of the image or grid (not really used!)
 
     Returns:
 
