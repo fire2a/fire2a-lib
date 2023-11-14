@@ -2,8 +2,8 @@
 """👋🌎 🌲🔥
 This is the raster module docstring
 """
-__author__ = "Rodrigo Mahaluf Recasens"
-__version__ = 'c05b435+dirty'
+__author__ = "Rodrigo Mahaluf-Recasens"
+__version__ = 'v0.0.1-38-gd1276ea-dirty'
 __revision__ = '$Format:%H$'
 
 import logging as _logging

@@ -11,5 +11,9 @@
           ]
         }
       },
-      "terminal.integrated.defaultProfile.windows": "Custom Init"
+      "terminal.integrated.defaultProfile.windows": "Custom Init",
+      "cSpell.words": [
+        "Mahaluf",
+        "Recasens"
+      ]
 }
