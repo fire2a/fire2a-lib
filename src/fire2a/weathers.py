@@ -3,7 +3,7 @@
 Some functions related to weather scenario creation. 
 """
 __author__ = "Rodrigo Mahaluf-Recasens"
-__version__ = 'v0.0.1-38-gd1276ea-dirty'
+__version__ = 'v0.0.1-39-g4eb8ddb-dirty'
 __revision__ = "$Format:%H$"
 
 from pandas import DataFrame
@@ -70,7 +70,7 @@ def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int
 
         # Save the weather scenario
         output_path = output_folder / f'weather{str(index).zfill(total_scenarios)}.csv'
-        scenario.to_csv(output_path)
+        scenario.to_csv(output_path, index=False)
 
     return scenarios
 

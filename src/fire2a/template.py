@@ -32,7 +32,7 @@ a_method((1, 'a'), 'b', 'c', an_optional_argument=2, d='e', f='g')
 👋🌎
 """  # fmt: skip
 __author__ = "Fernando Badilla"
-__version__ = 'v0.0.1-38-gd1276ea-dirty'
+__version__ = 'v0.0.1-39-g4eb8ddb-dirty'
 __revision__ = "$Format:%H$"
 
 MODULE_VARIABLE = "very important and global variable"
