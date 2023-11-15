@@ -3,20 +3,88 @@
 Some functions related to weather scenario creation. 
 """
 __author__ = "Rodrigo Mahaluf-Recasens"
-__version__ = 'v0.0.1-39-g4eb8ddb-dirty'
+__version__ = 'v0.0.1-40-g6c4be6a-dirty'
 __revision__ = "$Format:%H$"
 
 from pandas import DataFrame
-from random import randint
+from random import randint, choice
+from collections import Counter
 from numpy import vstack
 from numpy.random import normal
 from typing import List, Union, Optional
 from pathlib import Path
 from datetime import datetime, timedelta
 
-def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int], output_folder: Union[Path,str] = None) -> None:
+def re_size_durations(scenario_lengths: List[int], 
+                      n_samples: int = None) -> List[int]: 
     """
-    Split weather records into smaller scenarios following specified scenario lengths.
+    Resize a list of scenario durations to generate a new list maintaining representation
+    while considering outliers.
+
+    Parameters:
+    - scenario_lengths : List[int]
+        A list of integers representing desired lengths (in hours) for each weather scenario.
+    - n_samples : int, optional
+        An integer indicating how many weather files (scenarios) will be created following the
+        distribution of 'scenario_lengths'. If not provided, defaults to 100.
+
+    Returns:
+    - List[int]
+        A new list of durations, preserving the representation of the original list.
+
+    Raises:
+    - ValueError: If 'scenario_lengths' is not a list of integers.
+    - ValueError: If 'n_samples' is provided but not an integer.
+    """
+    # Check if input is a list of integers
+    if not all(isinstance(length, int) for length in scenario_lengths):
+        raise ValueError("Input 'scenario_lengths' must be a list of integers.")
+    
+    # Define number of samples
+    n_samples = n_samples if n_samples else 100
+
+    # Check if input is a list of integers
+    if not isinstance(n_samples, int):
+        raise ValueError("Input 'total_samples' must be an integer.")
+    
+    # Calculate occurrences of each duration
+    duration_counts = Counter(scenario_lengths)
+
+    # Get the total number of scenarios
+    total_scenarios = len(scenario_lengths)
+
+    # Determine the number of items to be sampled for each duration
+    samples_per_duration = {
+        duration: 
+        min(
+            max(                        
+                int(n_samples * count / total_scenarios), 
+                1), 
+                10) 
+                for duration, count in duration_counts.items()
+                }
+    # Generate a new list based on stratified sampling
+    new_list = []
+    for duration, count in duration_counts.items():
+        occurrences = min(count, samples_per_duration[duration])
+        new_list.extend([duration] * occurrences)
+
+    # If the new list is shorter than the required number of samples, add random durations
+    while len(new_list) < n_samples:
+        new_list.append(choice(scenario_lengths))
+
+    # If the new list is longer than the required number of samples, remove random durations
+    while len(new_list) > n_samples:
+        new_list.remove(choice(new_list))
+    return new_list
+
+def cut_weather_scenarios(weather_records: DataFrame, 
+                          scenario_lengths: List[int], 
+                          output_folder: Union[Path,str] = None, 
+                          n_output_files: int = None) -> None:
+    """
+    Split weather records into smaller scenarios following specified scenario lengths. The 
+    number of output weather scenarios can be customized using the 'n_output_files' parameter.  
 
     Parameters:
     - weather_records : pd.DataFrame
@@ -26,6 +94,10 @@ def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int
     - output_folder : Union[Path,str], optional
         A Path object or a string representing the folder path where the output will be stored.
         If not provided, 'Weathers' directory will be used.
+    - n_output_files : integer, optional
+        An integer that indicates how many weather files (scenarios) will be created following the
+        distribution of 'weather_records'. 
+        If not provided, will be set to 100.
 
     Output:
     - write as many file as weather scenarios generated based on specified lengths.
@@ -34,6 +106,7 @@ def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int
     - ValueError
         If input 'weather_records' is not a Pandas DataFrame.
         If input 'scenario_lengths' is not a List of integers.
+        If input 'n_output_files' is not an integer.
         If any scenario length is greater than the total length of weather_records.
     """
 
@@ -45,7 +118,10 @@ def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int
     if not all(isinstance(length, int) for length in scenario_lengths):
         raise ValueError("Input 'scenario_lengths' must be a list of integers.")
     
-    # Defining the output folder
+    # Create a representative sample 
+    sample = re_size_durations(scenario_lengths, n_output_files)
+    
+    # Define the output folder
     output_folder = output_folder if output_folder else Path('Weathers')
     output_folder = Path(output_folder) # Ensure output_folder is a Path object
     output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn't exist
@@ -53,14 +129,14 @@ def cut_weather_scenarios(weather_records: DataFrame, scenario_lengths: List[int
     total_data_length = len(weather_records)
 
     # Check if any scenario length is greater than the total data length
-    if any(length > total_data_length for length in scenario_lengths):
+    if any(length > total_data_length for length in sample):
         raise ValueError("Scenario length cannot be greater than the total length of weather records")
 
     scenarios = []  # List to store weather scenarios
-    total_scenarios = len(str(len(scenario_lengths))) #this is set just to preserve output format
+    total_scenarios = len(str(len(sample))) #this is set just to preserve output format
 
     # Generate scenarios based on specified lengths
-    for index, length in enumerate(scenario_lengths, start = 1):
+    for index, length in enumerate(sample, start = 1):
 
         # Randomly select a start index for the scenario
         start_index = randint(0, total_data_length - length)
