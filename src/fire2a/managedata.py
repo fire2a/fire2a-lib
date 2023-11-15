@@ -3,7 +3,7 @@
 Previous Read Data Prometheus
 """
 __author__ = "David Palacios Meneses"
-__version__ = 'v0.0.1-41-g664244e-dirty'
+__version__ = 'v0.0.1-42-g648b7fd-dirty'
 
 from numpy import max as npmax
 from numpy import empty as npempty

@@ -3,7 +3,7 @@
 managedata test
 """
 __author__ = "David Palacios Meneses"
-__version__ = 'v0.0.1-41-g664244e-dirty'
+__version__ = 'v0.0.1-42-g648b7fd-dirty'
 from pathlib import Path
 from shutil import copy
 

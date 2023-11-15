@@ -3,7 +3,7 @@
 Some functions related to weather scenario creation. 
 """
 __author__ = "Rodrigo Mahaluf-Recasens"
-__version__ = 'v0.0.1-41-g664244e-dirty'
+__version__ = 'v0.0.1-42-g648b7fd-dirty'
 __revision__ = "$Format:%H$"
 
 from pandas import DataFrame
@@ -133,7 +133,6 @@ def cut_weather_scenarios(weather_records: DataFrame,
         raise ValueError("Scenario length cannot be greater than the total length of weather records")
 
     scenarios = []  # List to store weather scenarios
-    total_scenarios = len(str(len(sample))) #this is set just to preserve output format
 
     # Generate scenarios based on specified lengths
     for index, length in enumerate(sample, start = 1):
@@ -185,7 +184,7 @@ def random_weather_scenario_generator(n_scenarios: int,
     output_folder = Path(output_folder) if output_folder else Path('Weathers')
     output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn't exist
 
-    for index, scenario in enumerate(range(n_scenarios), start=1):
+    for index, _ in enumerate(range(n_scenarios), start=1):
         n_rows = randint(5, hr_limit)
 
         instance = ['NA'] * n_rows

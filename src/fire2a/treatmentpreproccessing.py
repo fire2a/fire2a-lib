@@ -3,7 +3,7 @@
 Fuelbreak treatment pre proccessing functions
 """
 __author__ = "David Palacios Meneses"
-__version__ = 'v0.0.1-41-g664244e-dirty'
+__version__ = 'v0.0.1-42-g648b7fd-dirty'
 from pandas import DataFrame
 from numpy import insert as npinsert
 

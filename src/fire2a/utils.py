@@ -3,7 +3,7 @@
 Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
-__version__ = 'v0.0.1-41-g664244e-dirty'
+__version__ = 'v0.0.1-42-g648b7fd-dirty'
 __revision__ = "$Format:%H$"
 from numpy import loadtxt, float32
 from functools import partial
