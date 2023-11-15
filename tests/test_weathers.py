@@ -40,7 +40,7 @@ class TestCutWeatherScenarios(unittest.TestCase):
 
         # Verify if files are created in the 'Weathers' directory
         output_folder = Path('Weathers_test')
-        assert all((output_folder / f'weather{i:03d}.csv').exists() for i in range(1, 100))
+        assert all((output_folder / f'weather{i}.csv').exists() for i in range(1, 100))
         rmtree(output_folder)
 
 def test_random_weather_scenario_generator():
@@ -50,7 +50,7 @@ def test_random_weather_scenario_generator():
     random_weather_scenario_generator(n_scenarios, output_folder=output_folder)
 
     # Verify if files are created in the output directory
-    assert all((output_folder / f'weather{i:02d}.csv').exists() for i in range(1, n_scenarios + 1))
+    assert all((output_folder / f'weather{i}.csv').exists() for i in range(1, n_scenarios + 1))
     rmtree(output_folder)
 
 class TestResizeDurations(unittest.TestCase):
