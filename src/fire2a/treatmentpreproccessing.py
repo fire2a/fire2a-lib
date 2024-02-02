@@ -14,17 +14,17 @@ def bin_to_nod(solution:list, filename="treatment.csv")-> None:
     
     Args:
         solution (list[int]): List with id of treatment cell
-        filename (string): Path and name of the destiny folder (should be a .csv)
+        filename (str): Path and name of the destiny folder (should be a .csv)
 
     Returns:
         None
 
     Raises:
 
-        ValueError: If the extension of the filename is not a csv
+        TypeError: If the extension of the filename is not a csv
     """
     if filename[-4:]!=".csv":
-        raise ValueError("Extension must be .csv or .txt")
+        raise TypeError("Extension must be .csv or .txt")
     nod = [i+1 for i in solution]
     datos = [npinsert(nod, 0, 1)]
     if len(nod) == 0:

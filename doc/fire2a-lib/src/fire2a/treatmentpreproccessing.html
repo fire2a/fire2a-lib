@@ -44,17 +44,17 @@ def bin_to_nod(solution:list, filename=&#34;treatment.csv&#34;)-&gt; None:
     
     Args:
         solution (list[int]): List with id of treatment cell
-        filename (string): Path and name of the destiny folder (should be a .csv)
+        filename (str): Path and name of the destiny folder (should be a .csv)
 
     Returns:
         None
 
     Raises:
 
-        ValueError: If the extension of the filename is not a csv
+        TypeError: If the extension of the filename is not a csv
     &#34;&#34;&#34;
     if filename[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv or .txt&#34;)
+        raise TypeError(&#34;Extension must be .csv or .txt&#34;)
     nod = [i+1 for i in solution]
     datos = [npinsert(nod, 0, 1)]
     if len(nod) == 0:
@@ -88,14 +88,14 @@ if __name__==&#34;__main__&#34;:
 <dl>
 <dt><strong><code>solution</code></strong> :&ensp;<code>list[int]</code></dt>
 <dd>List with id of treatment cell</dd>
-<dt><strong><code>filename</code></strong> :&ensp;<code>string</code></dt>
+<dt><strong><code>filename</code></strong> :&ensp;<code>str</code></dt>
 <dd>Path and name of the destiny folder (should be a .csv)</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>None</p>
 <h2 id="raises">Raises</h2>
 <dl>
-<dt><code>ValueError</code></dt>
+<dt><code>TypeError</code></dt>
 <dd>If the extension of the filename is not a csv</dd>
 </dl></div>
 <details class="source">
@@ -108,17 +108,17 @@ if __name__==&#34;__main__&#34;:
     
     Args:
         solution (list[int]): List with id of treatment cell
-        filename (string): Path and name of the destiny folder (should be a .csv)
+        filename (str): Path and name of the destiny folder (should be a .csv)
 
     Returns:
         None
 
     Raises:
 
-        ValueError: If the extension of the filename is not a csv
+        TypeError: If the extension of the filename is not a csv
     &#34;&#34;&#34;
     if filename[-4:]!=&#34;.csv&#34;:
-        raise ValueError(&#34;Extension must be .csv or .txt&#34;)
+        raise TypeError(&#34;Extension must be .csv or .txt&#34;)
     nod = [i+1 for i in solution]
     datos = [npinsert(nod, 0, 1)]
     if len(nod) == 0:
