@@ -8,5 +8,5 @@ More info on:
     www.fire2a.com  
 """  # fmt: skip
 __author__ = "Fernando Badilla"
-__version__ = "c05b435+dirty"
+__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"

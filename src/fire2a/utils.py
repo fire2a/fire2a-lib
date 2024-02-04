@@ -3,7 +3,7 @@
 Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
-__version__ = "v0.0.1+0-gf866f08"
+__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"
 from functools import partial
 
