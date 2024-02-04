@@ -6,7 +6,7 @@ __author__ = "Rodrigo Mahaluf-Recasens"
 __version__ = 'v0.0.1-42-g648b7fd-dirty'
 __revision__ = '$Format:%H$'
 
-import logging as _logging
+import logging as logging
 import numpy as np
 from scipy.sparse import dok_matrix, lil_matrix
 from sklearn.cluster import AgglomerativeClustering

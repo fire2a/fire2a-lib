@@ -12,8 +12,8 @@ __author__ = "Fernando Badilla"
 __version__ = 'v0.0.1-42-g648b7fd-dirty'
 __revision__ = '$Format:%H$'
 
-import logging as _logging
+import logging as logging
 
-_logger = _logging.getLogger(__name__)
-_logging.basicConfig(level=_logging.DEBUG)
-_logger.info("Hello world! version %s", __version__)
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger.info("Hello world! version %s", __version__)

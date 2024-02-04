@@ -39,7 +39,7 @@ MODULE_VARIABLE = "very important and global variable"
 """ this docstring describes a global variable   
 has 0 indent """  # fmt: skip
 
-import logging as _logging
+import logging as logging
 import sys
 from pathlib import Path
 
@@ -86,12 +86,12 @@ def a_method(
                 raise TypeError("an_optional_argument value is not a float")
 
     for arg in args:
-        _logger.debug("log *args %s", arg)
+        logger.debug("log *args %s", arg)
 
     for key, value in kwargs.items():
-        _logger.debug("log **kwargs key:%s value:%s", key, value)
+        logger.debug("log **kwargs key:%s value:%s", key, value)
 
-    _logger.info("info log %s", MODULE_VARIABLE[::-1])
+    logger.info("info log %s", MODULE_VARIABLE[::-1])
     """ this is not a docstring, just a comment """
 
     return {"a": a, "b": b}
@@ -138,17 +138,17 @@ class AClass:
 
 def main(argv):
     """this is a function docstring that describes a function"""
-    _logger = _logging.getLogger("fire2a:templatemodule")
-    _logger.info("Hello world!")
-    _logger.info(f"argv:{argv}")
+    logger = logging.getLogger("fire2a:templatemodule")
+    logger.info("Hello world!")
+    logger.info(f"argv:{argv}")
     returns = a_method((1, "a"), "b", "c", an_optional_argument=2, d="e", f="g")
-    _logging.debug("a_method returns %s", returns)
+    logging.debug("a_method returns %s", returns)
 
 
 if __name__ == "__main__":
-    _logger = _logging.getLogger("fire2a:templatemodule")
+    logger = logging.getLogger("fire2a:templatemodule")
     sys.exit(main(sys.argv))
 else:
-    _logger = _logging.getLogger(__name__)
-    _logging.basicConfig(level=_logging.INFO)
-    _logger.debug("Hello world!")
+    logger = logging.getLogger(__name__)
+    logging.basicConfig(level=logging.INFO)
+    logger.debug("Hello world!")

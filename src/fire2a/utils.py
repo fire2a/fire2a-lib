@@ -3,13 +3,17 @@
 Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
-__version__ = 'v0.0.1-42-g648b7fd-dirty'
+__version__ = "v0.0.1+0-gf866f08"
 __revision__ = "$Format:%H$"
-from numpy import loadtxt, float32
 from functools import partial
 
+import numpy as np
+from numpy import float32, loadtxt
+from qgis.core import Qgis
+
+
 def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
-    """ Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
+    """Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)
 
     Args:
@@ -33,11 +37,45 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
     See Also:
         numpy: loadtxt, load, fromstring, fromregex
     """
+
     def conv(no_data, dtype, val):
         try:
             return dtype(val)
         except ValueError:
             return no_data
+
     conv = partial(conv, no_data, dtype)
     return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
+
+def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> np.dtype:
+    """Conver QGIS data type to corresponding numpy data type
+    https://raw.githubusercontent.com/PUTvision/qgis-plugin-deepness/fbc99f02f7f065b2f6157da485bef589f611ea60/src/deepness/processing/processing_utils.py
+    This is modified and extended copy of GDALDataType.
+
+    * ``UnknownDataType``: Unknown or unspecified type
+    * ``Byte``: Eight bit unsigned integer (quint8)
+    * ``Int8``: Eight bit signed integer (qint8) (added in QGIS 3.30)
+    * ``UInt16``: Sixteen bit unsigned integer (quint16)
+    * ``Int16``: Sixteen bit signed integer (qint16)
+    * ``UInt32``: Thirty two bit unsigned integer (quint32)
+    * ``Int32``: Thirty two bit signed integer (qint32)
+    * ``Float32``: Thirty two bit floating point (float)
+    * ``Float64``: Sixty four bit floating point (double)
+    * ``CInt16``: Complex Int16
+    * ``CInt32``: Complex Int32
+    * ``CFloat32``: Complex Float32
+    * ``CFloat64``: Complex Float64
+    * ``ARGB32``: Color, alpha, red, green, blue, 4 bytes the same as QImage.Format_ARGB32
+    * ``ARGB32_Premultiplied``: Color, alpha, red, green, blue, 4 bytes  the same as QImage.Format_ARGB32_Premultiplied
+    """
+    if qgis_dtype == Qgis.DataType.Byte or qgis_dtype == "Byte":
+        return np.uint8
+    if qgis_dtype == Qgis.DataType.UInt16 or qgis_dtype == "UInt16":
+        return np.uint16
+    if qgis_dtype == Qgis.DataType.Int16 or qgis_dtype == "Int16":
+        return np.int16
+    if qgis_dtype == Qgis.DataType.Float32 or qgis_dtype == "Float32":
+        return np.float32
+    if qgis_dtype == Qgis.DataType.Float64 or qgis_dtype == "Float64":
+        return np.float64

@@ -6,16 +6,16 @@ __author__ = "Fernando Badilla"
 __version__ = 'v0.0.1-42-g648b7fd-dirty'
 __revision__ = "$Format:%H$"
 
-import logging as _logging
+import logging as logging
 from pathlib import Path
 
 import numpy as _np
 from osgeo import gdal as _gdal
 from osgeo import ogr as _ogr
 
-_logger = _logging.getLogger(__name__)
-_logging.basicConfig(level=_logging.INFO)
-_logger.debug("Hello world!")
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger.debug("Hello world!")
 
 
 def id2xy(idx: int, w: int, h: int) -> tuple[int, int]:
