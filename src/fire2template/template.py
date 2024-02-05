@@ -35,6 +35,8 @@ from pathlib import Path
 
 import numpy as np
 
+from fire2template import setup_logger
+
 logger = logging.getLogger(__name__)
 MODULE_VARIABLE = "very important and global variable"
 """ this docstring describes a global variable has 0 indent """
@@ -99,52 +101,12 @@ def argument_parser(argv):
     return parser.parse_args(argv)
 
 
-def setup_logger(verbosity: int, logfile: Path | None):
-    """capture the logger and set the verbosity, stream handler, rotating logfile if provided.
-    logging.critical("Something went wrong, exception info?", exc_info=True)
-    logging.error("Something went wrong, but we keep going?")
-    logging.warning("Default message level")
-    logging.info("Something planned happened")
-    logging.debug("Details of the planned thing that happened")
-    """
-    global logger
-    logger = logging.getLogger("fire2template:templatemodule")
-    # Create a stream handler
-    stream_handler = logging.StreamHandler(sys.stdout)
-    # Create a rotating file handler
-    if logfile:
-        rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
-    # Set the log level
-    if verbosity == 0:
-        level = logging.WARNING
-    elif verbosity == 1:
-        level = logging.INFO
-    elif verbosity >= 2:
-        level = logging.DEBUG
-    logger.setLevel(level)
-    stream_handler.setLevel(level)
-    if logfile:
-        rf_handler.setLevel(level)
-    # formatter
-    formatter = logging.Formatter(
-        "%(asctime)s %(levelname)s %(name)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
-    )
-    stream_handler.setFormatter(formatter)
-    if logfile:
-        rf_handler.setFormatter(formatter)
-    # Add the handlers to the logger
-    logger.addHandler(stream_handler)
-    if logfile:
-        logger.addHandler(rf_handler)
-    return logger
-
-
 def main(argv=None):
     """this is a function docstring that describes a function"""
     if argv is None:
         argv = sys.argv[1:]
     args = argument_parser(argv)
-    logger = setup_logger(args.verbosity, args.logfile)
+    logger = setup_logger(__name__, args.verbosity, args.logfile)
     logger.info(f"{args=}")
     logger.debug(f"debugging...")
     if not args.numbers:

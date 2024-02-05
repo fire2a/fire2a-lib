@@ -4,12 +4,12 @@ This is the raster module docstring
 """
 __author__ = "Rodrigo Mahaluf-Recasens"
 __version__ = 'v0.0.1+0-gf866f08'
-__revision__ = '$Format:%H$'
+__revision__ = "$Format:%H$"
 
-import logging as logging
 import numpy as np
 from scipy.sparse import dok_matrix, lil_matrix
 from sklearn.cluster import AgglomerativeClustering
+
 from .adjacency import adjacent_cells
 
 
@@ -21,7 +21,7 @@ def raster_clusters(
     distance_threshold: float = 50.0,
     total_clusters: int = None,
     connectivity: int = None,
-) -> np.array:
+) -> np.ndarray:
     """
     This function receives as arguments:
     1. An array with the raster paths, e.g. raster_paths=[elevation_path,fuel_path,slope_path,...]
@@ -98,4 +98,3 @@ def raster_clusters(
         cluster_raster = cluster_raster.astype(np.int16)
 
         return cluster_raster
-

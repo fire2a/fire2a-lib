@@ -6,81 +6,69 @@ __author__ = "Fernando Badilla"
 __version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"
 
-import logging as logging
+import logging
 from pathlib import Path
 
-import numpy as _np
-from osgeo import gdal as _gdal
-from osgeo import ogr as _ogr
+import numpy as np
+from osgeo import gdal, ogr
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-logger.debug("Hello world!")
 
 
 def id2xy(idx: int, w: int, h: int) -> tuple[int, int]:
     """Transform a pixel or cell index, into x,y coordinates.
-
-    Args:
-
-    param idx: index of the pixel or cell (0,..,w*h-1)  
-    param w: width of the image or grid  
-    param h: height of the image or grid (not really used!)
-
-    Returns:
-
-    tuple: (x, y) coordinates of the pixel or cell  
-
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
     If your're used to matplotlib, the y-axis is inverted.  
     Also as numpy array, the index of the pixel is [y, x].
+
+    Args:
+        param idx: index of the pixel or cell (0,..,w*h-1)  
+        param w: width of the image or grid  
+        param h: height of the image or grid (not really used!)
+
+    Returns:
+        tuple: (x, y) coordinates of the pixel or cell  
     """  # fmt: skip
     return idx % w, idx // w
 
 
 def xy2id(x: int, y: int, w: int) -> int:
     """Transform a x,y coordinates into a pixel or cell index.
-
-    Args:
-
-    param x: width or horizontal coordinate of the pixel or cell  
-    param y: height or vertical coordinate of the pixel or cell  
-    param w: width of the image or grid  
-
-    Returns:
-
-    int: index of the pixel or cell (0,..,w\*h-1)
-
     In GIS, the origin is at the top-left corner, read from left to right, top to bottom.  
     If your're used to matplotlib, the y-axis is inverted.  
     Also as numpy array, the index of the pixel is [y, x].
+
+    Args:
+        param x: width or horizontal coordinate of the pixel or cell  
+        param y: height or vertical coordinate of the pixel or cell  
+        param w: width of the image or grid  
+
+    Returns:
+        int: index of the pixel or cell (0,..,w\*h-1)
     """  # fmt: skip
     return y * w + x
 
 
-def read_raster_band(filename: str, band: int = 1) -> tuple[_np.ndarray, int, int]:
+def read_raster_band(filename: str, band: int = 1) -> tuple[np.ndarray, int, int]:
     """Read a raster file and return the data as a numpy array, along width and height.
 
     Args:
-
-    param filename: name of the raster file  
-    param band: band number to read (default 1)
+        param filename: name of the raster file  
+        param band: band number to read (default 1)
 
     Returns:
-
-    tuple: (data, width, height)
+        tuple: (data, width, height)
 
     Raises:
-
-    FileNotFoundError: if the file is not found
+        FileNotFoundError: if the file is not found
     """  # fmt: skip
-    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
     if dataset is None:
         raise FileNotFoundError(filename)
-    return dataset.GetRasterBand(1).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
+    return dataset.GetRasterBand(band).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[_np.ndarray, dict]:
+def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[np.ndarray, dict]:
     """Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -94,9 +82,9 @@ def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = Tr
         tuple: (data, geotransform, projection)
 
     Raises:
-    FileNotFoundError: if the file is not found
+        FileNotFoundError: if the file is not found
     """  # fmt: skip
-    dataset = _gdal.Open(filename, _gdal.GA_ReadOnly)
+    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
     if dataset is None:
         raise FileNotFoundError(filename)
     raster_band = dataset.GetRasterBand(band)
@@ -109,7 +97,7 @@ def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = Tr
             "RasterCount": dataset.RasterCount,
             "RasterXSize": dataset.RasterXSize,
             "RasterYSize": dataset.RasterYSize,
-            "DataType": _gdal.GetDataTypeName(raster_band.DataType),
+            "DataType": gdal.GetDataTypeName(raster_band.DataType),
         }
         if info
         else None
@@ -158,10 +146,12 @@ def transform_coords_to_georef(x_pixel: int, y_line: int, GT: tuple) -> tuple[fl
 
 def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float, float]:
     """Inverse of transform_coords_to_georef.
+
     import sympy
     a, b, c, d, e, f, g, i, j, x, y = sympy.symbols('a, b, c, d, e, f, g, i, j, x, y', real=True)
     sympy.linsolve([a+i*b+j*c - x,d+i*e+j*f-y],(i,j))
     {((-a*f + c*d - c*y + f*x)/(b*f - c*e), (a*e - b*d + b*y - e*x)/(b*f - c*e))}
+
     Args:
         x_geo (int): x georeferenced coordinate.
         y_geo (int): y georeferenced coordinate.
@@ -169,7 +159,7 @@ def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float
 
     Returns:
         tuple: x_pixel, y_line.
-    
+
     TODO Raises:
         Exception: if x_pixel or y_line are not integer coordinates. by tolerance?
 
@@ -183,10 +173,14 @@ def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float
     return int(i), int(j)
 
 
-# def get_cell_size(raster: _gdal.Dataset | str) -> float | tuple[float, float]:
-def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
-    """
-    Get the cell size(s) of a raster.
+def get_cell_sizeV2(filename: str, band: int = 1) -> tuple[float, float]:
+    _, info = read_raster(filename, band=band, data=False, info=True)
+    return info["RasterXSize"], info["RasterYSize"]
+
+
+def get_cell_size(raster: gdal.Dataset) -> tuple[float, float]:
+    """Get the cell size(s) of a raster.
+    PLANNED DEPRECATION
 
     Args:
         raster (gdal.Dataset | str): The GDAL dataset or path to the raster.
@@ -195,8 +189,8 @@ def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
         float | tuple[float, float]: The cell size(s) as a single float or a tuple (x, y).
     """  # fmt: skip
     if isinstance(raster, str):
-        ds = _gdal.Open(raster, _gdal.GA_ReadOnly)
-    elif isinstance(raster, _gdal.Dataset):
+        ds = gdal.Open(raster, gdal.GA_ReadOnly)
+    elif isinstance(raster, gdal.Dataset):
         ds = raster
     else:
         raise ValueError("Invalid input type for raster")
@@ -213,9 +207,8 @@ def get_cell_size(raster: _gdal.Dataset) -> tuple[float, float]:
     return cell_size
 
 
-def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometry]) -> _np.array:
-    """
-    Mask a raster with polygons using GDAL.
+def mask_raster(raster_ds: gdal.Dataset, band: int, polygons: list[ogr.Geometry]) -> np.array:
+    """Mask a raster with polygons using GDAL.
 
     Args:
         raster_ds (gdal.Dataset): GDAL dataset of the raster.
@@ -233,14 +226,13 @@ def mask_raster(raster_ds: _gdal.Dataset, band: int, polygons: list[_ogr.Geometr
     original_data = band.ReadAsArray()  #  FIXME: wrong type hint : int has no attribute ReadAsArray
 
     # Apply the mask
-    masked_data = _np.where(mask_array, original_data, _np.nan)
+    masked_data = np.where(mask_array, original_data, np.nan)
 
     return masked_data
 
 
-def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -> _np.array:
-    """
-    Rasterize polygons to a boolean array.
+def rasterize_polygons(polygons: list[ogr.Geometry], width: int, height: int) -> np.array:
+    """Rasterize polygons to a boolean array.
 
     Args:
         polygons (list[ogr.Geometry]): List of OGR geometries representing polygons for rasterization.
@@ -249,34 +241,31 @@ def rasterize_polygons(polygons: list[_ogr.Geometry], width: int, height: int) -
         height (int): Height of the raster.
 
     Returns:
-        np.array: Rasterized mask as a boolean array.
+        mask_array (np.array): Rasterized mask as a boolean array.
     """  # fmt: skip
 
-    mask_array = _np.zeros((height, width), dtype=bool)
+    mask_array = np.zeros((height, width), dtype=bool)
 
     # Create an in-memory layer to hold the polygons
-    mem_driver = _ogr.GetDriverByName("Memory")
+    mem_driver = ogr.GetDriverByName("Memory")
     mem_ds = mem_driver.CreateDataSource("memData")
-    mem_layer = mem_ds.CreateLayer("memLayer", srs=None, geom_type=_ogr.wkbPolygon)
+    mem_layer = mem_ds.CreateLayer("memLayer", srs=None, geom_type=ogr.wkbPolygon)
 
     for geometry in polygons:
-        mem_feature = _ogr.Feature(mem_layer.GetLayerDefn())
+        mem_feature = ogr.Feature(mem_layer.GetLayerDefn())
         mem_feature.SetGeometry(geometry.Clone())
         mem_layer.CreateFeature(mem_feature)
 
     # Rasterize the in-memory layer and update the mask array
-    _gdal.RasterizeLayer(mask_array, [1], mem_layer, burn_values=[1])
+    gdal.RasterizeLayer(mask_array, [1], mem_layer, burn_values=[1])
 
     mem_ds = None  # Release the in-memory dataset
 
     return mask_array
 
 
-def stack_rasters(
-    file_list: list[Path], mask_polygon: list[_ogr.Geometry] = None
-) -> _np.array:  # FIXME returns is tuple
-    """
-    Stack raster files from a list into a 3D NumPy array.
+def stack_rasters(file_list: list[Path], mask_polygon: list[ogr.Geometry] = None) -> tuple[np.ndarray, list[str]]:
+    """Stack raster files from a list into a 3D NumPy array.
 
     Args:
         file_list (list[Path]): List of paths to raster files.
@@ -294,7 +283,7 @@ def stack_rasters(
         layer_name = raster_path.stem
         layer_names.append(layer_name)
 
-        ds = _gdal.Open(str(raster_path))
+        ds = gdal.Open(str(raster_path))
         if ds is None:
             raise ValueError(f"Failed to open raster file: {raster_path}")
 
@@ -309,11 +298,13 @@ def stack_rasters(
         cell_sizes.add(get_cell_size(ds))
 
     assert len(cell_sizes) == 1, f"There are rasters with different cell sizes: {cell_sizes}"
-    stacked_array = _np.stack(array_list, axis=0)  #  type: _np.array
+    stacked_array = np.stack(array_list, axis=0)  #  type: np.array
+    print(stacked_array.shape)
     return stacked_array, layer_names
 
 
 if __name__ == "__main__":
-    file_list = list(Path("/home/rodrigo/code/Cluster_Generator_C2FK/RASTERS PORTEZUELO").glob("*.asc"))
+    file_list = list(Path().cwd().glob("*.asc"))
+    print(file_list)
     array = stack_rasters(file_list)
     print(array)
