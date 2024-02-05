@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>fire2a-lib.src.fire2a.downstream_protection_value API documentation</title>
+<meta name="description" content="$cd C2FSB
+C2FSB$ python3 downstream_protection_value.py …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>fire2a-lib.src.fire2a.downstream_protection_value</code></h1>
+</header>
+<section id="section-intro">
+<p>$cd C2FSB
+C2FSB$ python3 downstream_protection_value.py</p>
+<p>all functions are tested and plotted on main</p>
+<p>Calculate downstream protection value from Messages/MessagesFile<int>.csv files
+Each file has 4 columns: from cellId, to cellId, period when burns &amp; hit ROS</p>
+<p><a href="https://github.com/fire2a/C2FK/blob/main/Cell2Fire/Heuristics.py">https://github.com/fire2a/C2FK/blob/main/Cell2Fire/Heuristics.py</a></p>
+<p><a href="https://networkx.org/documentation/networkx-1.8/reference/algorithms.shortest_paths.html">https://networkx.org/documentation/networkx-1.8/reference/algorithms.shortest_paths.html</a></p>
+<p>propagation tree: (c) fire shortest traveling times</p>
+<p>Performance review
+1. is faster to dijkstra than minimun spanning</p>
+<pre><code>In [50]: %timeit shortest_propagation_tree(G,root)
+1.53 ms ± 5.47 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
+In [51]: %timeit nx.minimum_spanning_arborescence(G, attr='time')
+16.4 ms ± 61 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+</code></pre>
+<ol>
+<li>
+<p>is faster numpy+add_edges than nx.from_csv</p>
+<p>In [63]: %timeit custom4(afile)
+2.3 ms ± 32 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</p>
+<p>In [64]: %timeit canon4(afile)
+3.35 ms ± 20 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)</p>
+</li>
+</ol>
+<p>2.1 even faster is you discard a column!!
+In [65]: %timeit digraph_from_messages(afile)
+1.84 ms ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!/bin/env python3
+&#34;&#34;&#34;
+$cd C2FSB
+C2FSB$ python3 downstream_protection_value.py
+
+all functions are tested and plotted on main
+
+Calculate downstream protection value from Messages/MessagesFile&lt;int&gt;.csv files
+Each file has 4 columns: from cellId, to cellId, period when burns &amp; hit ROS
+
+https://github.com/fire2a/C2FK/blob/main/Cell2Fire/Heuristics.py
+
+https://networkx.org/documentation/networkx-1.8/reference/algorithms.shortest_paths.html
+
+propagation tree: (c) fire shortest traveling times
+
+Performance review
+1. is faster to dijkstra than minimun spanning
+
+    In [50]: %timeit shortest_propagation_tree(G,root)
+    1.53 ms ± 5.47 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+    
+    In [51]: %timeit nx.minimum_spanning_arborescence(G, attr=&#39;time&#39;)
+    16.4 ms ± 61 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+2. is faster numpy+add_edges than nx.from_csv
+
+    In [63]: %timeit custom4(afile)
+    2.3 ms ± 32 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    
+    In [64]: %timeit canon4(afile)
+    3.35 ms ± 20 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+2.1 even faster is you discard a column!!
+    In [65]: %timeit digraph_from_messages(afile)
+    1.84 ms ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
+&#34;&#34;&#34;
+import re
+import sys
+from logging import debug
+from pathlib import Path
+
+import networkx as nx
+import numpy as np
+from matplotlib import pyplot as plt
+from osgeo import gdal
+
+
+def single_simulation_downstream_protection_value(msgfile=&#34;MessagesFile01.csv&#34;, pvfile=&#34;py.asc&#34;):
+    &#34;&#34;&#34;load one diGraph count succesors&#34;&#34;&#34;
+    msgG, root = digraph_from_messages(msgfile)
+    treeG = shortest_propagation_tree(msgG, root)
+    pv, W, H = get_flat_pv(pvfile)
+    #
+    dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    i2n = [n - 1 for n in treeG]
+    mdpv = dpv_maskG(treeG, root, pv, i2n)
+    dpv[i2n] = mdpv
+    return mdpv, dpv
+
+
+def downstream_protection_value(out_dir, pvfile):
+    pv, W, H = get_flat_pv(pvfile)
+    dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    file_list = read_files(out_dir)
+    for msgfile in file_list:
+        msgG, root = digraph_from_messages(msgfile)
+        treeG = shortest_propagation_tree(msgG, root)
+        i2n = [n - 1 for n in treeG]  # TODO change to list(treeG)
+        mdpv = dpv_maskG(treeG, root, pv, i2n)
+        dpv[i2n] += mdpv
+        # plot_pv( dpv, w=W, h=H)
+    return dpv / len(file_list)
+
+
+def canon3(afile):
+    # NO IMPLEMENTADO
+    G = nx.read_edgelist(
+        path=afile, create_using=nx.DiGraph(), nodetype=np.int32, data=[(&#34;time&#34;, np.int16)], delimiter=&#34;,&#34;
+    )
+    return G
+
+
+def canon4(afile):
+    G = nx.read_edgelist(
+        path=afile,
+        create_using=nx.DiGraph(),
+        nodetype=np.int32,
+        data=[(&#34;time&#34;, np.int16), (&#34;ros&#34;, np.float32)],
+        delimiter=&#34;,&#34;,
+    )
+    return G
+
+
+def digraph_from_messages(afile):
+    &#34;&#34;&#34;Not checking if file exists or if size &gt; 0
+    This is done previously on read_files
+    &#34;&#34;&#34;
+    data = np.loadtxt(
+        afile, delimiter=&#34;,&#34;, dtype=[(&#34;i&#34;, np.int32), (&#34;j&#34;, np.int32), (&#34;time&#34;, np.int16)], usecols=(0, 1, 2)
+    )
+    root = data[0][0]  # checkar que el primer valor del message sea el punto de ignición
+    G = nx.DiGraph()
+    G.add_weighted_edges_from(data)
+    return G, root
+
+
+func = np.vectorize(lambda x, y: {&#34;time&#34;: x, &#34;ros&#34;: y})
+
+
+def custom4(afile):
+    data = np.loadtxt(
+        afile, delimiter=&#34;,&#34;, dtype=[(&#34;i&#34;, np.int32), (&#34;j&#34;, np.int32), (&#34;time&#34;, np.int16), (&#34;ros&#34;, np.float32)]
+    )
+    root = data[0][0]
+    G = nx.DiGraph()
+    bunch = np.vstack((data[&#34;i&#34;], data[&#34;j&#34;], func(data[&#34;time&#34;], data[&#34;ros&#34;]))).T
+    G.add_edges_from(bunch)
+    return G.add_edges_from(bunch), root
+
+
+def shortest_propagation_tree(G, root):
+    &#34;&#34;&#34;construct a tree with the all shortest path from root
+    TODO try accumulating already added edges for checking before asigning should be faster?
+    &#34;&#34;&#34;
+    # { node : [root,...,node], ... }
+    shortest_paths = nx.single_source_dijkstra_path(G, root, weight=&#34;time&#34;)
+    del shortest_paths[root]
+    T = nx.DiGraph()
+    for node, shopat in shortest_paths.items():
+        for i, node in enumerate(shopat[:-1]):
+            T.add_edge(node, shopat[i + 1])
+    return T
+
+
+def recursiveUp(G):
+    &#34;&#34;&#34;count up WTF!!!
+    leafs = [x for x in T.nodes if T.out_degree(x)==0]
+    &#34;&#34;&#34;
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = 1
+
+        # G.nodes[i][&#39;dv&#39;]=0
+    # for leaf in (x for x in G.nodes if G.out_degree(x)==0):
+    #    G.nodes[leaf][&#39;dv&#39;]=1
+    def count_up(G, j):
+        for i in G.predecessors(j):
+            # G.nodes[i][&#39;dv&#39;]+=G.nodes[j][&#39;dv&#39;]
+            G.nodes[i][&#34;dv&#34;] += 1
+            print(i, j, G.nodes[i][&#34;dv&#34;])
+            count_up(G, i)
+
+    for leaf in (x for x in G.nodes if G.out_degree(x) == 0):
+        count_up(G, leaf)
+
+
+def dpv_maskG(G, root, pv, i2n=None):
+    &#34;&#34;&#34;calculate downstream protection value in a flat protection value raster
+    i2n = [n for n in treeG.nodes]
+    1. copies a slice of pv, only Graph nodes
+    2. recursively sums downstream for all succesors of the graph (starting from root)
+    3. returns the slice (range(len(G) indexed)
+    G must be a tree
+    &#34;&#34;&#34;
+    if i2n is None:
+        i2n = [n - 1 for n in treeG]
+    # -1 ok?
+    mdpv = pv[i2n]
+
+    # assert mdpv.base is None ,&#39;the slice is not a copy!&#39;
+    def recursion(G, i, pv, mdpv, i2n):
+        for j in G.successors(i):
+            mdpv[i2n.index(i - 1)] += recursion(G, j, pv, mdpv, i2n)
+        return mdpv[i2n.index(i - 1)]
+
+    recursion(G, root, pv, mdpv, i2n)
+    return mdpv
+
+
+def add_dpv_graph(G, root, pv):
+    &#34;&#34;&#34;modifies the input Graph recursively:
+        1. sums pv into predecesor (or calling)
+        2. recursively sums downstream for all succesors
+        3. returns itself if no successors
+    G must be a tree with &#39;dv&#39;
+    hence returns nothing
+    &#34;&#34;&#34;
+    for n in G.nodes:
+        G.nodes[n][&#34;dv&#34;] += pv[n - 1]
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)
+
+
+def sum_dpv_graph(T, root, pv):
+    &#34;&#34;&#34;returns a copy of T that:
+        1. sets pv into each node
+        2. recursively sums pv downstream
+    T must be a tree (not checked)
+    &#34;&#34;&#34;
+    G = T.copy()
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = pv[i - 1]
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)
+    return G
+
+
+def count_downstream_graph(T, root) -&gt; nx.DiGraph:
+    &#34;&#34;&#34;returns a new Graph with node values of the number of conected nodes downstream&#34;&#34;&#34;
+    assert nx.is_tree(T), &#34;not tree&#34;
+    G = T.copy()
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = 1
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)
+    return G
+
+
+def read_files(apath):
+    &#34;&#34;&#34;read all MessagesFile&lt;int&gt;.csv files from Messages directory
+    return ordered pathlib filelist &amp; simulation_number lists
+    TODO is it worth it to sort messages?
+    &#34;&#34;&#34;
+    directory = Path(apath, &#34;Messages&#34;)
+    file_name = &#34;MessagesFile&#34;
+    file_list = [f for f in directory.glob(file_name + &#34;[0-9]*.csv&#34;) if f.stat().st_size &gt; 0]
+    file_string = &#34; &#34;.join([f.stem for f in file_list])
+    # sort
+    sim_num = np.fromiter(re.findall(&#34;([0-9]+)&#34;, file_string), dtype=int, count=len(file_list))
+    asort = np.argsort(sim_num)
+    sim_num = sim_num[asort]
+    file_list = np.array(file_list)[asort]
+    return file_list
+
+
+def get_flat_pv(afile):
+    &#34;&#34;&#34;opens the file with gdal as raster, get 1st band, flattens it
+    also returns width and height
+    &#34;&#34;&#34;
+    dataset = gdal.Open(str(afile), gdal.GA_ReadOnly)
+    return dataset.GetRasterBand(1).ReadAsArray().ravel(), dataset.RasterXSize, dataset.RasterYSize
+
+
+def plot(G, pos=None, labels=None):
+    &#34;&#34;&#34;matplotlib
+    TODO scientific format numeric labels
+    &#34;&#34;&#34;
+    if not pos:
+        pos = {node: [*id2xy(node)] for node in G.nodes}
+    if not labels:
+        labes = {node: node for node in G.nodes}
+    plt.figure()
+    nx.draw(G, pos=pos, with_labels=False)
+    nx.draw_networkx_labels(G, pos=pos, labels=labels)
+    return plt.show()
+
+
+def plot_pv(pv, w=40, h=40):
+    mat = pv.reshape(h, w)
+    plt.matshow(mat)
+    plt.show()
+
+
+def id2xy(idx, w=40, h=40):
+    &#34;&#34;&#34;idx: index, w: width, h:height&#34;&#34;&#34;
+    idx -= 1
+    return idx % w, idx // w
+
+
+if __name__ == &#34;__main__&#34;:
+    # if len(sys.argv)&gt;1:
+    #     input_dir = sys.argv[1]
+    #     output_dir = sys.argv[2]
+    # else:
+    print(&#34;run in C2FSB folder&#34;)
+    # input_dir = Path.cwd() / &#39;data&#39;
+    input_dir = Path(&#34;/home/fdo/source/C2F-W3/data/Vilopriu_2013/firesim_231008_110004&#34;)
+    # output_dir = Path.cwd() / &#39;results&#39;
+    output_dir = Path(&#34;/home/fdo/source/C2F-W3/data/Vilopriu_2013/firesim_231008_110004/results&#34;)
+    print(input_dir, output_dir)
+    assert input_dir.is_dir() and output_dir.is_dir()
+
+    # abro el directorio de los messages como una lista con los nombres de los archivos
+    file_list = read_files(output_dir)
+
+    # agarrar la capa que ocuparemos como valor a proteger
+    ## pv: valores en riesgo
+    ## W: Width
+    ## H: Height
+    pv, W, H = get_flat_pv(input_dir / &#34;fuels.asc&#34;)
+
+    #
+    # single simulation
+    #
+    afile = file_list[0]
+    msgG, root = digraph_from_messages(afile)
+    pos = {node: [*id2xy(node)] for node in msgG}
+    treeG = shortest_propagation_tree(msgG, root)
+
+    # count the number of nodes downstream
+    countG = count_downstream_graph(treeG, root)
+
+    # asignar el número de nodos aguas abajo a cada nodo respectivamente
+    countGv = {n: countG.nodes[n][&#34;dv&#34;] for n in countG}
+    plot(countG, pos=pos, labels=countGv)
+    # {&#39;dv&#39;: 137} == 137 root connects all tree
+    assert countG.nodes[root][&#34;dv&#34;] == len(countG), &#34;count_downstream at root is not the same as number of nodes!&#34;
+    #
+    onev = np.ones(pv.shape)
+    #
+    # sum dpv=1
+    sumG = sum_dpv_graph(treeG, root, onev)
+    sumGv = {n: sumG.nodes[n][&#34;dv&#34;] for n in sumG}
+    plot(sumG, pos=pos, labels=sumGv)
+    assert np.all([sumGv[n] == countGv[n] for n in treeG.nodes]), &#34;sum_dpv(pv=1) != countG values!&#34;
+    #
+    # add dpv=1
+    addG = treeG.copy()
+    for n in addG.nodes:
+        addG.nodes[n][&#34;dv&#34;] = 0
+    add_dpv_graph(addG, root, onev)
+    addGv = {n: addG.nodes[n][&#34;dv&#34;] for n in addG}
+    plot(addG, pos=pos, labels=addGv)
+    assert np.all([addGv[n] == countGv[n] for n in treeG.nodes]), &#34;add_dpv(pv=1) != countG values!&#34;
+    #
+    # cum dpv=1
+    dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    i2n = [n - 1 for n in treeG]
+    mdpv = dpv_maskG(treeG, root, onev, i2n)
+    dpv[i2n] = mdpv
+    plot_pv(dpv, w=W, h=H)
+    assert np.all([mdpv[i2n.index(n - 1)] == countGv[n] for n in treeG.nodes]), &#34;dpv_maskG(pv=1) != countG values!&#34;
+    #
+    # single full test
+    mdpv, dpv = single_simulation_downstream_protection_value(msgfile=afile, pvfile=input_dir / &#34;bp.asc&#34;)
+    plot_pv(dpv, w=W, h=H)
+    plot(treeG, pos=pos, labels={n: np.format_float_scientific(dpv[n], precision=2) for n in treeG})
+    assert np.all(np.isclose(mdpv, dpv[i2n])), &#34;dpv_maskG != dpvalues!&#34;
+    #
+    # finally
+    dpv = downstream_protection_value(output_dir, pvfile=input_dir / &#34;bp.asc&#34;)
+    plot_pv(dpv, w=W, h=H)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.add_dpv_graph"><code class="name flex">
+<span>def <span class="ident">add_dpv_graph</span></span>(<span>G, root, pv)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>modifies the input Graph recursively:
+1. sums pv into predecesor (or calling)
+2. recursively sums downstream for all succesors
+3. returns itself if no successors
+G must be a tree with 'dv'
+hence returns nothing</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_dpv_graph(G, root, pv):
+    &#34;&#34;&#34;modifies the input Graph recursively:
+        1. sums pv into predecesor (or calling)
+        2. recursively sums downstream for all succesors
+        3. returns itself if no successors
+    G must be a tree with &#39;dv&#39;
+    hence returns nothing
+    &#34;&#34;&#34;
+    for n in G.nodes:
+        G.nodes[n][&#34;dv&#34;] += pv[n - 1]
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.canon3"><code class="name flex">
+<span>def <span class="ident">canon3</span></span>(<span>afile)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def canon3(afile):
+    # NO IMPLEMENTADO
+    G = nx.read_edgelist(
+        path=afile, create_using=nx.DiGraph(), nodetype=np.int32, data=[(&#34;time&#34;, np.int16)], delimiter=&#34;,&#34;
+    )
+    return G</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.canon4"><code class="name flex">
+<span>def <span class="ident">canon4</span></span>(<span>afile)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def canon4(afile):
+    G = nx.read_edgelist(
+        path=afile,
+        create_using=nx.DiGraph(),
+        nodetype=np.int32,
+        data=[(&#34;time&#34;, np.int16), (&#34;ros&#34;, np.float32)],
+        delimiter=&#34;,&#34;,
+    )
+    return G</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.count_downstream_graph"><code class="name flex">
+<span>def <span class="ident">count_downstream_graph</span></span>(<span>T, root) ‑> networkx.classes.digraph.DiGraph</span>
+</code></dt>
+<dd>
+<div class="desc"><p>returns a new Graph with node values of the number of conected nodes downstream</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def count_downstream_graph(T, root) -&gt; nx.DiGraph:
+    &#34;&#34;&#34;returns a new Graph with node values of the number of conected nodes downstream&#34;&#34;&#34;
+    assert nx.is_tree(T), &#34;not tree&#34;
+    G = T.copy()
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = 1
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)
+    return G</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.custom4"><code class="name flex">
+<span>def <span class="ident">custom4</span></span>(<span>afile)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def custom4(afile):
+    data = np.loadtxt(
+        afile, delimiter=&#34;,&#34;, dtype=[(&#34;i&#34;, np.int32), (&#34;j&#34;, np.int32), (&#34;time&#34;, np.int16), (&#34;ros&#34;, np.float32)]
+    )
+    root = data[0][0]
+    G = nx.DiGraph()
+    bunch = np.vstack((data[&#34;i&#34;], data[&#34;j&#34;], func(data[&#34;time&#34;], data[&#34;ros&#34;]))).T
+    G.add_edges_from(bunch)
+    return G.add_edges_from(bunch), root</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.digraph_from_messages"><code class="name flex">
+<span>def <span class="ident">digraph_from_messages</span></span>(<span>afile)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Not checking if file exists or if size &gt; 0
+This is done previously on read_files</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def digraph_from_messages(afile):
+    &#34;&#34;&#34;Not checking if file exists or if size &gt; 0
+    This is done previously on read_files
+    &#34;&#34;&#34;
+    data = np.loadtxt(
+        afile, delimiter=&#34;,&#34;, dtype=[(&#34;i&#34;, np.int32), (&#34;j&#34;, np.int32), (&#34;time&#34;, np.int16)], usecols=(0, 1, 2)
+    )
+    root = data[0][0]  # checkar que el primer valor del message sea el punto de ignición
+    G = nx.DiGraph()
+    G.add_weighted_edges_from(data)
+    return G, root</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.downstream_protection_value"><code class="name flex">
+<span>def <span class="ident">downstream_protection_value</span></span>(<span>out_dir, pvfile)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def downstream_protection_value(out_dir, pvfile):
+    pv, W, H = get_flat_pv(pvfile)
+    dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    file_list = read_files(out_dir)
+    for msgfile in file_list:
+        msgG, root = digraph_from_messages(msgfile)
+        treeG = shortest_propagation_tree(msgG, root)
+        i2n = [n - 1 for n in treeG]  # TODO change to list(treeG)
+        mdpv = dpv_maskG(treeG, root, pv, i2n)
+        dpv[i2n] += mdpv
+        # plot_pv( dpv, w=W, h=H)
+    return dpv / len(file_list)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.dpv_maskG"><code class="name flex">
+<span>def <span class="ident">dpv_maskG</span></span>(<span>G, root, pv, i2n=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>calculate downstream protection value in a flat protection value raster
+i2n = [n for n in treeG.nodes]
+1. copies a slice of pv, only Graph nodes
+2. recursively sums downstream for all succesors of the graph (starting from root)
+3. returns the slice (range(len(G) indexed)
+G must be a tree</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def dpv_maskG(G, root, pv, i2n=None):
+    &#34;&#34;&#34;calculate downstream protection value in a flat protection value raster
+    i2n = [n for n in treeG.nodes]
+    1. copies a slice of pv, only Graph nodes
+    2. recursively sums downstream for all succesors of the graph (starting from root)
+    3. returns the slice (range(len(G) indexed)
+    G must be a tree
+    &#34;&#34;&#34;
+    if i2n is None:
+        i2n = [n - 1 for n in treeG]
+    # -1 ok?
+    mdpv = pv[i2n]
+
+    # assert mdpv.base is None ,&#39;the slice is not a copy!&#39;
+    def recursion(G, i, pv, mdpv, i2n):
+        for j in G.successors(i):
+            mdpv[i2n.index(i - 1)] += recursion(G, j, pv, mdpv, i2n)
+        return mdpv[i2n.index(i - 1)]
+
+    recursion(G, root, pv, mdpv, i2n)
+    return mdpv</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.get_flat_pv"><code class="name flex">
+<span>def <span class="ident">get_flat_pv</span></span>(<span>afile)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>opens the file with gdal as raster, get 1st band, flattens it
+also returns width and height</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_flat_pv(afile):
+    &#34;&#34;&#34;opens the file with gdal as raster, get 1st band, flattens it
+    also returns width and height
+    &#34;&#34;&#34;
+    dataset = gdal.Open(str(afile), gdal.GA_ReadOnly)
+    return dataset.GetRasterBand(1).ReadAsArray().ravel(), dataset.RasterXSize, dataset.RasterYSize</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.id2xy"><code class="name flex">
+<span>def <span class="ident">id2xy</span></span>(<span>idx, w=40, h=40)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>idx: index, w: width, h:height</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def id2xy(idx, w=40, h=40):
+    &#34;&#34;&#34;idx: index, w: width, h:height&#34;&#34;&#34;
+    idx -= 1
+    return idx % w, idx // w</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.plot"><code class="name flex">
+<span>def <span class="ident">plot</span></span>(<span>G, pos=None, labels=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>matplotlib
+TODO scientific format numeric labels</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot(G, pos=None, labels=None):
+    &#34;&#34;&#34;matplotlib
+    TODO scientific format numeric labels
+    &#34;&#34;&#34;
+    if not pos:
+        pos = {node: [*id2xy(node)] for node in G.nodes}
+    if not labels:
+        labes = {node: node for node in G.nodes}
+    plt.figure()
+    nx.draw(G, pos=pos, with_labels=False)
+    nx.draw_networkx_labels(G, pos=pos, labels=labels)
+    return plt.show()</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.plot_pv"><code class="name flex">
+<span>def <span class="ident">plot_pv</span></span>(<span>pv, w=40, h=40)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_pv(pv, w=40, h=40):
+    mat = pv.reshape(h, w)
+    plt.matshow(mat)
+    plt.show()</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.read_files"><code class="name flex">
+<span>def <span class="ident">read_files</span></span>(<span>apath)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>read all MessagesFile<int>.csv files from Messages directory
+return ordered pathlib filelist &amp; simulation_number lists
+TODO is it worth it to sort messages?</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def read_files(apath):
+    &#34;&#34;&#34;read all MessagesFile&lt;int&gt;.csv files from Messages directory
+    return ordered pathlib filelist &amp; simulation_number lists
+    TODO is it worth it to sort messages?
+    &#34;&#34;&#34;
+    directory = Path(apath, &#34;Messages&#34;)
+    file_name = &#34;MessagesFile&#34;
+    file_list = [f for f in directory.glob(file_name + &#34;[0-9]*.csv&#34;) if f.stat().st_size &gt; 0]
+    file_string = &#34; &#34;.join([f.stem for f in file_list])
+    # sort
+    sim_num = np.fromiter(re.findall(&#34;([0-9]+)&#34;, file_string), dtype=int, count=len(file_list))
+    asort = np.argsort(sim_num)
+    sim_num = sim_num[asort]
+    file_list = np.array(file_list)[asort]
+    return file_list</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.recursiveUp"><code class="name flex">
+<span>def <span class="ident">recursiveUp</span></span>(<span>G)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>count up WTF!!!
+leafs = [x for x in T.nodes if T.out_degree(x)==0]</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def recursiveUp(G):
+    &#34;&#34;&#34;count up WTF!!!
+    leafs = [x for x in T.nodes if T.out_degree(x)==0]
+    &#34;&#34;&#34;
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = 1
+
+        # G.nodes[i][&#39;dv&#39;]=0
+    # for leaf in (x for x in G.nodes if G.out_degree(x)==0):
+    #    G.nodes[leaf][&#39;dv&#39;]=1
+    def count_up(G, j):
+        for i in G.predecessors(j):
+            # G.nodes[i][&#39;dv&#39;]+=G.nodes[j][&#39;dv&#39;]
+            G.nodes[i][&#34;dv&#34;] += 1
+            print(i, j, G.nodes[i][&#34;dv&#34;])
+            count_up(G, i)
+
+    for leaf in (x for x in G.nodes if G.out_degree(x) == 0):
+        count_up(G, leaf)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.shortest_propagation_tree"><code class="name flex">
+<span>def <span class="ident">shortest_propagation_tree</span></span>(<span>G, root)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>construct a tree with the all shortest path from root
+TODO try accumulating already added edges for checking before asigning should be faster?</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def shortest_propagation_tree(G, root):
+    &#34;&#34;&#34;construct a tree with the all shortest path from root
+    TODO try accumulating already added edges for checking before asigning should be faster?
+    &#34;&#34;&#34;
+    # { node : [root,...,node], ... }
+    shortest_paths = nx.single_source_dijkstra_path(G, root, weight=&#34;time&#34;)
+    del shortest_paths[root]
+    T = nx.DiGraph()
+    for node, shopat in shortest_paths.items():
+        for i, node in enumerate(shopat[:-1]):
+            T.add_edge(node, shopat[i + 1])
+    return T</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.single_simulation_downstream_protection_value"><code class="name flex">
+<span>def <span class="ident">single_simulation_downstream_protection_value</span></span>(<span>msgfile='MessagesFile01.csv', pvfile='py.asc')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>load one diGraph count succesors</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def single_simulation_downstream_protection_value(msgfile=&#34;MessagesFile01.csv&#34;, pvfile=&#34;py.asc&#34;):
+    &#34;&#34;&#34;load one diGraph count succesors&#34;&#34;&#34;
+    msgG, root = digraph_from_messages(msgfile)
+    treeG = shortest_propagation_tree(msgG, root)
+    pv, W, H = get_flat_pv(pvfile)
+    #
+    dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    i2n = [n - 1 for n in treeG]
+    mdpv = dpv_maskG(treeG, root, pv, i2n)
+    dpv[i2n] = mdpv
+    return mdpv, dpv</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.downstream_protection_value.sum_dpv_graph"><code class="name flex">
+<span>def <span class="ident">sum_dpv_graph</span></span>(<span>T, root, pv)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>returns a copy of T that:
+1. sets pv into each node
+2. recursively sums pv downstream
+T must be a tree (not checked)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sum_dpv_graph(T, root, pv):
+    &#34;&#34;&#34;returns a copy of T that:
+        1. sets pv into each node
+        2. recursively sums pv downstream
+    T must be a tree (not checked)
+    &#34;&#34;&#34;
+    G = T.copy()
+    for i in G.nodes:
+        G.nodes[i][&#34;dv&#34;] = pv[i - 1]
+
+    def recursion(G, i):
+        for j in G.successors(i):
+            G.nodes[i][&#34;dv&#34;] += recursion(G, j)
+        return G.nodes[i][&#34;dv&#34;]
+
+    recursion(G, root)
+    return G</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="fire2a-lib.src.fire2a" href="index.html">fire2a-lib.src.fire2a</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.add_dpv_graph" href="#fire2a-lib.src.fire2a.downstream_protection_value.add_dpv_graph">add_dpv_graph</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.canon3" href="#fire2a-lib.src.fire2a.downstream_protection_value.canon3">canon3</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.canon4" href="#fire2a-lib.src.fire2a.downstream_protection_value.canon4">canon4</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.count_downstream_graph" href="#fire2a-lib.src.fire2a.downstream_protection_value.count_downstream_graph">count_downstream_graph</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.custom4" href="#fire2a-lib.src.fire2a.downstream_protection_value.custom4">custom4</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.digraph_from_messages" href="#fire2a-lib.src.fire2a.downstream_protection_value.digraph_from_messages">digraph_from_messages</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.downstream_protection_value" href="#fire2a-lib.src.fire2a.downstream_protection_value.downstream_protection_value">downstream_protection_value</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.dpv_maskG" href="#fire2a-lib.src.fire2a.downstream_protection_value.dpv_maskG">dpv_maskG</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.get_flat_pv" href="#fire2a-lib.src.fire2a.downstream_protection_value.get_flat_pv">get_flat_pv</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.id2xy" href="#fire2a-lib.src.fire2a.downstream_protection_value.id2xy">id2xy</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.plot" href="#fire2a-lib.src.fire2a.downstream_protection_value.plot">plot</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.plot_pv" href="#fire2a-lib.src.fire2a.downstream_protection_value.plot_pv">plot_pv</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.read_files" href="#fire2a-lib.src.fire2a.downstream_protection_value.read_files">read_files</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.recursiveUp" href="#fire2a-lib.src.fire2a.downstream_protection_value.recursiveUp">recursiveUp</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.shortest_propagation_tree" href="#fire2a-lib.src.fire2a.downstream_protection_value.shortest_propagation_tree">shortest_propagation_tree</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.single_simulation_downstream_protection_value" href="#fire2a-lib.src.fire2a.downstream_protection_value.single_simulation_downstream_protection_value">single_simulation_downstream_protection_value</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value.sum_dpv_graph" href="#fire2a-lib.src.fire2a.downstream_protection_value.sum_dpv_graph">sum_dpv_graph</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
