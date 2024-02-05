@@ -100,6 +100,9 @@ pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True
 ```bash
 pip uninstall fire2a-lib
 ```
+### Troubleshoot
+1. Can't commit or push, some deleted file is messing git up: Temporarily delete .git/hooks/pre-commit and/or .git/hooks/pre-push; restore them when wanting to publish another webpage
+
 # Coding style
 [Here](./coding_style.md)  
 TL;DR: Use black formatter, pytests; write standard docstrings and avoid needless complexity.
