@@ -19,8 +19,8 @@ classifiers = [
 ]
 dependencies = [
     "importlib-metadata",
-    "numpy",
-    "pandas",
+    "numpy>=1.24.1",
+    "pandas>=2.0.2",
 ]
 dynamic = ["version"]
 
