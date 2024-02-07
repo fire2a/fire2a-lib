@@ -1,5 +1,7 @@
 #!python3
-"""👋🌎 🌲🔥
+"""Hello World 👋🌎
+This is Forest Fire Analytics 🌲🔥🧠
+ 
 This is fire2a-lib distribution, fire2a package docstring
 More info on:
 
@@ -15,14 +17,25 @@ from pathlib import Path
 
 
 def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None = None):
-    """capture the logger and set the verbosity, stream handler, rotating logfile if provided.
-    logging.critical("Something went wrong, exception info?", exc_info=True)
-    logging.error("Something went wrong, but we keep going?")
-    logging.warning("Default message level")
-    logging.info("Something planned happened")
-    logging.debug("Details of the planned thing that happened")
-    global logger
-    """
+    """Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
+    Args:
+        name (str, optional): Name of the logger. Defaults to \__name __. Don't change unless you know what you are doing!
+        verbosity (int, optional): Verbosity level. Defaults to 0 (warning). 1 info, >=2 debug
+        logfile (Path | None, optional): Logfile path. Defaults to None.
+    Returns:
+        logger (modified Logger object)  
+
+    ## Developers implementing their own logger
+        * All fire2a modules uses `logger = logging.getLogger(__name__)`
+
+        * Reuse this logging setup as shown in `usage_template/template.ipynb`
+    ## typical usage
+    logging.critical("Something went wrong, exception info?", exc_info=True)  
+    logging.error("Something went wrong, but we keep going?")  
+    logging.warning("Default message level")  
+    logging.info("Something planned happened")  
+    logging.debug("Details of the planned thing that happened")  
+    """  # fmt: skip
     import logging
     import sys
 
