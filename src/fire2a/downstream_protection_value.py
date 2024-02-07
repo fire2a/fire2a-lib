@@ -1,4 +1,29 @@
 #!/bin/env python3
+__doc__ = """
+DownStream Protection Value Algorithm can be reduced to recursively counting out nodes in a directed tree graph; When providing node values, recursively summing them. In the context of Cell2Fire simulator, the graph is a (or many) fire propagation tree(s), represented in a (multi) directed graph.
+
+Its main idea is that upstream cells are priority over downstream cells because of the calculated fire propagations; So if you protect an upstream cell, fire won't get to the downstream cells; pondered by the protection values
+
+Its inputs are:
+
+* A directed graph(*), passed as a 'Messages.csv' file, with 'in_node', 'out_node', 'weight' columns
+* [optional] a raster with the values to protect (any Non-Data, any Value types) As the aggregation function is sum, means bigger values are more protection than smaller or negative values.
+
+Its output is:
+
+* A raster represeting the graph with added values (or number of cells) downstream (or out nodes, recursively).
+
+(*): If it is not a tree, it will be reduced to a tree by the shortest path algorithm
+
+This code:
+
+* Reads all Messages[0-9]+.csv files from a directory ([0-9]+ represents any integer number)
+* Reads the protection values from a gdal compatible raster file
+* Calculates the downstream protection value algorithm serially for windows, and parallel for linux
+* Is hooked up to usage_template/downstream_protection_value.ipynb for graphical exploration
+
+https://fire2a.github.io/fire2a-lib/src/fire2a/downstream_protection_value.html
+"""
 """
 $cd C2FSB
 C2FSB$ python3 downstream_protection_value.py
@@ -36,9 +61,9 @@ Performance review
     1.84 ms ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
 
 """
+import logging
 import re
 import sys
-from logging import debug
 from pathlib import Path
 
 import networkx as nx
@@ -46,10 +71,29 @@ import numpy as np
 from matplotlib import pyplot as plt
 from osgeo import gdal
 
+from fire2a import setup_logger
+from fire2a.raster import id2xy as r_id2xy
+from fire2a.raster import read_raster
+
+logger = logging.getLogger(__name__)
+
+
+def id2xy(idx, w=40, h=40):
+    """idx: index, w: width, h:height"""
+    return r_id2xy(idx - 1, w, h)
+
+
+# def id2xy(idx, w=40, h=40):
+#     """idx: index, w: width, h:height"""
+#     idx -= 1
+#     return idx % w, idx // w
+
+# def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[np.ndarray, dict]:
+
 
 def single_simulation_downstream_protection_value(msgfile="MessagesFile01.csv", pvfile="py.asc"):
     """load one diGraph count succesors"""
-    msgG, root = digraph_from_messages(msgfile)
+    msgG, root = digraph_f(msgfile)
     treeG = shortest_propagation_tree(msgG, root)
     pv, W, H = get_flat_pv(pvfile)
     #
@@ -178,6 +222,12 @@ def dpv_maskG(G, root, pv, i2n=None):
     return mdpv
 
 
+def recursion2(G: DiGraph, i: int32, mdpv: ndarray, i2n: list[int]) -> ndarray:
+    for j in G.successors(i):
+        mdpv[i2n.index(i)] += recursion(G, j, mdpv, i2n)
+    return mdpv[i2n.index(i)]
+
+
 def add_dpv_graph(G, root, pv):
     """modifies the input Graph recursively:
         1. sums pv into predecesor (or calling)
@@ -232,20 +282,26 @@ def count_downstream_graph(T, root) -> nx.DiGraph:
     return G
 
 
-def read_files(apath):
-    """read all MessagesFile<int>.csv files from Messages directory
-    return ordered pathlib filelist & simulation_number lists
-    TODO is it worth it to sort messages?
+def glob_int_sorted(directory, filename: str = "MessagesFile.csv"):
+    """reads all MessagesFile<int>.csv >0 size files from directory, regexes numbers casting to int, sorts them
+    Args:
+        directory (Path): directory to read
+        filename (str): filename to match
+    Returns:
+        list: ordered list of pathlib files
     """
-    directory = Path(apath, "Messages")
-    file_name = "MessagesFile"
-    file_list = [f for f in directory.glob(file_name + "[0-9]*.csv") if f.stat().st_size > 0]
+    if not directory.is_dir():
+        raise NotADirectoryError(f"{directory=} is not a directory")
+    file_name = Path(filename)
+    file_list = [f for f in directory.glob(file_name.stem + "[0-9]*" + file_name.suffix) if f.stat().st_size > 0]
+    if len(file_list) == 0:
+        raise FileNotFoundError(f"{directory=} has no {file_name=} matching >0 size files")
     file_string = " ".join([f.stem for f in file_list])
     # sort
     sim_num = np.fromiter(re.findall("([0-9]+)", file_string), dtype=int, count=len(file_list))
     asort = np.argsort(sim_num)
     sim_num = sim_num[asort]
-    file_list = np.array(file_list)[asort]
+    file_list = list(np.array(file_list)[asort])
     return file_list
 
 
@@ -277,13 +333,145 @@ def plot_pv(pv, w=40, h=40):
     plt.show()
 
 
-def id2xy(idx, w=40, h=40):
-    """idx: index, w: width, h:height"""
-    idx -= 1
-    return idx % w, idx // w
+def worker(data, pv, sid):
+
+    # digraph_from_messages(msgfile) -> msgG, root
+    msgG = DiGraph()
+    msgG.add_weighted_edges_from(data)
+    root = data[0][0]
+    # shortest_propagation_tree(G, root) -> treeG
+    shortest_paths = single_source_dijkstra_path(msgG, root, weight="time")
+    del shortest_paths[root]
+    treeG = DiGraph()
+    for node, shopat in shortest_paths.items():
+        for i, node in enumerate(shopat[:-1]):
+            treeG.add_edge(node, shopat[i + 1])
+    # dpv_maskG(G, root, pv, i2n) -> mdpv
+    i2n = [n for n in treeG]
+    mdpv = pv[i2n]
+    recursion(treeG, root, mdpv, i2n)
+    # dpv[i2n] += mdpv
+    return mdpv, i2n, sid
+
+
+from re import search
+
+
+def load_msg(afile: Path):
+    try:
+        sim_id = search("\\d+", afile.stem).group(0)
+    except:
+        sim_id = "-1"
+    data = loadtxt(afile, delimiter=",", dtype=[("i", int32), ("j", int32), ("t", int32)], usecols=(0, 1, 2), ndmin=1)
+    return data, sim_id
+
+
+def get_data(files, callback=None):
+    data = []
+    for count, afile in enumerate(files):
+        sim_id = search("\\d+", afile.stem).group(0)
+        data += [
+            loadtxt(afile, delimiter=",", dtype=[("i", int32), ("j", int32), ("t", int32)], usecols=(0, 1, 2), ndmin=1)
+        ]
+        # 1 based to 0 based
+        data[-1]["i"] -= 1
+        data[-1]["j"] -= 1
+        if callback:
+            callback(count, sim_id, afile)
+        yield data
+    with open("messages.pickle", "wb") as f:
+        pickle_dump(data, f)
+
+
+def argument_parser(argv):
+    """parse arguments
+    - logger: verbosity, logfile
+    """
+    import argparse
+
+    def path_check(path):
+        path = Path(path)
+        if path.is_dir() or (path.is_file() and path.stat().st_size > 0):
+            return path
+        raise argparse.ArgumentTypeError(f"{path.as_uri()=} is not a valid Path or file size is 0")
+
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "-v",
+        "--verbosity",
+        help="increase output verbosity (0: warning(default), 1: info, 2>=: debug)",
+        action="count",
+        default=0,
+    )
+    parser.add_argument("-l", "--logfile", help="rotating log file see fire2a.setup_logger", type=Path)
+    parser.add_argument(
+        "-pv",
+        "--protection-value",
+        help="pv raster layer, must be gdal.Open compatible, and match messages width & height",
+        type=path_check,
+    )
+    parser.add_argument(
+        "-pvb",
+        "--protection-value-band",
+        help="pv raster layer band to read, defaults to 1",
+        type=int,
+        default=1,
+    )
+    parser.add_argument("-W", help="width of the raster (overrides width read from pv raster)", type=int)
+    parser.add_argument("-H", help="height of the raster (overrides width read from pv raster)", type=int)
+    parser.add_argument(
+        nargs="+",
+        dest="messages",
+        help=(
+            "Messages[0-9+].csv file(s) or directory to parse (hint use glob: Messages*.csv to pass many files or pass"
+            " a single directory to read all Messages[0-9+].csv files in it)"
+        ),
+        type=path_check,
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    """this is a function docstring that describes a function"""
+    if argv is None:
+        argv = sys.argv[1:]
+    args = argument_parser(argv)
+    logger = setup_logger(__name__, args.verbosity, args.logfile)
+    logger.info(f"{args=}")
+    logger.debug(f"debugging...")
+
+    file_list = []
+    for path_str in args.messages:
+        path = Path(path_str)
+        if path.is_file() and path.stat().st_size > 0:
+            file_list += [path]
+        elif path.is_dir():
+            file_list += glob_int_sorted(path)
+        else:
+            logger.warning(f"{path} is not a file or directory")
+    # remove duplicates
+    file_list = list(dict.fromkeys(file_list))
+    logger.info(f"{file_list=}")
+
+    if args.protection_value:
+        pv_data, pv_info = read_raster(args.protection_value, args.pvb)
+        # make 1D
+        pv = pv_data.ravel()
+        W, H = info["RasterXSize"], info["RasterYSize"]
+        logger.info(f"{pv_data.dtype=}, {pv_data.shape=}, {pv_info=}")
+
+    if args.W and args.H:
+        W, H = args.W, args.H
 
 
 if __name__ == "__main__":
+    sys.exit(main())
+
+
+def no():
     # if len(sys.argv)>1:
     #     input_dir = sys.argv[1]
     #     output_dir = sys.argv[2]
