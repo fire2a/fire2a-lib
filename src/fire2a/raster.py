@@ -11,6 +11,9 @@ from pathlib import Path
 
 import numpy as np
 from osgeo import gdal, ogr
+from qgis.core import Qgis, QgsRasterLayer
+
+from .utils import qgis2numpy_dtype
 
 logger = logging.getLogger(__name__)
 
@@ -171,6 +174,74 @@ def transform_georef_to_coords(x_geo: int, y_geo: int, GT: tuple) -> tuple[float
     # if i % 1 != 0 or j % 1 != 0:
     #     raise Exception("Not integer coordinates!")
     return int(i), int(j)
+
+
+def get_rlayer_info(layer: QgsRasterLayer):
+    """Get raster layer info: width, height, extent, crs, cellsize_x, cellsize_y, nodata list, number of bands.
+
+    Args:
+        layer (QgsRasterLayer): A raster layer
+    Returns:
+        dict: raster layer info
+    """
+    provider = layer.dataProvider()
+    ndv = []
+    for band in range(1, layer.bandCount() + 1):
+        ndv += [None]
+        if provider.sourceHasNoDataValue(band):
+            ndv[-1] = provider.sourceNoDataValue(band)
+    return {
+        "width": layer.width(),
+        "height": layer.height(),
+        "extent": layer.extent(),
+        "crs": layer.crs(),
+        "cellsize_x": layer.rasterUnitsPerPixelX(),
+        "cellsize_y": layer.rasterUnitsPerPixelY(),
+        "nodata": ndv,
+        "bands": layer.bandCount(),
+    }
+
+
+def get_rlayer_data(layer: QgsRasterLayer):
+    """Get raster layer data (EVERY BAND) as numpy array; Also returns nodata value, width and height
+    The user should check the shape of the data to determine if it is a single band or multiband raster.
+    len(data.shape) == 2 for single band, len(data.shape) == 3 for multiband.
+
+    Args:
+        layer (QgsRasterLayer): A raster layer
+
+    Returns:
+        data (np.array): Raster data as numpy array
+        nodata (None | list): No data value
+        width (int): Raster width
+        height (int): Raster height
+
+    FIXME? can a multiband raster have different nodata values and/or data types for each band?
+    TODO: make a band list as input
+    """
+    provider = layer.dataProvider()
+    if layer.bandCount() == 1:
+        block = provider.block(1, layer.extent(), layer.width(), layer.height())
+        nodata = None
+        if block.hasNoDataValue():
+            nodata = block.noDataValue()
+        np_dtype = qgis2numpy_dtype(provider.dataType(1))
+        data = np.frombuffer(block.data(), dtype=np_dtype).reshape(layer.height(), layer.width())
+    else:
+        data = []
+        nodata = []
+        np_dtype = []
+        for i in range(layer.bandCount()):
+            block = provider.block(i + 1, layer.extent(), layer.width(), layer.height())
+            nodata += [None]
+            if block.hasNoDataValue():
+                nodata[-1] = block.noDataValue()
+            np_dtype += [qgis2numpy_dtype(provider.dataType(i + 1))]
+            data += [np.frombuffer(block.data(), dtype=np_dtype[-1]).reshape(layer.height(), layer.width())]
+        # would different data types bug this next line?
+        data = np.array(data)
+    # return data, nodata, np_dtype
+    return data
 
 
 def get_cell_sizeV2(filename: str, band: int = 1) -> tuple[float, float]:
