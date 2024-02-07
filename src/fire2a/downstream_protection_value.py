@@ -24,43 +24,6 @@ This code:
 
 https://fire2a.github.io/fire2a-lib/src/fire2a/downstream_protection_value.html
 """
-"""
-$cd C2FSB
-C2FSB$ python3 downstream_protection_value.py
-
-all functions are tested and plotted on main
-
-Calculate downstream protection value from Messages/MessagesFile<int>.csv files
-Each file has 4 columns: from cellId, to cellId, period when burns & hit ROS
-
-https://github.com/fire2a/C2FK/blob/main/Cell2Fire/Heuristics.py
-
-https://networkx.org/documentation/networkx-1.8/reference/algorithms.shortest_paths.html
-
-propagation tree: (c) fire shortest traveling times
-
-Performance review
-1. is faster to dijkstra than minimun spanning
-
-    In [50]: %timeit shortest_propagation_tree(G,root)
-    1.53 ms ± 5.47 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
-    
-    In [51]: %timeit nx.minimum_spanning_arborescence(G, attr='time')
-    16.4 ms ± 61 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-
-2. is faster numpy+add_edges than nx.from_csv
-
-    In [63]: %timeit custom4(afile)
-    2.3 ms ± 32 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-    
-    In [64]: %timeit canon4(afile)
-    3.35 ms ± 20 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
-
-2.1 even faster is you discard a column!!
-    In [65]: %timeit digraph_from_messages(afile)
-    1.84 ms ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
-
-"""
 import logging
 import re
 import sys
@@ -224,9 +187,9 @@ def dpv_maskG(G, root, pv, i2n=None):
     return mdpv
 
 
-def recursion2(G: DiGraph, i: int32, mdpv: ndarray, i2n: list[int]) -> ndarray:
+def recursion2(G: DiGraph, i: np.int32, mdpv: ndarray, i2n: list[int]) -> ndarray:
     for j in G.successors(i):
-        mdpv[i2n.index(i)] += recursion(G, j, mdpv, i2n)
+        mdpv[i2n.index(i)] += recursion2(G, j, mdpv, i2n)
     return mdpv[i2n.index(i)]
 
 
@@ -342,7 +305,7 @@ def worker(data, pv, sid):
     msgG.add_weighted_edges_from(data)
     root = data[0][0]
     # shortest_propagation_tree(G, root) -> treeG
-    shortest_paths = single_source_dijkstra_path(msgG, root, weight="time")
+    shortest_paths = nx.single_source_dijkstra_path(msgG, root, weight="time")
     del shortest_paths[root]
     treeG = DiGraph()
     for node, shopat in shortest_paths.items():
@@ -364,7 +327,9 @@ def load_msg(afile: Path):
         sim_id = search("\\d+", afile.stem).group(0)
     except:
         sim_id = "-1"
-    data = loadtxt(afile, delimiter=",", dtype=[("i", int32), ("j", int32), ("t", int32)], usecols=(0, 1, 2), ndmin=1)
+    data = loadtxt(
+        afile, delimiter=",", dtype=[("i", np.int32), ("j", np.int32), ("t", np.int32)], usecols=(0, 1, 2), ndmin=1
+    )
     return data, sim_id
 
 
@@ -373,7 +338,13 @@ def get_data(files, callback=None):
     for count, afile in enumerate(files):
         sim_id = search("\\d+", afile.stem).group(0)
         data += [
-            loadtxt(afile, delimiter=",", dtype=[("i", int32), ("j", int32), ("t", int32)], usecols=(0, 1, 2), ndmin=1)
+            loadtxt(
+                afile,
+                delimiter=",",
+                dtype=[("i", np.int32), ("j", np.int32), ("t", np.int32)],
+                usecols=(0, 1, 2),
+                ndmin=1,
+            )
         ]
         # 1 based to 0 based
         data[-1]["i"] -= 1
@@ -383,6 +354,37 @@ def get_data(files, callback=None):
         yield data
     with open("messages.pickle", "wb") as f:
         pickle_dump(data, f)
+
+
+def one_sim_work(afile, pv, sid):
+    # digraph_from_messages(msgfile) -> msgG, root
+    data = np.loadtxt(
+        afile,
+        delimiter=",",
+        dtype=[("i", np.int32), ("j", np.int32), ("t", np.int32)],
+        usecols=(0, 1, 2),
+        ndmin=1,
+    )
+    # 1 based to 0 based
+    data["i"] -= 1
+    data["j"] -= 1
+    msgG = nx.DiGraph()
+    msgG.add_weighted_edges_from(data)
+    root = data[0][0]
+    # shortest_propagation_tree(G, root) -> treeG
+    shortest_paths = nx.single_source_dijkstra_path(msgG, root, weight="time")
+    del shortest_paths[root]
+    treeG = nx.DiGraph()
+    for node, shopat in shortest_paths.items():
+        for i, node in enumerate(shopat[:-1]):
+            treeG.add_edge(node, shopat[i + 1])
+    # dpv_maskG(G, root, pv, i2n) -> mdpv
+    i2n = [n for n in treeG]
+    mdpv = pv[i2n]
+    recursion2(treeG, root, mdpv, i2n)
+    # dpv[i2n] += mdpv
+    print("fin", sid)
+    return mdpv, i2n, sid
 
 
 def argument_parser(argv):
@@ -409,6 +411,13 @@ def argument_parser(argv):
         default=0,
     )
     parser.add_argument("-l", "--logfile", help="rotating log file see fire2a.setup_logger", type=Path)
+    parser.add_argument(
+        "-dpvn",
+        "--dpv-filename",
+        help="dpv raster layer output filename",
+        type=str,
+        default="dpv.tif",
+    )
     parser.add_argument(
         "-pv",
         "--protection-value",
@@ -437,7 +446,7 @@ def argument_parser(argv):
 
 
 def main(argv=None):
-    """this is a function docstring that describes a function"""
+    """steps to run dpv"""
     if argv is None:
         argv = sys.argv[1:]
     args = argument_parser(argv)
@@ -459,14 +468,44 @@ def main(argv=None):
     logger.info(f"{file_list=}")
 
     if args.protection_value:
-        pv_data, pv_info = read_raster(args.protection_value, args.pvb)
+        pv_data, pv_info = read_raster(str(args.protection_value), args.protection_value_band)
+        W, H, GT, PJ = pv_info["RasterXSize"], pv_info["RasterYSize"], pv_info["Transform"], pv_info["Projection"]
         # make 1D
         pv = pv_data.ravel()
-        W, H = info["RasterXSize"], info["RasterYSize"]
         logger.info(f"{pv_data.dtype=}, {pv_data.shape=}, {pv_info=}")
-
-    if args.W and args.H:
+        dpv = np.zeros(pv.shape, dtype=pv.dtype)
+    elif args.W and args.H:
         W, H = args.W, args.H
+        GT = (0, 1, 0, 0, 0, 1)
+        PJ = "EPSG:4326"
+        pv = np.ones(W * H, dtype=np.int32)
+        dpv = np.zeros(W * H, dtype=np.int32)
+
+    from multiprocessing import Pool, cpu_count
+
+    with Pool(processes=cpu_count() - 1) as pool:
+        results = [pool.apply_async(one_sim_work, args=(afile, pv, i)) for i, afile in enumerate(file_list)]
+        for result in results:
+            sdpv, si2n, sid = result.get()
+            dpv[si2n] += sdpv
+    # scale
+    dpv = dpv / len(file_list)
+    print(f"{dpv=}")
+    # write
+    dst_ds = gdal.GetDriverByName("GTiff").Create(args.dpv_filename, W, H, 1, gdal.GDT_Float32)
+    # get driver by name to create a geo tiff raster
+    dst_ds.SetGeoTransform(GT)
+    dst_ds.SetProjection(PJ)
+    band = dst_ds.GetRasterBand(1)
+    band.SetUnitType("protection_value")
+    if 0 != band.SetNoDataValue(0):
+        feedback.pushWarning(f"Set No Data failed for {self.OUT_R}")
+    if 0 != band.WriteArray(np.float32(dpv.reshape(H, W))):
+        feedback.pushWarning(f"WriteArray failed for {self.OUT_R}")
+    band.FlushCache()
+    dst_ds.FlushCache()
+    dst_ds = None
+    return 0
 
 
 if __name__ == "__main__":
@@ -546,3 +585,42 @@ def no():
     # finally
     dpv = downstream_protection_value(output_dir, pvfile=input_dir / "bp.asc")
     plot_pv(dpv, w=W, h=H)
+
+
+"""
+$cd C2FSB
+C2FSB$ python3 downstream_protection_value.py
+
+all functions are tested and plotted on main
+
+Calculate downstream protection value from Messages/MessagesFile<int>.csv files
+Each file has 4 columns: from cellId, to cellId, period when burns & hit ROS
+
+https://github.com/fire2a/C2FK/blob/main/Cell2Fire/Heuristics.py
+
+https://networkx.org/documentation/networkx-1.8/reference/algorithms.shortest_paths.html
+
+propagation tree: (c) fire shortest traveling times
+
+Performance review
+1. is faster to dijkstra than minimun spanning
+
+    In [50]: %timeit shortest_propagation_tree(G,root)
+    1.53 ms ± 5.47 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+    
+    In [51]: %timeit nx.minimum_spanning_arborescence(G, attr='time')
+    16.4 ms ± 61 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+2. is faster numpy+add_edges than nx.from_csv
+
+    In [63]: %timeit custom4(afile)
+    2.3 ms ± 32 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+    
+    In [64]: %timeit canon4(afile)
+    3.35 ms ± 20 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+2.1 even faster is you discard a column!!
+    In [65]: %timeit digraph_from_messages(afile)
+    1.84 ms ± 15.4 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+
+"""
