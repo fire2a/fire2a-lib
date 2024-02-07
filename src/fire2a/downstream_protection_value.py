@@ -69,6 +69,8 @@ from pathlib import Path
 import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
+from networkx import DiGraph
+from numpy import ndarray
 from osgeo import gdal
 
 from fire2a import setup_logger
@@ -93,7 +95,7 @@ def id2xy(idx, w=40, h=40):
 
 def single_simulation_downstream_protection_value(msgfile="MessagesFile01.csv", pvfile="py.asc"):
     """load one diGraph count succesors"""
-    msgG, root = digraph_f(msgfile)
+    msgG, root = digraph_from_messages(msgfile)
     treeG = shortest_propagation_tree(msgG, root)
     pv, W, H = get_flat_pv(pvfile)
     #
@@ -282,7 +284,7 @@ def count_downstream_graph(T, root) -> nx.DiGraph:
     return G
 
 
-def glob_int_sorted(directory, filename: str = "MessagesFile.csv"):
+def glob_int_sorted(directory: Path, filename: str = "MessagesFile.csv"):
     """reads all MessagesFile<int>.csv >0 size files from directory, regexes numbers casting to int, sorts them
     Args:
         directory (Path): directory to read
