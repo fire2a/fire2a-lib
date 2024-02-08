@@ -1,0 +1,2319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>firebehavior API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>firebehavior</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import numpy as np
+import math
+import pandas as pd
+import datetime
+
+def acceleration(ftype, cfb): 
+    &#34;&#34;&#34;
+    Calcula la aceleración de la propagación del fuego.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        cfb (float): Fracción de la corona quemada.
+
+    Returns:
+        float: Aceleración de la propagación del fuego.
+    &#34;&#34;&#34;
+    open_list = [&#34;O1a&#34;, &#34;O1b&#34;, &#34;C1&#34;, &#34;S1&#34;, &#34;S2&#34;, &#34;S3&#34;]  # combustible abierto
+
+    if ftype not in open_list:
+        # para combustibles cerrados
+        accn = 0.115 - 18.8 * cfb**2.5 * math.exp(-8.0 * cfb)  # Eq.72
+    else:
+        # para combustibles abiertos
+        accn = 0.115
+
+    return accn
+
+def area(dt, df):
+    &#34;&#34;&#34;
+    Calcula el área de un elipse.
+
+    Args:
+        dt (float): Diámetro mayor.
+        df (float): Diámetro menor.
+
+    Returns:
+        float: Área de la elipse (en hectáreas).
+    &#34;&#34;&#34;
+    a = dt / 2.0
+    b = df
+    areavar = a * b * math.pi / 10000.0
+    return areavar
+
+def back_fire_behaviour(ftype, sfc, brss, csi, rso, fmc, bisi, CFL):
+    &#34;&#34;&#34;
+    Calcula el comportamiento del fuego en retroceso.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        sfc (float): Velocidad de propagación del fuego en superficie.
+        brss (float): Tasa de propagación del fuego en superficie.
+        csi (float): Índice de intensidad del fuego crítico.
+        rso (float): Tasa de propagación del fuego en superficie de referencia.
+        fmc (float): Contenido de humedad del combustible.
+        bisi (float): Índice de propagación del fuego en retroceso.
+        CFL (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        tuple: Una tupla que contiene la tasa de propagación final del fuego en retroceso,
+               la intensidad final del fuego en retroceso,
+               el consumo final de combustible en retroceso,
+               y el tipo de fuego en retroceso (superficial o de copa).
+    &#34;&#34;&#34;
+    bsfi = fire_intensity(sfc, brss)
+    back_firetype = &#34;superficial&#34;
+
+    if bsfi &gt; csi:
+        back_firetype = &#34;de copa&#34;
+
+    if back_firetype == &#34;de copa&#34;:
+        bcfb = max(1 - math.exp(-0.23 * (brss - rso)), 0.0)  # fracción quemada de copa
+        bcfc = CFL[ftype] * bcfb
+        bros = final_ros(ftype, fmc, bisi, bcfb, brss)
+
+        bfc = bcfc + sfc
+        bfi = fire_intensity(bfc, bros)
+        return bros, bfi, bfc, back_firetype
+    else:
+        bros = brss
+        bfi = bsfi
+        bfc = sfc
+
+    return bros, bfi, bfc, back_firetype
+def backfire_isi(wsv, ff):
+    &#34;&#34;&#34;
+    Calcula el Índice de Propagación Inicial (ISI) para fuegos de retroceso.
+
+    Args:
+        wsv (float): Velocidad del viento sostenido [km/h].
+        ff (float): Índice FFMC (Código de Humedad de Combustible Fino).
+
+    Returns:
+        float: ISI calculado.
+    &#34;&#34;&#34;
+    bfw = math.exp(-0.05039 * wsv)  # Eq.75
+    bisi = 0.208 * ff * bfw  # Eq.76
+    return bisi
+
+def backfire_ros(ftype, bisi, wdfh, a, b, c, FuelConst2, bui0, q):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego de retroceso.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        bisi (float): Índice de Propagación Inicial del Fuego de Retroceso (ISI).
+        wdfh (dict): Diccionario que contiene los datos meteorológicos y de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        FuelConst2 (dict): Diccionario que contiene constantes de combustible.
+        bui0 (dict): Diccionario que contiene los índices de acumulación inicial del combustible.
+        q (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        float: Tasa de propagación del fuego de retroceso.
+    &#34;&#34;&#34;
+    bros = ros_base(ftype, bisi, wdfh[&#39;BUI&#39;], a, b, c, FuelConst2)
+    bros *= bui_effect(wdfh[&#39;BUI&#39;], bui0[ftype], q[ftype])
+    return bros
+
+def bui_effect(bui, bui0, q):
+    &#34;&#34;&#34;
+    Calcula el efecto del Índice de Acumulación (BUI) en la propagación del fuego.
+
+    Args:
+        bui (float): Índice de Acumulación de Combustible (BUI).
+        bui0 (float): Índice de Acumulación de Combustible inicial.
+        q (float): Factor de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        float: Efecto del BUI en la propagación del fuego.
+    &#34;&#34;&#34;
+    bui_avg = 50.0
+
+    if bui == 0:
+        bui = 1.0
+    be = np.exp(bui_avg * np.log(q) * ((1.0 / bui) - (1.0 / bui0)))
+    return be
+
+def crit_surf_intensity(cbh, fmc):
+    &#34;&#34;&#34;
+    Calcula la intensidad crítica de la superficie para la transición de fuego superficial a fuego de corona.
+
+    Args:
+        cbh (float): Altura base de la copa [m].
+        fmc (float): Contenido de humedad foliar [%].
+
+    Returns:
+        float: Intensidad crítica de la superficie.
+    &#34;&#34;&#34;
+    csi = 0.001 * cbh**1.5 * (460.0 + 25.9 * fmc)**1.5
+    return csi
+def ffmc_effect(ffmc):
+    &#34;&#34;&#34;
+    Calcula el efecto del Código de Humedad de Combustible Fino (FFMC) en la propagación del fuego.
+
+    Args:
+        ffmc (float): Índice FFMC (Código de Humedad de Combustible Fino).
+
+    Returns:
+        float: Efecto del FFMC en la propagación del fuego.
+    &#34;&#34;&#34;
+    mc = 147.2 * (101.0 - ffmc) / (59.5 + ffmc)  # Eq.46
+    ff = 91.9 * math.exp(-0.1386 * mc) * (1 + mc**5.31 / 4.93e7)  # Eq.45
+    return ff
+
+def final_ros(ftype, fmc, isi, cfb, rss):
+    &#34;&#34;&#34;
+    Calcula la tasa final de propagación del fuego, teniendo en cuenta si es un fuego de corona.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        fmc (float): Contenido de humedad foliar [%].
+        isi (float): Índice de Propagación Inicial (ISI) del fuego.
+        cfb (float): Fracción de la corona quemada.
+        rss (float): Tasa de propagación del fuego en superficie.
+
+    Returns:
+        float: Tasa final de propagación del fuego.
+    &#34;&#34;&#34;
+    if ftype == &#34;C6&#34;:
+        rsc = foliar_mois_effect(isi, fmc)
+        ros = rss + cfb * (rsc - rss)
+    else:
+        ros = rss
+    return ros
+
+def fire_intensity(fc, ros):
+    &#34;&#34;&#34;
+    Calcula la intensidad del fuego basada en el consumo de combustible y la tasa de propagación.
+
+    Args:
+        fc (float): Consumo de combustible predicho [kg/m2].
+        ros (float): Tasa de propagación predicha [m/min].
+
+    Returns:
+        float: Intensidad del fuego [kW/m].
+    &#34;&#34;&#34;
+    fi = 300.0 * fc * ros  # Eq.69 [kW/m]
+    return fi
+
+def flank_fire_behaviour(ftype, sfc, frss, csi, rso, CFL):
+    &#34;&#34;&#34;
+    Determina el comportamiento del fuego en los flancos, incluyendo la intensidad y el consumo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        sfc (float): Velocidad de propagación del fuego en superficie.
+        frss (float): Tasa de propagación del fuego en los flancos.
+        csi (float): Índice de intensidad del fuego crítico.
+        rso (float): Tasa de propagación del fuego en superficie de referencia.
+        CFL (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        tuple: Una tupla que contiene la intensidad final del fuego en los flancos,
+               el consumo final de combustible en los flancos,
+               y el tipo de fuego en los flancos (superficial o de copa).
+    &#34;&#34;&#34;
+    flank_firetype = &#34;surface&#34;
+    sfi = fire_intensity(sfc, frss)
+    if sfi &gt; csi:
+        flank_firetype = &#34;crown&#34;
+
+    if flank_firetype == &#34;crown&#34;:
+        fcfb = max(1 - math.exp(-0.23 * (frss - rso)), 0.0)  # crown fraction burned
+        fcfc = CFL[ftype] * fcfb
+
+        ffc = fcfc + sfc
+        ffi = fire_intensity(ffc, frss)
+    else:
+        ffi = sfi
+        ffc = sfc
+
+    return ffi, ffc, flank_firetype
+
+def flank_spread_distance(hrost, brost, hdist, bdist, lb, a, time):
+    &#34;&#34;&#34;
+    Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo en los flancos.
+
+    Args:
+        hrost (float): Tasa de propagación del fuego en la corona.
+        brost (float): Tasa de propagación del fuego en superficie de referencia.
+        hdist (float): Distancia de propagación del fuego en la corona.
+        bdist (float): Distancia de propagación del fuego en superficie de referencia.
+        lb (float): Relación longitud-ancho de la zona quemada.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        time (float): Tiempo de propagación.
+
+    Returns:
+        tuple: Una tupla que contiene la distancia de propagación del fuego en los flancos,
+               la tasa de propagación del fuego en los flancos,
+               y la relación longitud-ancho ajustada por el tiempo.
+    &#34;&#34;&#34;
+    lbt = (lb - 1.0) * (1.0 - math.exp(-a * time)) + 1.0
+    rost = (hrost + brost) / (lbt * 2.0)
+    fsd = (hdist + bdist) / (2.0 * lbt)
+    return fsd, rost, lbt
+
+def flankfire_ros(ros, bros, lb):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego en los flancos.
+
+    Args:
+        ros (float): Tasa de propagación del fuego.
+        bros (float): Tasa de propagación del fuego en la corona.
+        lb (float): Relación longitud-ancho de la zona quemada.
+
+    Returns:
+        float: Tasa de propagación del fuego en los flancos.
+    &#34;&#34;&#34;
+    fros = (ros + bros) / (lb * 2.0)
+    return fros
+
+def foliar_mois_effect(isi, fmc):
+    &#34;&#34;&#34;
+    Calcula el efecto de la humedad foliar en la propagación del fuego.
+
+    Args:
+        isi (float): Índice de propagación inicial (ISI) del fuego.
+        fmc (float): Contenido de humedad foliar [%].
+
+    Returns:
+        float: Efecto de la humedad foliar en la propagación del fuego.
+    &#34;&#34;&#34;
+    fme_avg = 0.778
+    fme = 1000.0 * (1.5 - 0.00275 * fmc) ** 4.0 / (460.0 + 25.9 * fmc)
+    rsc = 60.0 * (1.0 - math.exp(-0.0497 * isi)) * fme / fme_avg
+    return rsc
+
+def foliar_moisture(lat, long, elev, jd):
+    &#34;&#34;&#34;
+    Estima la humedad foliar basada en la ubicación geográfica y el día juliano.
+
+    Args:
+        lat (float): Latitud.
+        long (float): Longitud.
+        elev (float): Elevación.
+        jd (int): Día juliano.
+
+    Returns:
+        float: Humedad foliar estimada.
+    &#34;&#34;&#34;
+    jd_min = 0
+
+    if jd_min &lt;= 0:  # dispositivo cuando no hay D0
+        if elev &lt; 0:
+            latn = 23.4 * math.exp(-0.0360 * (150 - long)) + 46.0  # Eq.1
+            jd_min = 0.5 + 151.0 * lat / latn
+        else:
+            latn = 33.7 * math.exp(-0.0351 * (150 - long)) + 43.0
+            jd_min = 0.5 + 142.1 * lat / latn + (0.0172 * elev)
+
+    nd = round(abs(jd - jd_min))
+    if 30 &lt;= nd &lt; 50:
+        fm = 32.9 + 3.17 * nd - 0.0288 * nd ** 2
+    elif nd &gt;= 50:
+        fm = 120
+    else:
+        fm = 85.0 + 0.0189 * nd ** 2
+
+    return fm
+
+def get_fueltype_number(ftype):
+    &#34;&#34;&#34;
+    Devuelve el número de tipo de combustible basado en el tipo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+
+    Returns:
+        str: Número de tipo de combustible (c = cerrado, n = abierto).
+    &#34;&#34;&#34;
+    cftype = [&#34;C1&#34;, &#34;C2&#34;, &#34;C3&#34;, &#34;C4&#34;, &#34;C5&#34;, &#34;C6&#34;, &#34;C7&#34;, &#34;M1&#34;, &#34;M2&#34;, &#34;M3&#34;, &#34;M4&#34;, &#34;D1&#34;, &#34;D2&#34;]
+    cover = &#34;c&#34; if ftype in cftype else &#34;n&#34;  # S1, S2, S3, O1a, O1b
+    return cover
+
+def ISF_deadfir(ft, a, b, c, isz, pdf, sf):
+    &#34;&#34;&#34;
+    Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.
+
+    Args:
+        ft (str): Tipo de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        isz (float): Tamaño inicial del fuego.
+        pdf (float): Porcentaje de madera muerta fina.
+        sf (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.
+    &#34;&#34;&#34;
+    slopelimit_isi = 0.01
+    rsf_max = sf * a[ft] * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_max / a[ft]) ** (1.0 / c[ft]) if rsf_max &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_max = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    mult = 0.2 if ft == &#34;M4&#34; else 1.0
+    rsf_d1 = sf * (mult * a[&#34;D1&#34;]) * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_d1 / (mult * a[ft])) ** (1.0 / c[ft]) if rsf_d1 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_d1 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    isf = pdf / 100.0 * isf_max + (100.0 - pdf) / 100.0 * isf_d1
+    return isf
+
+def ISF_mixedwood(ft, a, b, c, isz, pc, sf):
+    &#34;&#34;&#34;
+    Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.
+
+    Args:
+        ft (str): Tipo de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        isz (float): Tamaño inicial del fuego.
+        pc (float): Porcentaje de madera mixta.
+        sf (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.
+    &#34;&#34;&#34;
+    slopelimit_isi = 0.01
+    rsf_c2 = sf * a[&#34;C2&#34;] * (1.0 - math.exp(-1.0 * b[&#34;C2&#34;] * isz)) ** c[&#34;C2&#34;]
+    check = 1.0 - (rsf_c2 / a[&#34;C2&#34;]) ** (1.0 / c[&#34;C2&#34;]) if rsf_c2 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_c2 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    mult = 0.2 if ft == &#34;M2&#34; else 1.0
+    rsf_d1 = sf * (mult * a[ft]) * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_d1 / (mult * a[ft])) ** (1.0 / c[ft]) if rsf_d1 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_d1 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    isf = pc / 100.0 * isf_c2 + (100.0 - pc) / 100.0 * isf_d1
+    return isf
+
+def l2bAlexander1985(ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Alexander (1985).
+
+    Args:
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    lb = 0.5 + 0.5 * math.exp(0.05039 * ws)
+    return lb
+
+def l2bAnderson1983(typefire, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Anderson (1983).
+
+    Args:
+        typefire (str): Tipo de incendio.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if typefire == &#34;dense-forest-stand&#34;:
+        lb = 0.936 * math.exp(0.01240 * ws) + 0.461 * math.exp(-0.00748 * ws) - 0.397
+    elif typefire == &#34;open-forest-stand&#34;:
+        lb = 0.936 * math.exp(0.01859 * ws) + 0.461 * math.exp(-0.0112 * ws) - 0.397
+    elif typefire == &#34;grass-slash&#34;:
+        lb = 0.936 * math.exp(0.02479 * ws) + 0.461 * math.exp(-0.0149 * ws) - 0.397
+    elif typefire == &#34;heavy-slash&#34;:
+        lb = 0.936 * math.exp(0.03099 * ws) + 0.461 * math.exp(-0.0187 * ws) - 0.397
+    else:  # crown-fire forest stand
+        lb = 0.936 * math.exp(0.071278 * ws) + 0.461 * math.exp(-0.043 * ws) - 0.397
+    return lb
+
+def l2bFBP(ft, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por el modelo FBP.
+
+    Args:
+        ft (str): Tipo de combustible.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if ft in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        if ws &lt; 1.0:
+            lb = 1.0
+        else:
+            lb = 1.1 * ws ** 0.464
+    else:
+        lb = 1.0 + 8.729 * (1.0 - math.exp(-0.030 * ws)) ** 2.155
+    return lb
+
+def length2breadth(ftype, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según el tipo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if ftype in [&#34;O1a&#34;, &#34;O1b&#34;]:  # grass fuel
+        if ws &lt; 1.0:
+            lb = 1.0
+        else:
+            lb = 1.1 + ws ** 0.464  # Eq.80
+    else:
+        lb = 1.0 + 8.729 * (1.0 - math.exp(-0.030 * ws)) ** 2.155
+    return lb
+
+def perimeter(hdist, bdist, lb):
+    &#34;&#34;&#34;
+    Calcula el perímetro de la zona quemada.
+
+    Args:
+        hdist (float): Distancia de propagación del fuego en la corona.
+        bdist (float): Distancia de propagación del fuego en superficie de referencia.
+        lb (float): Relación longitud-ancho de la zona quemada.
+
+    Returns:
+        float: Perímetro de la zona quemada.
+    &#34;&#34;&#34;
+    pi = 3.1416
+    aux = pi * (1.0 + 1.0 / lb) * (1.0 + ((lb - 1.0) / (2.0 * (lb + 1.0))) ** 2.0)
+    p = (hdist + bdist) / 2 * aux
+    return p
+
+def rate_of_spread(ftype, wdfh, a, b, c, ps, saz, FuelConst2, bui0, q):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        ps (float): Pendiente del terreno.
+        saz (float): Ángulo de la pendiente del terreno.
+        FuelConst2 (dict): Constantes del combustible.
+        bui0 (dict): Índice de acumulación basal (BUI) inicial.
+        q (dict): Coeficientes de propagación del fuego.
+
+    Returns:
+        float: Tasa de propagación del fuego.
+    &#34;&#34;&#34;
+    ffmc = wdfh[&#39;FFMC&#39;]
+    ws = wdfh[&#39;WS&#39;]
+    waz = wdfh[&#39;WD&#39;] + 180.0
+    waz = waz - 360.0 if waz &gt;= 360.0 else waz
+    isz = 0.208 * ffmc_effect(ffmc)
+
+    if ps &gt; 0:
+        wsv, raz = slope_effect(ftype, wdfh, a, b, c, saz, ps, FuelConst2, isz, ffmc, waz)
+    else:
+        wsv = ws
+        raz = waz
+
+    fw = math.exp(0.05039 * wsv) if wsv &lt; 40.0 else 12.0 * (1.0 - math.exp(-0.0818 * (wsv - 28)))
+    isi = isz * fw
+
+    rsi = ros_base(ftype, isi, wdfh[&#39;BUI&#39;], a, b, c, FuelConst2)
+    rss = rsi * bui_effect(wdfh[&#39;BUI&#39;], bui0[ftype], q[ftype])
+    return rss, wsv, raz, isi
+
+
+def ros_base(ftype, isi, bui, a, b, c, FuelConst2):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación base del fuego (RSI) para un tipo de combustible dado.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        isi (float): Índice de Propagación Inicial (ISI).
+        bui (float): Índice de Acumulación Basal (BUI).
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        FuelConst2 (dict): Constantes del combustible.
+
+    Returns:
+        float: Tasa de propagación base del fuego (RSI).
+    &#34;&#34;&#34;
+    pdf = FuelConst2[&#39;pdf&#39;]
+    cur = FuelConst2[&#39;cur&#39;]
+    pc = FuelConst2[&#39;pc&#39;]
+
+    if ftype in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        if cur &gt;= 58.8:
+            mu1 = 0.176 + 0.02 * (cur - 58.8)
+        else:
+            mu1 = 0.005 * (math.exp(0.061 * cur) - 1.0)
+        mu1 = max(mu1, 0.001)
+        rsi = mu1 * (a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype])
+    elif ftype in [&#34;M1&#34;, &#34;M2&#34;]:
+        mu1 = pc / 100.0
+        mu2_1 = (100 - pc) / 100.0
+        mu2_2 = 2 * (100 - pc) / 100.0
+        ros_C1 = a[&#34;C2&#34;] * (1.0 - math.exp(-b[&#34;C2&#34;] * isi)) ** c[&#34;C2&#34;]
+        ros_D1 = a[&#34;D1&#34;] * (1.0 - math.exp(-b[&#34;D1&#34;] * isi)) ** c[&#34;D1&#34;]
+        rsi = mu1 * ros_C1 + mu2_1 * ros_D1 if ftype == &#34;M1&#34; else mu1 * ros_C1 + mu2_2 * ros_D1
+    elif ftype in [&#34;M3&#34;, &#34;M4&#34;]:
+        if ftype == &#34;M3&#34;:
+            a3 = 170 * math.exp(-35.0 / pdf)
+            b3 = 0.082 * math.exp(-36.0 / pdf)
+            c3 = 1.698 - 0.00303 * pdf
+            rsi = a3 * (1.0 - math.exp(-b3 * isi)) ** c3
+        else:
+            a4 = 140 * math.exp(-35.5 / pdf)
+            b4 = 0.0404
+            c4 = 3.03 * math.exp(-0.00714 * pdf)
+            rsi = a4 * (1.0 - math.exp(-b4 * isi)) ** c4
+    elif ftype == &#34;D2&#34;:
+        rsi = a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype] if bui &gt;= 80 else 0.0
+    else:
+        rsi = a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype]
+
+    return rsi
+
+def slope_effect(ft, wdfh, a, b, c, saz, ps, FuelConst2, isi, ff, waz):
+    &#34;&#34;&#34;
+    Calcula el efecto de la pendiente en la tasa de propagación del fuego.
+
+    Args:
+        ft (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        saz (float): Ángulo de la pendiente del terreno.
+        ps (float): Pendiente del terreno.
+        FuelConst2 (dict): Constantes del combustible.
+        isi (float): Índice de Propagación Inicial (ISI).
+        ff (float): Factor de propagación del fuego.
+        waz (float): Ángulo del viento.
+
+    Returns:
+        tuple: Tasa de propagación del fuego ajustada a la pendiente y ángulo del viento, y el ángulo de propagación ajustado.
+    &#34;&#34;&#34;
+    pi = 3.1415
+    slopelimit_isi = 0.01
+    pc = FuelConst2[&#34;pc&#34;]
+    pdf = FuelConst2[&#34;pdf&#34;]
+    ps = min(ps, 70.0)
+    sf = min(math.exp(3.533 * (ps / 100.0) ** 1.2), 10.0)
+    ws = wdfh[&#39;WS&#39;]  # Acceso a la columna WS
+
+    if saz &gt;= 360.0:
+        saz -= 360.0
+
+    if ft in [&#34;M1&#34;, &#34;M2&#34;]:
+        isf = ISF_mixedwood(ft, a, b, c, isi, pc, sf)
+    elif ft in [&#34;M3&#34;, &#34;M4&#34;]:
+        isf = ISF_deadfir(ft, a, b, c, isi, pdf, sf)
+    else:
+        rsz = ros_base(ft, isi, wdfh, a, b, c, FuelConst2)
+        rsf = rsz * sf
+        check = 1.0 - (rsf / a[ft]) ** (1.0 / c[ft]) if rsf &gt; 0.0 else 1.0
+        check = max(check, slopelimit_isi)
+        isf = -1.0 / b[ft] * math.log(check)
+
+    isf = isi if isf == 0.0 else isf
+
+    wse1 = math.log(isf / (0.208 * ff)) / 0.05039
+
+    if wse1 &lt;= 40.0:
+        wse = wse1
+    else:
+        isf = min(isf, 0.999 * 2.496 * ff)
+        wse2 = 28.0 - math.log(1.0 - isf / (2.496 * ff)) / 0.0818
+        wse = wse2
+
+    wrad = waz / 180.0 * pi
+    wsx = ws * math.sin(wrad)
+    wsy = ws * math.cos(wrad)
+    srad = saz / 180.0 * pi
+    wsex = wse * math.sin(srad)
+    wsey = wse * math.cos(srad)
+    wsvx = wsx + wsex
+    wsvy = wsy + wsey
+    wsv = math.sqrt(wsvx ** 2 + wsvy ** 2)
+    raz = math.acos(wsvy / wsv) / pi * 180.0
+    raz = 360 - raz if wsvx &lt; 0 else raz
+
+    return wsv, raz
+def spread_distance(ros, time, a):
+    &#34;&#34;&#34;
+    Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo.
+
+    Args:
+        ros (float): Tasa de propagación del fuego inicial.
+        time (float): Tiempo transcurrido.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+
+    Returns:
+        tuple: Distancia de propagación del fuego y la tasa de propagación actualizada.
+    &#34;&#34;&#34;
+    rost = ros * (1.0 - math.exp(-a * time))
+    sd = ros * (time + (math.exp(-a * time) / a) - 1.0 / a)
+    return sd, rost
+
+
+def surf_fuel_consump(ft, wdfh, FuelConst2):
+    &#34;&#34;&#34;
+    Estima el consumo de combustible superficial basado en el tipo de combustible y condiciones meteorológicas.
+
+    Args:
+        ft (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        FuelConst2 (dict): Constantes del combustible.
+
+    Returns:
+        float: Consumo de combustible superficial estimado.
+    &#34;&#34;&#34;
+    bui = wdfh[&#39;BUI&#39;]  # Acceso a la columna BUI
+    ffmc = wdfh[&#39;FFMC&#39;]  # Acceso a la columna FFMC
+
+    gfl = FuelConst2[&#34;gfl&#34;]
+    pc = FuelConst2[&#34;pc&#34;]
+
+    if ft == &#34;C1&#34;:
+        sfc = 0.75 + 0.75 * math.sqrt(1 - math.exp(-0.23 * (ffmc - 84))) if ffmc &gt; 84 else 0.75 - 0.75 * math.sqrt(1 - math.exp(0.23 * (ffmc - 84)))
+        sfc = max(sfc, 0)
+    elif ft in [&#34;C2&#34;, &#34;M3&#34;, &#34;M4&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0115 * bui))
+    elif ft in [&#34;C3&#34;, &#34;C4&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0164 * bui)) ** 2.24
+    elif ft in [&#34;C5&#34;, &#34;C6&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0149 * bui)) ** 2.48
+    elif ft == &#34;C7&#34;:
+        ffc = 2.0 * (1.0 - math.exp(-0.104 * (ffmc - 70.0)))
+        wfc = 1.5 * (1.0 - math.exp(-0.0201 * bui))
+        sfc = max(ffc, 0) + wfc
+    elif ft in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        sfc = gfl
+    elif ft in [&#34;M1&#34;, &#34;M2&#34;]:
+        sfc_c2 = 5.0 * (1.0 - math.exp(-0.0115 * bui))
+        sfc_d1 = 1.5 * (1.0 - math.exp(-0.0183 * bui))
+        sfc = pc / 100.0 * sfc_c2 + (100.0 - pc) / 100.0 * sfc_d1
+    elif ft == &#34;S1&#34;:
+        ffc = 4.0 * (1.0 - math.exp(-0.025 * bui))
+        wfc = 4.0 * (1.0 - math.exp(-0.034 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;S2&#34;:
+        ffc = 10.0 * (1.0 - math.exp(-0.013 * bui))
+        wfc = 6.0 * (1.0 - math.exp(-0.060 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;S3&#34;:
+        ffc = 12.0 * (1.0 - math.exp(-0.0166 * bui))
+        wfc = 20.0 * (1.0 - math.exp(-0.0210 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;D1&#34;:
+        sfc = 1.5 * (1.0 - math.exp(-0.0183 * bui))
+    elif ft == &#34;D2&#34;:
+        sfc = 1.5 * (1.0 - math.exp(-0.0183 * bui)) if bui &gt;= 80 else 0
+    else:
+        sfc = 0  # Default case for unrecognized fuel type
+
+    return sfc
+
+# 18 Fuel Types
+FBPfuelTypes = [&#39;C1&#39;, &#39;C2&#39;, &#39;C3&#39;, &#39;C4&#39;, &#39;C5&#39;, &#39;C6&#39;, &#39;C7&#39;, &#39;M1&#39;, &#39;M2&#39;, &#39;M3&#39;,
+                &#39;M4&#39;, &#39;D1&#39;, &#39;D2&#39;, &#39;S1&#39;, &#39;S2&#39;, &#39;S3&#39;, &#39;O1a&#39;, &#39;O1b&#39;]
+
+# Crown fuel load [Kg/m2]
+CFLvalues = [0.75, 0.8, 1.15, 1.2, 1.2, 1.8, 0.5, 0.8,
+             0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+# Canopy base Height [m]
+CBHvalues = [2.0, 3.0, 8.0, 4.0, 18.0, 7.0, 10.0, 6.0, 6.0, 6.0,
+             6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+# Parameters for Basic rate of spread (ISI-equation)
+a_values = [90, 110, 110, 110, 30, 30, 45, 110, 110,
+            120, 100, 30, 6, 75, 40, 55, 190, 250]
+
+b_values = [0.0649, 0.0282, 0.0444, 0.0293, 0.0697, 0.08, 0.0305, 0.0282,
+            0.0282, 0.0572, 0.0404, 0.0232, 0.0232, 0.0297, 0.0438, 0.0829, 0.031, 0.031]
+
+c_values = [4.5, 1.5, 3.0, 1.5, 4.0, 3.0, 2.0, 1.5, 1.5, 1.4, 1.48,
+            1.6, 1.6, 1.3, 1.7, 3.2, 1.4, 1.7]
+
+# Parameters for Buildup Effect (BE)
+qvalues = [0.9, 0.7, 0.75, 0.8, 0.8, 0.8, 0.85, 0.8, 0.8, 0.8, 0.8,
+           0.75, 0.9, 0.75, 0.75, 0.75, 1.0, 1.0]
+
+bui0values = [72, 64, 62, 66, 56, 62, 106, 50, 50, 50, 50,
+              32, 32, 38, 63, 31, 1, 1]
+
+# Building dictionaries for parameters
+CFL = dict(zip(FBPfuelTypes, CFLvalues))
+CBH = dict(zip(FBPfuelTypes, CBHvalues))
+q = dict(zip(FBPfuelTypes, qvalues))
+bui0 = dict(zip(FBPfuelTypes, bui0values))
+a = dict(zip(FBPfuelTypes, a_values))
+b = dict(zip(FBPfuelTypes, b_values))
+c = dict(zip(FBPfuelTypes, c_values))
+
+FuelConst2 = {
+    &#34;pc&#34;: 50,  # Percent Conifer for M1/M2 [percent]
+    &#34;pdf&#34;: 35, # Percent Dead Fir for M3/M4 [percent]
+    &#34;gfl&#34;: 0.35, # Grass Fuel Load [kg/m^2]
+    &#34;cur&#34;: 60  # Percent Cured for O1a/O1b [percent]
+}</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="firebehavior.ISF_deadfir"><code class="name flex">
+<span>def <span class="ident">ISF_deadfir</span></span>(<span>ft, a, b, c, isz, pdf, sf)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ft</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>isz</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tamaño inicial del fuego.</dd>
+<dt><strong><code>pdf</code></strong> :&ensp;<code>float</code></dt>
+<dd>Porcentaje de madera muerta fina.</dd>
+<dt><strong><code>sf</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ISF_deadfir(ft, a, b, c, isz, pdf, sf):
+    &#34;&#34;&#34;
+    Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.
+
+    Args:
+        ft (str): Tipo de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        isz (float): Tamaño inicial del fuego.
+        pdf (float): Porcentaje de madera muerta fina.
+        sf (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Índice de Severidad del Fuego (ISF) para fuegos de madera muerta.
+    &#34;&#34;&#34;
+    slopelimit_isi = 0.01
+    rsf_max = sf * a[ft] * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_max / a[ft]) ** (1.0 / c[ft]) if rsf_max &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_max = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    mult = 0.2 if ft == &#34;M4&#34; else 1.0
+    rsf_d1 = sf * (mult * a[&#34;D1&#34;]) * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_d1 / (mult * a[ft])) ** (1.0 / c[ft]) if rsf_d1 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_d1 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    isf = pdf / 100.0 * isf_max + (100.0 - pdf) / 100.0 * isf_d1
+    return isf</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.ISF_mixedwood"><code class="name flex">
+<span>def <span class="ident">ISF_mixedwood</span></span>(<span>ft, a, b, c, isz, pc, sf)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ft</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>isz</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tamaño inicial del fuego.</dd>
+<dt><strong><code>pc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Porcentaje de madera mixta.</dd>
+<dt><strong><code>sf</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ISF_mixedwood(ft, a, b, c, isz, pc, sf):
+    &#34;&#34;&#34;
+    Calcula el Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.
+
+    Args:
+        ft (str): Tipo de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        isz (float): Tamaño inicial del fuego.
+        pc (float): Porcentaje de madera mixta.
+        sf (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Índice de Severidad del Fuego (ISF) para fuegos de madera mixta.
+    &#34;&#34;&#34;
+    slopelimit_isi = 0.01
+    rsf_c2 = sf * a[&#34;C2&#34;] * (1.0 - math.exp(-1.0 * b[&#34;C2&#34;] * isz)) ** c[&#34;C2&#34;]
+    check = 1.0 - (rsf_c2 / a[&#34;C2&#34;]) ** (1.0 / c[&#34;C2&#34;]) if rsf_c2 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_c2 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    mult = 0.2 if ft == &#34;M2&#34; else 1.0
+    rsf_d1 = sf * (mult * a[ft]) * (1.0 - math.exp(-1.0 * b[ft] * isz)) ** c[ft]
+    check = 1.0 - (rsf_d1 / (mult * a[ft])) ** (1.0 / c[ft]) if rsf_d1 &gt; 0.0 else 1.0
+    check = max(check, slopelimit_isi)
+    isf_d1 = (1.0 / (-1.0 * b[ft])) * math.log(check)
+
+    isf = pc / 100.0 * isf_c2 + (100.0 - pc) / 100.0 * isf_d1
+    return isf</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.acceleration"><code class="name flex">
+<span>def <span class="ident">acceleration</span></span>(<span>ftype, cfb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la aceleración de la propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>cfb</code></strong> :&ensp;<code>float</code></dt>
+<dd>Fracción de la corona quemada.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Aceleración de la propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def acceleration(ftype, cfb): 
+    &#34;&#34;&#34;
+    Calcula la aceleración de la propagación del fuego.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        cfb (float): Fracción de la corona quemada.
+
+    Returns:
+        float: Aceleración de la propagación del fuego.
+    &#34;&#34;&#34;
+    open_list = [&#34;O1a&#34;, &#34;O1b&#34;, &#34;C1&#34;, &#34;S1&#34;, &#34;S2&#34;, &#34;S3&#34;]  # combustible abierto
+
+    if ftype not in open_list:
+        # para combustibles cerrados
+        accn = 0.115 - 18.8 * cfb**2.5 * math.exp(-8.0 * cfb)  # Eq.72
+    else:
+        # para combustibles abiertos
+        accn = 0.115
+
+    return accn</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.area"><code class="name flex">
+<span>def <span class="ident">area</span></span>(<span>dt, df)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el área de un elipse.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>dt</code></strong> :&ensp;<code>float</code></dt>
+<dd>Diámetro mayor.</dd>
+<dt><strong><code>df</code></strong> :&ensp;<code>float</code></dt>
+<dd>Diámetro menor.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Área de la elipse (en hectáreas).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def area(dt, df):
+    &#34;&#34;&#34;
+    Calcula el área de un elipse.
+
+    Args:
+        dt (float): Diámetro mayor.
+        df (float): Diámetro menor.
+
+    Returns:
+        float: Área de la elipse (en hectáreas).
+    &#34;&#34;&#34;
+    a = dt / 2.0
+    b = df
+    areavar = a * b * math.pi / 10000.0
+    return areavar</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.back_fire_behaviour"><code class="name flex">
+<span>def <span class="ident">back_fire_behaviour</span></span>(<span>ftype, sfc, brss, csi, rso, fmc, bisi, CFL)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el comportamiento del fuego en retroceso.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>sfc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad de propagación del fuego en superficie.</dd>
+<dt><strong><code>brss</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en superficie.</dd>
+<dt><strong><code>csi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de intensidad del fuego crítico.</dd>
+<dt><strong><code>rso</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en superficie de referencia.</dd>
+<dt><strong><code>fmc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Contenido de humedad del combustible.</dd>
+<dt><strong><code>bisi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de propagación del fuego en retroceso.</dd>
+<dt><strong><code>CFL</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>Una tupla que contiene la tasa de propagación final del fuego en retroceso,
+la intensidad final del fuego en retroceso,
+el consumo final de combustible en retroceso,
+y el tipo de fuego en retroceso (superficial o de copa).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def back_fire_behaviour(ftype, sfc, brss, csi, rso, fmc, bisi, CFL):
+    &#34;&#34;&#34;
+    Calcula el comportamiento del fuego en retroceso.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        sfc (float): Velocidad de propagación del fuego en superficie.
+        brss (float): Tasa de propagación del fuego en superficie.
+        csi (float): Índice de intensidad del fuego crítico.
+        rso (float): Tasa de propagación del fuego en superficie de referencia.
+        fmc (float): Contenido de humedad del combustible.
+        bisi (float): Índice de propagación del fuego en retroceso.
+        CFL (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        tuple: Una tupla que contiene la tasa de propagación final del fuego en retroceso,
+               la intensidad final del fuego en retroceso,
+               el consumo final de combustible en retroceso,
+               y el tipo de fuego en retroceso (superficial o de copa).
+    &#34;&#34;&#34;
+    bsfi = fire_intensity(sfc, brss)
+    back_firetype = &#34;superficial&#34;
+
+    if bsfi &gt; csi:
+        back_firetype = &#34;de copa&#34;
+
+    if back_firetype == &#34;de copa&#34;:
+        bcfb = max(1 - math.exp(-0.23 * (brss - rso)), 0.0)  # fracción quemada de copa
+        bcfc = CFL[ftype] * bcfb
+        bros = final_ros(ftype, fmc, bisi, bcfb, brss)
+
+        bfc = bcfc + sfc
+        bfi = fire_intensity(bfc, bros)
+        return bros, bfi, bfc, back_firetype
+    else:
+        bros = brss
+        bfi = bsfi
+        bfc = sfc
+
+    return bros, bfi, bfc, back_firetype</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.backfire_isi"><code class="name flex">
+<span>def <span class="ident">backfire_isi</span></span>(<span>wsv, ff)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el Índice de Propagación Inicial (ISI) para fuegos de retroceso.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>wsv</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido [km/h].</dd>
+<dt><strong><code>ff</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice FFMC (Código de Humedad de Combustible Fino).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>ISI calculado.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def backfire_isi(wsv, ff):
+    &#34;&#34;&#34;
+    Calcula el Índice de Propagación Inicial (ISI) para fuegos de retroceso.
+
+    Args:
+        wsv (float): Velocidad del viento sostenido [km/h].
+        ff (float): Índice FFMC (Código de Humedad de Combustible Fino).
+
+    Returns:
+        float: ISI calculado.
+    &#34;&#34;&#34;
+    bfw = math.exp(-0.05039 * wsv)  # Eq.75
+    bisi = 0.208 * ff * bfw  # Eq.76
+    return bisi</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.backfire_ros"><code class="name flex">
+<span>def <span class="ident">backfire_ros</span></span>(<span>ftype, bisi, wdfh, a, b, c, FuelConst2, bui0, q)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la tasa de propagación del fuego de retroceso.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>bisi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Propagación Inicial del Fuego de Retroceso (ISI).</dd>
+<dt><strong><code>wdfh</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene los datos meteorológicos y de combustible.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>FuelConst2</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene constantes de combustible.</dd>
+<dt><strong><code>bui0</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene los índices de acumulación inicial del combustible.</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Tasa de propagación del fuego de retroceso.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def backfire_ros(ftype, bisi, wdfh, a, b, c, FuelConst2, bui0, q):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego de retroceso.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        bisi (float): Índice de Propagación Inicial del Fuego de Retroceso (ISI).
+        wdfh (dict): Diccionario que contiene los datos meteorológicos y de combustible.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        b (float): Parámetro de la ecuación de propagación del fuego.
+        c (float): Parámetro de la ecuación de propagación del fuego.
+        FuelConst2 (dict): Diccionario que contiene constantes de combustible.
+        bui0 (dict): Diccionario que contiene los índices de acumulación inicial del combustible.
+        q (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        float: Tasa de propagación del fuego de retroceso.
+    &#34;&#34;&#34;
+    bros = ros_base(ftype, bisi, wdfh[&#39;BUI&#39;], a, b, c, FuelConst2)
+    bros *= bui_effect(wdfh[&#39;BUI&#39;], bui0[ftype], q[ftype])
+    return bros</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.bui_effect"><code class="name flex">
+<span>def <span class="ident">bui_effect</span></span>(<span>bui, bui0, q)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el efecto del Índice de Acumulación (BUI) en la propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>bui</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Acumulación de Combustible (BUI).</dd>
+<dt><strong><code>bui0</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Acumulación de Combustible inicial.</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>float</code></dt>
+<dd>Factor de corrección de la velocidad de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Efecto del BUI en la propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def bui_effect(bui, bui0, q):
+    &#34;&#34;&#34;
+    Calcula el efecto del Índice de Acumulación (BUI) en la propagación del fuego.
+
+    Args:
+        bui (float): Índice de Acumulación de Combustible (BUI).
+        bui0 (float): Índice de Acumulación de Combustible inicial.
+        q (float): Factor de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        float: Efecto del BUI en la propagación del fuego.
+    &#34;&#34;&#34;
+    bui_avg = 50.0
+
+    if bui == 0:
+        bui = 1.0
+    be = np.exp(bui_avg * np.log(q) * ((1.0 / bui) - (1.0 / bui0)))
+    return be</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.crit_surf_intensity"><code class="name flex">
+<span>def <span class="ident">crit_surf_intensity</span></span>(<span>cbh, fmc)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la intensidad crítica de la superficie para la transición de fuego superficial a fuego de corona.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cbh</code></strong> :&ensp;<code>float</code></dt>
+<dd>Altura base de la copa [m].</dd>
+<dt><strong><code>fmc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Contenido de humedad foliar [%].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Intensidad crítica de la superficie.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def crit_surf_intensity(cbh, fmc):
+    &#34;&#34;&#34;
+    Calcula la intensidad crítica de la superficie para la transición de fuego superficial a fuego de corona.
+
+    Args:
+        cbh (float): Altura base de la copa [m].
+        fmc (float): Contenido de humedad foliar [%].
+
+    Returns:
+        float: Intensidad crítica de la superficie.
+    &#34;&#34;&#34;
+    csi = 0.001 * cbh**1.5 * (460.0 + 25.9 * fmc)**1.5
+    return csi</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.ffmc_effect"><code class="name flex">
+<span>def <span class="ident">ffmc_effect</span></span>(<span>ffmc)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el efecto del Código de Humedad de Combustible Fino (FFMC) en la propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ffmc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice FFMC (Código de Humedad de Combustible Fino).</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Efecto del FFMC en la propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ffmc_effect(ffmc):
+    &#34;&#34;&#34;
+    Calcula el efecto del Código de Humedad de Combustible Fino (FFMC) en la propagación del fuego.
+
+    Args:
+        ffmc (float): Índice FFMC (Código de Humedad de Combustible Fino).
+
+    Returns:
+        float: Efecto del FFMC en la propagación del fuego.
+    &#34;&#34;&#34;
+    mc = 147.2 * (101.0 - ffmc) / (59.5 + ffmc)  # Eq.46
+    ff = 91.9 * math.exp(-0.1386 * mc) * (1 + mc**5.31 / 4.93e7)  # Eq.45
+    return ff</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.final_ros"><code class="name flex">
+<span>def <span class="ident">final_ros</span></span>(<span>ftype, fmc, isi, cfb, rss)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la tasa final de propagación del fuego, teniendo en cuenta si es un fuego de corona.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>fmc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Contenido de humedad foliar [%].</dd>
+<dt><strong><code>isi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Propagación Inicial (ISI) del fuego.</dd>
+<dt><strong><code>cfb</code></strong> :&ensp;<code>float</code></dt>
+<dd>Fracción de la corona quemada.</dd>
+<dt><strong><code>rss</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en superficie.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Tasa final de propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def final_ros(ftype, fmc, isi, cfb, rss):
+    &#34;&#34;&#34;
+    Calcula la tasa final de propagación del fuego, teniendo en cuenta si es un fuego de corona.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        fmc (float): Contenido de humedad foliar [%].
+        isi (float): Índice de Propagación Inicial (ISI) del fuego.
+        cfb (float): Fracción de la corona quemada.
+        rss (float): Tasa de propagación del fuego en superficie.
+
+    Returns:
+        float: Tasa final de propagación del fuego.
+    &#34;&#34;&#34;
+    if ftype == &#34;C6&#34;:
+        rsc = foliar_mois_effect(isi, fmc)
+        ros = rss + cfb * (rsc - rss)
+    else:
+        ros = rss
+    return ros</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.fire_intensity"><code class="name flex">
+<span>def <span class="ident">fire_intensity</span></span>(<span>fc, ros)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la intensidad del fuego basada en el consumo de combustible y la tasa de propagación.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>fc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Consumo de combustible predicho [kg/m2].</dd>
+<dt><strong><code>ros</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación predicha [m/min].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Intensidad del fuego [kW/m].</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fire_intensity(fc, ros):
+    &#34;&#34;&#34;
+    Calcula la intensidad del fuego basada en el consumo de combustible y la tasa de propagación.
+
+    Args:
+        fc (float): Consumo de combustible predicho [kg/m2].
+        ros (float): Tasa de propagación predicha [m/min].
+
+    Returns:
+        float: Intensidad del fuego [kW/m].
+    &#34;&#34;&#34;
+    fi = 300.0 * fc * ros  # Eq.69 [kW/m]
+    return fi</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.flank_fire_behaviour"><code class="name flex">
+<span>def <span class="ident">flank_fire_behaviour</span></span>(<span>ftype, sfc, frss, csi, rso, CFL)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Determina el comportamiento del fuego en los flancos, incluyendo la intensidad y el consumo de combustible.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>sfc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad de propagación del fuego en superficie.</dd>
+<dt><strong><code>frss</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en los flancos.</dd>
+<dt><strong><code>csi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de intensidad del fuego crítico.</dd>
+<dt><strong><code>rso</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en superficie de referencia.</dd>
+<dt><strong><code>CFL</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>Una tupla que contiene la intensidad final del fuego en los flancos,
+el consumo final de combustible en los flancos,
+y el tipo de fuego en los flancos (superficial o de copa).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flank_fire_behaviour(ftype, sfc, frss, csi, rso, CFL):
+    &#34;&#34;&#34;
+    Determina el comportamiento del fuego en los flancos, incluyendo la intensidad y el consumo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        sfc (float): Velocidad de propagación del fuego en superficie.
+        frss (float): Tasa de propagación del fuego en los flancos.
+        csi (float): Índice de intensidad del fuego crítico.
+        rso (float): Tasa de propagación del fuego en superficie de referencia.
+        CFL (dict): Diccionario que contiene los factores de corrección de la velocidad de propagación del fuego.
+
+    Returns:
+        tuple: Una tupla que contiene la intensidad final del fuego en los flancos,
+               el consumo final de combustible en los flancos,
+               y el tipo de fuego en los flancos (superficial o de copa).
+    &#34;&#34;&#34;
+    flank_firetype = &#34;surface&#34;
+    sfi = fire_intensity(sfc, frss)
+    if sfi &gt; csi:
+        flank_firetype = &#34;crown&#34;
+
+    if flank_firetype == &#34;crown&#34;:
+        fcfb = max(1 - math.exp(-0.23 * (frss - rso)), 0.0)  # crown fraction burned
+        fcfc = CFL[ftype] * fcfb
+
+        ffc = fcfc + sfc
+        ffi = fire_intensity(ffc, frss)
+    else:
+        ffi = sfi
+        ffc = sfc
+
+    return ffi, ffc, flank_firetype</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.flank_spread_distance"><code class="name flex">
+<span>def <span class="ident">flank_spread_distance</span></span>(<span>hrost, brost, hdist, bdist, lb, a, time)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo en los flancos.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>hrost</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en la corona.</dd>
+<dt><strong><code>brost</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en superficie de referencia.</dd>
+<dt><strong><code>hdist</code></strong> :&ensp;<code>float</code></dt>
+<dd>Distancia de propagación del fuego en la corona.</dd>
+<dt><strong><code>bdist</code></strong> :&ensp;<code>float</code></dt>
+<dd>Distancia de propagación del fuego en superficie de referencia.</dd>
+<dt><strong><code>lb</code></strong> :&ensp;<code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>time</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tiempo de propagación.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>Una tupla que contiene la distancia de propagación del fuego en los flancos,
+la tasa de propagación del fuego en los flancos,
+y la relación longitud-ancho ajustada por el tiempo.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flank_spread_distance(hrost, brost, hdist, bdist, lb, a, time):
+    &#34;&#34;&#34;
+    Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo en los flancos.
+
+    Args:
+        hrost (float): Tasa de propagación del fuego en la corona.
+        brost (float): Tasa de propagación del fuego en superficie de referencia.
+        hdist (float): Distancia de propagación del fuego en la corona.
+        bdist (float): Distancia de propagación del fuego en superficie de referencia.
+        lb (float): Relación longitud-ancho de la zona quemada.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+        time (float): Tiempo de propagación.
+
+    Returns:
+        tuple: Una tupla que contiene la distancia de propagación del fuego en los flancos,
+               la tasa de propagación del fuego en los flancos,
+               y la relación longitud-ancho ajustada por el tiempo.
+    &#34;&#34;&#34;
+    lbt = (lb - 1.0) * (1.0 - math.exp(-a * time)) + 1.0
+    rost = (hrost + brost) / (lbt * 2.0)
+    fsd = (hdist + bdist) / (2.0 * lbt)
+    return fsd, rost, lbt</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.flankfire_ros"><code class="name flex">
+<span>def <span class="ident">flankfire_ros</span></span>(<span>ros, bros, lb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la tasa de propagación del fuego en los flancos.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ros</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego.</dd>
+<dt><strong><code>bros</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego en la corona.</dd>
+<dt><strong><code>lb</code></strong> :&ensp;<code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Tasa de propagación del fuego en los flancos.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def flankfire_ros(ros, bros, lb):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego en los flancos.
+
+    Args:
+        ros (float): Tasa de propagación del fuego.
+        bros (float): Tasa de propagación del fuego en la corona.
+        lb (float): Relación longitud-ancho de la zona quemada.
+
+    Returns:
+        float: Tasa de propagación del fuego en los flancos.
+    &#34;&#34;&#34;
+    fros = (ros + bros) / (lb * 2.0)
+    return fros</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.foliar_mois_effect"><code class="name flex">
+<span>def <span class="ident">foliar_mois_effect</span></span>(<span>isi, fmc)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el efecto de la humedad foliar en la propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>isi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de propagación inicial (ISI) del fuego.</dd>
+<dt><strong><code>fmc</code></strong> :&ensp;<code>float</code></dt>
+<dd>Contenido de humedad foliar [%].</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Efecto de la humedad foliar en la propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def foliar_mois_effect(isi, fmc):
+    &#34;&#34;&#34;
+    Calcula el efecto de la humedad foliar en la propagación del fuego.
+
+    Args:
+        isi (float): Índice de propagación inicial (ISI) del fuego.
+        fmc (float): Contenido de humedad foliar [%].
+
+    Returns:
+        float: Efecto de la humedad foliar en la propagación del fuego.
+    &#34;&#34;&#34;
+    fme_avg = 0.778
+    fme = 1000.0 * (1.5 - 0.00275 * fmc) ** 4.0 / (460.0 + 25.9 * fmc)
+    rsc = 60.0 * (1.0 - math.exp(-0.0497 * isi)) * fme / fme_avg
+    return rsc</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.foliar_moisture"><code class="name flex">
+<span>def <span class="ident">foliar_moisture</span></span>(<span>lat, long, elev, jd)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Estima la humedad foliar basada en la ubicación geográfica y el día juliano.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>lat</code></strong> :&ensp;<code>float</code></dt>
+<dd>Latitud.</dd>
+<dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
+<dd>Longitud.</dd>
+<dt><strong><code>elev</code></strong> :&ensp;<code>float</code></dt>
+<dd>Elevación.</dd>
+<dt><strong><code>jd</code></strong> :&ensp;<code>int</code></dt>
+<dd>Día juliano.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Humedad foliar estimada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def foliar_moisture(lat, long, elev, jd):
+    &#34;&#34;&#34;
+    Estima la humedad foliar basada en la ubicación geográfica y el día juliano.
+
+    Args:
+        lat (float): Latitud.
+        long (float): Longitud.
+        elev (float): Elevación.
+        jd (int): Día juliano.
+
+    Returns:
+        float: Humedad foliar estimada.
+    &#34;&#34;&#34;
+    jd_min = 0
+
+    if jd_min &lt;= 0:  # dispositivo cuando no hay D0
+        if elev &lt; 0:
+            latn = 23.4 * math.exp(-0.0360 * (150 - long)) + 46.0  # Eq.1
+            jd_min = 0.5 + 151.0 * lat / latn
+        else:
+            latn = 33.7 * math.exp(-0.0351 * (150 - long)) + 43.0
+            jd_min = 0.5 + 142.1 * lat / latn + (0.0172 * elev)
+
+    nd = round(abs(jd - jd_min))
+    if 30 &lt;= nd &lt; 50:
+        fm = 32.9 + 3.17 * nd - 0.0288 * nd ** 2
+    elif nd &gt;= 50:
+        fm = 120
+    else:
+        fm = 85.0 + 0.0189 * nd ** 2
+
+    return fm</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.get_fueltype_number"><code class="name flex">
+<span>def <span class="ident">get_fueltype_number</span></span>(<span>ftype)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Devuelve el número de tipo de combustible basado en el tipo de combustible.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>str</code></dt>
+<dd>Número de tipo de combustible (c = cerrado, n = abierto).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_fueltype_number(ftype):
+    &#34;&#34;&#34;
+    Devuelve el número de tipo de combustible basado en el tipo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+
+    Returns:
+        str: Número de tipo de combustible (c = cerrado, n = abierto).
+    &#34;&#34;&#34;
+    cftype = [&#34;C1&#34;, &#34;C2&#34;, &#34;C3&#34;, &#34;C4&#34;, &#34;C5&#34;, &#34;C6&#34;, &#34;C7&#34;, &#34;M1&#34;, &#34;M2&#34;, &#34;M3&#34;, &#34;M4&#34;, &#34;D1&#34;, &#34;D2&#34;]
+    cover = &#34;c&#34; if ftype in cftype else &#34;n&#34;  # S1, S2, S3, O1a, O1b
+    return cover</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.l2bAlexander1985"><code class="name flex">
+<span>def <span class="ident">l2bAlexander1985</span></span>(<span>ws)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Alexander (1985).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ws</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bAlexander1985(ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Alexander (1985).
+
+    Args:
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    lb = 0.5 + 0.5 * math.exp(0.05039 * ws)
+    return lb</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.l2bAnderson1983"><code class="name flex">
+<span>def <span class="ident">l2bAnderson1983</span></span>(<span>typefire, ws)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Anderson (1983).</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>typefire</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de incendio.</dd>
+<dt><strong><code>ws</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bAnderson1983(typefire, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por Anderson (1983).
+
+    Args:
+        typefire (str): Tipo de incendio.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if typefire == &#34;dense-forest-stand&#34;:
+        lb = 0.936 * math.exp(0.01240 * ws) + 0.461 * math.exp(-0.00748 * ws) - 0.397
+    elif typefire == &#34;open-forest-stand&#34;:
+        lb = 0.936 * math.exp(0.01859 * ws) + 0.461 * math.exp(-0.0112 * ws) - 0.397
+    elif typefire == &#34;grass-slash&#34;:
+        lb = 0.936 * math.exp(0.02479 * ws) + 0.461 * math.exp(-0.0149 * ws) - 0.397
+    elif typefire == &#34;heavy-slash&#34;:
+        lb = 0.936 * math.exp(0.03099 * ws) + 0.461 * math.exp(-0.0187 * ws) - 0.397
+    else:  # crown-fire forest stand
+        lb = 0.936 * math.exp(0.071278 * ws) + 0.461 * math.exp(-0.043 * ws) - 0.397
+    return lb</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.l2bFBP"><code class="name flex">
+<span>def <span class="ident">l2bFBP</span></span>(<span>ft, ws)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por el modelo FBP.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ft</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>ws</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bFBP(ft, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según la ecuación propuesta por el modelo FBP.
+
+    Args:
+        ft (str): Tipo de combustible.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if ft in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        if ws &lt; 1.0:
+            lb = 1.0
+        else:
+            lb = 1.1 * ws ** 0.464
+    else:
+        lb = 1.0 + 8.729 * (1.0 - math.exp(-0.030 * ws)) ** 2.155
+    return lb</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.length2breadth"><code class="name flex">
+<span>def <span class="ident">length2breadth</span></span>(<span>ftype, ws)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la relación longitud-ancho de la zona quemada según el tipo de combustible.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>ws</code></strong> :&ensp;<code>float</code></dt>
+<dd>Velocidad del viento sostenido.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def length2breadth(ftype, ws):
+    &#34;&#34;&#34;
+    Calcula la relación longitud-ancho de la zona quemada según el tipo de combustible.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        ws (float): Velocidad del viento sostenido.
+
+    Returns:
+        float: Relación longitud-ancho de la zona quemada.
+    &#34;&#34;&#34;
+    if ftype in [&#34;O1a&#34;, &#34;O1b&#34;]:  # grass fuel
+        if ws &lt; 1.0:
+            lb = 1.0
+        else:
+            lb = 1.1 + ws ** 0.464  # Eq.80
+    else:
+        lb = 1.0 + 8.729 * (1.0 - math.exp(-0.030 * ws)) ** 2.155
+    return lb</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.perimeter"><code class="name flex">
+<span>def <span class="ident">perimeter</span></span>(<span>hdist, bdist, lb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el perímetro de la zona quemada.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>hdist</code></strong> :&ensp;<code>float</code></dt>
+<dd>Distancia de propagación del fuego en la corona.</dd>
+<dt><strong><code>bdist</code></strong> :&ensp;<code>float</code></dt>
+<dd>Distancia de propagación del fuego en superficie de referencia.</dd>
+<dt><strong><code>lb</code></strong> :&ensp;<code>float</code></dt>
+<dd>Relación longitud-ancho de la zona quemada.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Perímetro de la zona quemada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def perimeter(hdist, bdist, lb):
+    &#34;&#34;&#34;
+    Calcula el perímetro de la zona quemada.
+
+    Args:
+        hdist (float): Distancia de propagación del fuego en la corona.
+        bdist (float): Distancia de propagación del fuego en superficie de referencia.
+        lb (float): Relación longitud-ancho de la zona quemada.
+
+    Returns:
+        float: Perímetro de la zona quemada.
+    &#34;&#34;&#34;
+    pi = 3.1416
+    aux = pi * (1.0 + 1.0 / lb) * (1.0 + ((lb - 1.0) / (2.0 * (lb + 1.0))) ** 2.0)
+    p = (hdist + bdist) / 2 * aux
+    return p</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.rate_of_spread"><code class="name flex">
+<span>def <span class="ident">rate_of_spread</span></span>(<span>ftype, wdfh, a, b, c, ps, saz, FuelConst2, bui0, q)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la tasa de propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>wdfh</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene variables meteorológicas y de combustible.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>ps</code></strong> :&ensp;<code>float</code></dt>
+<dd>Pendiente del terreno.</dd>
+<dt><strong><code>saz</code></strong> :&ensp;<code>float</code></dt>
+<dd>Ángulo de la pendiente del terreno.</dd>
+<dt><strong><code>FuelConst2</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Constantes del combustible.</dd>
+<dt><strong><code>bui0</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Índice de acumulación basal (BUI) inicial.</dd>
+<dt><strong><code>q</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Coeficientes de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Tasa de propagación del fuego.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def rate_of_spread(ftype, wdfh, a, b, c, ps, saz, FuelConst2, bui0, q):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación del fuego.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        ps (float): Pendiente del terreno.
+        saz (float): Ángulo de la pendiente del terreno.
+        FuelConst2 (dict): Constantes del combustible.
+        bui0 (dict): Índice de acumulación basal (BUI) inicial.
+        q (dict): Coeficientes de propagación del fuego.
+
+    Returns:
+        float: Tasa de propagación del fuego.
+    &#34;&#34;&#34;
+    ffmc = wdfh[&#39;FFMC&#39;]
+    ws = wdfh[&#39;WS&#39;]
+    waz = wdfh[&#39;WD&#39;] + 180.0
+    waz = waz - 360.0 if waz &gt;= 360.0 else waz
+    isz = 0.208 * ffmc_effect(ffmc)
+
+    if ps &gt; 0:
+        wsv, raz = slope_effect(ftype, wdfh, a, b, c, saz, ps, FuelConst2, isz, ffmc, waz)
+    else:
+        wsv = ws
+        raz = waz
+
+    fw = math.exp(0.05039 * wsv) if wsv &lt; 40.0 else 12.0 * (1.0 - math.exp(-0.0818 * (wsv - 28)))
+    isi = isz * fw
+
+    rsi = ros_base(ftype, isi, wdfh[&#39;BUI&#39;], a, b, c, FuelConst2)
+    rss = rsi * bui_effect(wdfh[&#39;BUI&#39;], bui0[ftype], q[ftype])
+    return rss, wsv, raz, isi</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.ros_base"><code class="name flex">
+<span>def <span class="ident">ros_base</span></span>(<span>ftype, isi, bui, a, b, c, FuelConst2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la tasa de propagación base del fuego (RSI) para un tipo de combustible dado.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ftype</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>isi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Propagación Inicial (ISI).</dd>
+<dt><strong><code>bui</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Acumulación Basal (BUI).</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>FuelConst2</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Constantes del combustible.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Tasa de propagación base del fuego (RSI).</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def ros_base(ftype, isi, bui, a, b, c, FuelConst2):
+    &#34;&#34;&#34;
+    Calcula la tasa de propagación base del fuego (RSI) para un tipo de combustible dado.
+
+    Args:
+        ftype (str): Tipo de combustible.
+        isi (float): Índice de Propagación Inicial (ISI).
+        bui (float): Índice de Acumulación Basal (BUI).
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        FuelConst2 (dict): Constantes del combustible.
+
+    Returns:
+        float: Tasa de propagación base del fuego (RSI).
+    &#34;&#34;&#34;
+    pdf = FuelConst2[&#39;pdf&#39;]
+    cur = FuelConst2[&#39;cur&#39;]
+    pc = FuelConst2[&#39;pc&#39;]
+
+    if ftype in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        if cur &gt;= 58.8:
+            mu1 = 0.176 + 0.02 * (cur - 58.8)
+        else:
+            mu1 = 0.005 * (math.exp(0.061 * cur) - 1.0)
+        mu1 = max(mu1, 0.001)
+        rsi = mu1 * (a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype])
+    elif ftype in [&#34;M1&#34;, &#34;M2&#34;]:
+        mu1 = pc / 100.0
+        mu2_1 = (100 - pc) / 100.0
+        mu2_2 = 2 * (100 - pc) / 100.0
+        ros_C1 = a[&#34;C2&#34;] * (1.0 - math.exp(-b[&#34;C2&#34;] * isi)) ** c[&#34;C2&#34;]
+        ros_D1 = a[&#34;D1&#34;] * (1.0 - math.exp(-b[&#34;D1&#34;] * isi)) ** c[&#34;D1&#34;]
+        rsi = mu1 * ros_C1 + mu2_1 * ros_D1 if ftype == &#34;M1&#34; else mu1 * ros_C1 + mu2_2 * ros_D1
+    elif ftype in [&#34;M3&#34;, &#34;M4&#34;]:
+        if ftype == &#34;M3&#34;:
+            a3 = 170 * math.exp(-35.0 / pdf)
+            b3 = 0.082 * math.exp(-36.0 / pdf)
+            c3 = 1.698 - 0.00303 * pdf
+            rsi = a3 * (1.0 - math.exp(-b3 * isi)) ** c3
+        else:
+            a4 = 140 * math.exp(-35.5 / pdf)
+            b4 = 0.0404
+            c4 = 3.03 * math.exp(-0.00714 * pdf)
+            rsi = a4 * (1.0 - math.exp(-b4 * isi)) ** c4
+    elif ftype == &#34;D2&#34;:
+        rsi = a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype] if bui &gt;= 80 else 0.0
+    else:
+        rsi = a[ftype] * (1.0 - math.exp(-b[ftype] * isi)) ** c[ftype]
+
+    return rsi</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.slope_effect"><code class="name flex">
+<span>def <span class="ident">slope_effect</span></span>(<span>ft, wdfh, a, b, c, saz, ps, FuelConst2, isi, ff, waz)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula el efecto de la pendiente en la tasa de propagación del fuego.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ft</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>wdfh</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene variables meteorológicas y de combustible.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>b</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>c</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Parámetros de la ecuación de propagación del fuego.</dd>
+<dt><strong><code>saz</code></strong> :&ensp;<code>float</code></dt>
+<dd>Ángulo de la pendiente del terreno.</dd>
+<dt><strong><code>ps</code></strong> :&ensp;<code>float</code></dt>
+<dd>Pendiente del terreno.</dd>
+<dt><strong><code>FuelConst2</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Constantes del combustible.</dd>
+<dt><strong><code>isi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Índice de Propagación Inicial (ISI).</dd>
+<dt><strong><code>ff</code></strong> :&ensp;<code>float</code></dt>
+<dd>Factor de propagación del fuego.</dd>
+<dt><strong><code>waz</code></strong> :&ensp;<code>float</code></dt>
+<dd>Ángulo del viento.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>Tasa de propagación del fuego ajustada a la pendiente y ángulo del viento, y el ángulo de propagación ajustado.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def slope_effect(ft, wdfh, a, b, c, saz, ps, FuelConst2, isi, ff, waz):
+    &#34;&#34;&#34;
+    Calcula el efecto de la pendiente en la tasa de propagación del fuego.
+
+    Args:
+        ft (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        a (dict): Parámetros de la ecuación de propagación del fuego.
+        b (dict): Parámetros de la ecuación de propagación del fuego.
+        c (dict): Parámetros de la ecuación de propagación del fuego.
+        saz (float): Ángulo de la pendiente del terreno.
+        ps (float): Pendiente del terreno.
+        FuelConst2 (dict): Constantes del combustible.
+        isi (float): Índice de Propagación Inicial (ISI).
+        ff (float): Factor de propagación del fuego.
+        waz (float): Ángulo del viento.
+
+    Returns:
+        tuple: Tasa de propagación del fuego ajustada a la pendiente y ángulo del viento, y el ángulo de propagación ajustado.
+    &#34;&#34;&#34;
+    pi = 3.1415
+    slopelimit_isi = 0.01
+    pc = FuelConst2[&#34;pc&#34;]
+    pdf = FuelConst2[&#34;pdf&#34;]
+    ps = min(ps, 70.0)
+    sf = min(math.exp(3.533 * (ps / 100.0) ** 1.2), 10.0)
+    ws = wdfh[&#39;WS&#39;]  # Acceso a la columna WS
+
+    if saz &gt;= 360.0:
+        saz -= 360.0
+
+    if ft in [&#34;M1&#34;, &#34;M2&#34;]:
+        isf = ISF_mixedwood(ft, a, b, c, isi, pc, sf)
+    elif ft in [&#34;M3&#34;, &#34;M4&#34;]:
+        isf = ISF_deadfir(ft, a, b, c, isi, pdf, sf)
+    else:
+        rsz = ros_base(ft, isi, wdfh, a, b, c, FuelConst2)
+        rsf = rsz * sf
+        check = 1.0 - (rsf / a[ft]) ** (1.0 / c[ft]) if rsf &gt; 0.0 else 1.0
+        check = max(check, slopelimit_isi)
+        isf = -1.0 / b[ft] * math.log(check)
+
+    isf = isi if isf == 0.0 else isf
+
+    wse1 = math.log(isf / (0.208 * ff)) / 0.05039
+
+    if wse1 &lt;= 40.0:
+        wse = wse1
+    else:
+        isf = min(isf, 0.999 * 2.496 * ff)
+        wse2 = 28.0 - math.log(1.0 - isf / (2.496 * ff)) / 0.0818
+        wse = wse2
+
+    wrad = waz / 180.0 * pi
+    wsx = ws * math.sin(wrad)
+    wsy = ws * math.cos(wrad)
+    srad = saz / 180.0 * pi
+    wsex = wse * math.sin(srad)
+    wsey = wse * math.cos(srad)
+    wsvx = wsx + wsex
+    wsvy = wsy + wsey
+    wsv = math.sqrt(wsvx ** 2 + wsvy ** 2)
+    raz = math.acos(wsvy / wsv) / pi * 180.0
+    raz = 360 - raz if wsvx &lt; 0 else raz
+
+    return wsv, raz</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.spread_distance"><code class="name flex">
+<span>def <span class="ident">spread_distance</span></span>(<span>ros, time, a)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ros</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tasa de propagación del fuego inicial.</dd>
+<dt><strong><code>time</code></strong> :&ensp;<code>float</code></dt>
+<dd>Tiempo transcurrido.</dd>
+<dt><strong><code>a</code></strong> :&ensp;<code>float</code></dt>
+<dd>Parámetro de la ecuación de propagación del fuego.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>tuple</code></dt>
+<dd>Distancia de propagación del fuego y la tasa de propagación actualizada.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def spread_distance(ros, time, a):
+    &#34;&#34;&#34;
+    Calcula la distancia de propagación del fuego y la tasa de propagación a lo largo del tiempo.
+
+    Args:
+        ros (float): Tasa de propagación del fuego inicial.
+        time (float): Tiempo transcurrido.
+        a (float): Parámetro de la ecuación de propagación del fuego.
+
+    Returns:
+        tuple: Distancia de propagación del fuego y la tasa de propagación actualizada.
+    &#34;&#34;&#34;
+    rost = ros * (1.0 - math.exp(-a * time))
+    sd = ros * (time + (math.exp(-a * time) / a) - 1.0 / a)
+    return sd, rost</code></pre>
+</details>
+</dd>
+<dt id="firebehavior.surf_fuel_consump"><code class="name flex">
+<span>def <span class="ident">surf_fuel_consump</span></span>(<span>ft, wdfh, FuelConst2)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Estima el consumo de combustible superficial basado en el tipo de combustible y condiciones meteorológicas.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>ft</code></strong> :&ensp;<code>str</code></dt>
+<dd>Tipo de combustible.</dd>
+<dt><strong><code>wdfh</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Diccionario que contiene variables meteorológicas y de combustible.</dd>
+<dt><strong><code>FuelConst2</code></strong> :&ensp;<code>dict</code></dt>
+<dd>Constantes del combustible.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>float</code></dt>
+<dd>Consumo de combustible superficial estimado.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def surf_fuel_consump(ft, wdfh, FuelConst2):
+    &#34;&#34;&#34;
+    Estima el consumo de combustible superficial basado en el tipo de combustible y condiciones meteorológicas.
+
+    Args:
+        ft (str): Tipo de combustible.
+        wdfh (dict): Diccionario que contiene variables meteorológicas y de combustible.
+        FuelConst2 (dict): Constantes del combustible.
+
+    Returns:
+        float: Consumo de combustible superficial estimado.
+    &#34;&#34;&#34;
+    bui = wdfh[&#39;BUI&#39;]  # Acceso a la columna BUI
+    ffmc = wdfh[&#39;FFMC&#39;]  # Acceso a la columna FFMC
+
+    gfl = FuelConst2[&#34;gfl&#34;]
+    pc = FuelConst2[&#34;pc&#34;]
+
+    if ft == &#34;C1&#34;:
+        sfc = 0.75 + 0.75 * math.sqrt(1 - math.exp(-0.23 * (ffmc - 84))) if ffmc &gt; 84 else 0.75 - 0.75 * math.sqrt(1 - math.exp(0.23 * (ffmc - 84)))
+        sfc = max(sfc, 0)
+    elif ft in [&#34;C2&#34;, &#34;M3&#34;, &#34;M4&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0115 * bui))
+    elif ft in [&#34;C3&#34;, &#34;C4&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0164 * bui)) ** 2.24
+    elif ft in [&#34;C5&#34;, &#34;C6&#34;]:
+        sfc = 5.0 * (1.0 - math.exp(-0.0149 * bui)) ** 2.48
+    elif ft == &#34;C7&#34;:
+        ffc = 2.0 * (1.0 - math.exp(-0.104 * (ffmc - 70.0)))
+        wfc = 1.5 * (1.0 - math.exp(-0.0201 * bui))
+        sfc = max(ffc, 0) + wfc
+    elif ft in [&#34;O1a&#34;, &#34;O1b&#34;]:
+        sfc = gfl
+    elif ft in [&#34;M1&#34;, &#34;M2&#34;]:
+        sfc_c2 = 5.0 * (1.0 - math.exp(-0.0115 * bui))
+        sfc_d1 = 1.5 * (1.0 - math.exp(-0.0183 * bui))
+        sfc = pc / 100.0 * sfc_c2 + (100.0 - pc) / 100.0 * sfc_d1
+    elif ft == &#34;S1&#34;:
+        ffc = 4.0 * (1.0 - math.exp(-0.025 * bui))
+        wfc = 4.0 * (1.0 - math.exp(-0.034 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;S2&#34;:
+        ffc = 10.0 * (1.0 - math.exp(-0.013 * bui))
+        wfc = 6.0 * (1.0 - math.exp(-0.060 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;S3&#34;:
+        ffc = 12.0 * (1.0 - math.exp(-0.0166 * bui))
+        wfc = 20.0 * (1.0 - math.exp(-0.0210 * bui))
+        sfc = ffc + wfc
+    elif ft == &#34;D1&#34;:
+        sfc = 1.5 * (1.0 - math.exp(-0.0183 * bui))
+    elif ft == &#34;D2&#34;:
+        sfc = 1.5 * (1.0 - math.exp(-0.0183 * bui)) if bui &gt;= 80 else 0
+    else:
+        sfc = 0  # Default case for unrecognized fuel type
+
+    return sfc</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="firebehavior.ISF_deadfir" href="#firebehavior.ISF_deadfir">ISF_deadfir</a></code></li>
+<li><code><a title="firebehavior.ISF_mixedwood" href="#firebehavior.ISF_mixedwood">ISF_mixedwood</a></code></li>
+<li><code><a title="firebehavior.acceleration" href="#firebehavior.acceleration">acceleration</a></code></li>
+<li><code><a title="firebehavior.area" href="#firebehavior.area">area</a></code></li>
+<li><code><a title="firebehavior.back_fire_behaviour" href="#firebehavior.back_fire_behaviour">back_fire_behaviour</a></code></li>
+<li><code><a title="firebehavior.backfire_isi" href="#firebehavior.backfire_isi">backfire_isi</a></code></li>
+<li><code><a title="firebehavior.backfire_ros" href="#firebehavior.backfire_ros">backfire_ros</a></code></li>
+<li><code><a title="firebehavior.bui_effect" href="#firebehavior.bui_effect">bui_effect</a></code></li>
+<li><code><a title="firebehavior.crit_surf_intensity" href="#firebehavior.crit_surf_intensity">crit_surf_intensity</a></code></li>
+<li><code><a title="firebehavior.ffmc_effect" href="#firebehavior.ffmc_effect">ffmc_effect</a></code></li>
+<li><code><a title="firebehavior.final_ros" href="#firebehavior.final_ros">final_ros</a></code></li>
+<li><code><a title="firebehavior.fire_intensity" href="#firebehavior.fire_intensity">fire_intensity</a></code></li>
+<li><code><a title="firebehavior.flank_fire_behaviour" href="#firebehavior.flank_fire_behaviour">flank_fire_behaviour</a></code></li>
+<li><code><a title="firebehavior.flank_spread_distance" href="#firebehavior.flank_spread_distance">flank_spread_distance</a></code></li>
+<li><code><a title="firebehavior.flankfire_ros" href="#firebehavior.flankfire_ros">flankfire_ros</a></code></li>
+<li><code><a title="firebehavior.foliar_mois_effect" href="#firebehavior.foliar_mois_effect">foliar_mois_effect</a></code></li>
+<li><code><a title="firebehavior.foliar_moisture" href="#firebehavior.foliar_moisture">foliar_moisture</a></code></li>
+<li><code><a title="firebehavior.get_fueltype_number" href="#firebehavior.get_fueltype_number">get_fueltype_number</a></code></li>
+<li><code><a title="firebehavior.l2bAlexander1985" href="#firebehavior.l2bAlexander1985">l2bAlexander1985</a></code></li>
+<li><code><a title="firebehavior.l2bAnderson1983" href="#firebehavior.l2bAnderson1983">l2bAnderson1983</a></code></li>
+<li><code><a title="firebehavior.l2bFBP" href="#firebehavior.l2bFBP">l2bFBP</a></code></li>
+<li><code><a title="firebehavior.length2breadth" href="#firebehavior.length2breadth">length2breadth</a></code></li>
+<li><code><a title="firebehavior.perimeter" href="#firebehavior.perimeter">perimeter</a></code></li>
+<li><code><a title="firebehavior.rate_of_spread" href="#firebehavior.rate_of_spread">rate_of_spread</a></code></li>
+<li><code><a title="firebehavior.ros_base" href="#firebehavior.ros_base">ros_base</a></code></li>
+<li><code><a title="firebehavior.slope_effect" href="#firebehavior.slope_effect">slope_effect</a></code></li>
+<li><code><a title="firebehavior.spread_distance" href="#firebehavior.spread_distance">spread_distance</a></code></li>
+<li><code><a title="firebehavior.surf_fuel_consump" href="#firebehavior.surf_fuel_consump">surf_fuel_consump</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
