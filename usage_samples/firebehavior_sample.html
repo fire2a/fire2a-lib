@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>firebehavior_sample API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>firebehavior_sample</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># ---
+# jupyter:
+#   jupytext:
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: &#39;1.5&#39;
+#       jupytext_version: 1.15.2
+#   kernelspec:
+#     display_name: EXT
+#     language: python
+#     name: python3
+# ---
+
+# +
+from firebehavior import *
+import pandas as pd
+
+
+
+# +
+###  Inputs
+
+
+
+# La ruta al Weather debe ser correcta
+ruta_archivo = &#39;./Weather.csv&#39;
+
+# Cargar el archivo
+Weather = pd.read_csv(ruta_archivo)
+
+i = 0  # fila i del archivo Weather
+wdfh = Weather.iloc[i]  # seleccionando una fila en formato DataFrame
+
+ftype = &#34;C1&#34;  # Ejemplo de tipo de combustible
+
+# Ejemplo de cálculo de jd, lat, long, etc. (ajustar según el formato real de tus datos)
+jd = (pd.to_datetime(wdfh[&#39;datetime&#39;]) - pd.to_datetime(&#34;01-Jan-2001&#34;)).days
+lat = 51.621244  # Ejemplo de latitud
+long = -115.608378  # Ejemplo de longitud
+elev = 2138.0  # Ejemplo de elevación geográfica
+ps = 0  # Porcentaje de pendiente
+saz = 0  # Azimut de la pendiente (dirección cuesta arriba)
+
+
+# +
+# Cálculos
+
+# Consumo de combustible superficial
+sfc = surf_fuel_consump(ftype, wdfh, FuelConst2)  # en [Kg/m2]
+
+# Tasa de propagación de la cabeza del incendio (HROS = ROS) (incluye efecto de pendiente y acumulación)
+ros, wsv, raz, isi = rate_of_spread(ftype, wdfh, a, b, c, ps, saz, FuelConst2, bui0, q)  # [m/min]
+
+# Intensidad del fuego superficial
+sfi = fire_intensity(sfc, ros)  # en [kW/m]
+
+# Contenido de humedad foliar
+fmc = foliar_moisture(lat, long, elev, jd)  # en [%]
+
+# Intensidad crítica de la superficie
+csi = crit_surf_intensity(CBH[ftype], fmc)
+
+# Determinar el tipo de fuego y realizar cálculos adicionales
+if (&#34;C1&#34; &lt;= ftype &lt;= &#34;C7&#34;) or (&#34;M1&#34; &lt;= ftype &lt;= &#34;M4&#34;):  # CBH &gt; 0
+    # Tipo de fuego = corona
+    if sfi &gt; csi:
+        rso = max(csi / (300 * sfc), 0.0)  # Tasa crítica de propagación
+        cfb = max(1 - math.exp(-0.23 * (ros - rso)), 0.0)  # Fracción de la corona quemada
+        cfc = CFL[ftype] * cfb  # Consumo de combustible de la corona
+        if ftype in [&#34;M1&#34;, &#34;M2&#34;]:
+            cfc *= FuelConst2[&#34;pc&#34;] / 100.0  # actualización
+        elif ftype in [&#34;M3&#34;, &#34;M4&#34;]:
+            cfc *= FuelConst2[&#34;pdf&#34;] / 100.0  # actualización
+        tfc = sfc + cfc
+        ros = final_ros(ftype, fmc, isi, cfb, ros)
+        fi = fire_intensity(tfc, ros)  # Intensidad total del fuego
+        firetype = &#34;crown&#34;
+    else:
+        cfb = 0
+        cfc = 0
+        tfc = sfc
+        fi = sfi
+else:  # CBH == 0.0
+    cfb = 0
+    cfc = 0
+    tfc = sfc
+    fi = sfi
+
+# Efecto FFMC
+ffmc = wdfh[&#34;FFMC&#34;]
+ff = ffmc_effect(ffmc)
+
+# Relación longitud/ancho
+lb = length2breadth(ftype, wsv)
+
+# ISI de retroceso
+bisi = backfire_isi(wsv, ff)
+
+# Tasa de propagación de retroceso
+brss = backfire_ros(ftype, bisi, wdfh, a, b, c, FuelConst2, bui0, q)
+
+if (&#34;C1&#34; &lt;= ftype &lt;= &#34;C7&#34;) or (&#34;M1&#34; &lt;= ftype &lt;= &#34;M4&#34;):
+    bros, bfi, bfc, back_firetype = back_fire_behaviour(ftype, sfc, brss, csi, rso, fmc, bisi, CFL)
+
+# Tasa de propagación lateral
+fros = flankfire_ros(ros, bros, lb)
+
+# Comportamiento del fuego lateral
+ffi, ffc, flank_firetype = flank_fire_behaviour(ftype, sfc, fros, csi, rso, CFL)
+
+# Tiempo transcurrido
+elapsetime = 60  # [min]
+
+# Aceleración
+accn = acceleration(ftype, cfb)
+
+# Distancia y tasa de propagación de la cabeza del incendio
+hdist, hrost = spread_distance(ros, elapsetime, accn)
+
+# Distancia y tasa de propagación de retroceso
+bdist, brost = spread_distance(bros, elapsetime, accn)
+
+# Distancia, tasa y longitud/ancho de propagación lateral
+fdist, rost, lbt = flank_spread_distance(hrost, brost, hdist, bdist, lb, accn, elapsetime)
+
+# Área del Elipse
+areaelipse = area(hdist + bdist, fdist)
+
+# Perímetro del Elipse
+perelipse = perimeter(hdist, bdist, lb)
+
+# Salidas Primarias
+print(&#39;Primary Outputs:&#39;)
+print(f&#39;HROS_t = {hrost:.3f} [m/min]\t\tSFC = {sfc:.3f} [Kg/m2]&#39;)
+print(f&#39;HROS_eq = {ros:.3f} [m/min]\t\tCFC = {cfc:.3f} [Kg/m2]&#39;)
+print(f&#39;HFI = {fi:.3f} [kW/m]\t\tTFC = {tfc:.3f} [Kg/m2]&#39;)
+print(f&#39;CFB = {cfb * 100:.3f} [Percentage]\tFire description:  {firetype}-fire\n\n&#39;)
+
+# Salidas Secundarias
+print(&#39;Secondary Outputs:&#39;)
+print(f&#39;RSO = {rso:.3f} [m/min]\tCSI = {csi:.3f} [kW/m]\tDH = {hdist:.3f} [m]\tLB = {lb:.3f} [m]&#39;)
+print(f&#39;FROS = {fros:.3f} [m/min]\tFFI = {ffi:.3f} [kW/m]\tDF = {fdist:.3f} [m]\t\tArea = {areaelipse:.3f} [ha]&#39;)
+print(f&#39;BROS = {bros:.3f} [m/min]\tBFI = {bfi:.3f} [kW/m]\tDB = {bdist:.3f} [m]\t\tPerimeter = {perelipse:.3f} [m]&#39;)
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import animation, rc
+from IPython.display import HTML
+
+# Función para actualizar el fuego en la cuadrícula
+def update_fire(grid, hros_t, hros_eq, hfi, cfb):
+    &#34;&#34;&#34;
+    Función que actualiza la propagación del fuego en la cuadrícula.
+
+    Parámetros:
+        grid (numpy.ndarray): Cuadrícula que representa el estado actual del fuego.
+        hros_t (float): Velocidad de propagación del fuego (m/min).
+        hros_eq (float): Velocidad de propagación del fuego equivalente (m/min).
+        hfi (float): Intensidad de la propagación del fuego (kW/m).
+        cfb (float): Porcentaje de velocidad de propagación del fuego.
+
+    Retorna:
+        numpy.ndarray: Nueva cuadrícula con el estado actualizado del fuego.
+    &#34;&#34;&#34;
+    new_grid = np.copy(grid)
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if grid[i, j] &gt; 0:  # Si hay fuego en esta celda
+                # Ajustar los parámetros de propagación según las funciones dadas
+                hros_prob = hros_eq / 10  # Normalizamos HROS_eq para que esté en el rango de 0 a 1
+                hfi_factor = hfi / 1000  # Normalizamos HFI para que esté en el rango de 0 a 1
+                # Modificamos la probabilidad de propagación en la cabeza del fuego
+                hros_prob *= (cfb / 100)  # Ajustamos la probabilidad en función de cfb
+                # Modificamos la probabilidad de propagación en función de hfi
+                hros_prob *= (1 + hfi_factor)  # Incrementa la probabilidad en función de HFI Factor
+                for di in [-1, 0, 1]:
+                    for dj in [-1, 0, 1]:
+                        if 0 &lt;= i + di &lt; grid.shape[0] and 0 &lt;= j + dj &lt; grid.shape[1]:
+                            if di == 0 and dj == 1:  # Hacia la derecha (cabeza del fuego)
+                                prob = hros_prob
+                            elif di in [-1, 1] or dj in [-1, 1]:  # Diagonal y flancos
+                                prob = fros_prob
+                            else:  # Hacia atrás y la propia celda
+                                prob = bros_prob
+                            if np.random.rand() &lt; prob:
+                                new_grid[i + di, j + dj] = min(10, grid[i + di, j + dj] + 1)  # Incrementa la intensidad del fuego
+    return new_grid
+
+
+# Configuración inicial
+grid_size = 100
+fire_grid = np.zeros((grid_size, grid_size))
+start_point = grid_size // 2
+fire_grid[start_point, start_point] = 1  # Inicia el fuego en el centro
+
+# Parámetros de propagación (simplificados)
+fros_prob = 0.02  # Probabilidad de propagación en los flancos
+bros_prob = 0.05  # Probabilidad de propagación en el retroceso
+
+# Parámetros secundarios
+hros_t = 6.083  # [m/min]
+hros_eq = 6.089  # [m/min]
+hfi = 3455.373  # [kW/m]
+cfb = 65.702  # [Percentage]
+
+# Configuración de la animación
+fig, ax = plt.subplots(figsize=(5, 5))
+
+# Función de inicialización para la animación
+def init():
+    &#34;&#34;&#34;
+    Función de inicialización para la animación.
+    Limpia el eje y muestra la cuadrícula inicial del fuego.
+    &#34;&#34;&#34;
+    ax.clear()
+    ax.imshow(fire_grid, cmap=&#39;hot&#39;, interpolation=&#39;nearest&#39;, vmin=0, vmax=10)  # Asigna la intensidad del fuego de 0 a 10
+    plt.axis(&#39;off&#39;)
+
+# Función de actualización para la animación
+def update(frame):
+    &#34;&#34;&#34;
+    Función de actualización para la animación.
+    Actualiza el estado del fuego en cada frame de la animación.
+    &#34;&#34;&#34;
+    global fire_grid
+    ax.clear()
+    fire_grid = update_fire(fire_grid, hros_t, hros_eq, hfi, cfb)
+    ax.imshow(fire_grid, cmap=&#39;hot&#39;, interpolation=&#39;nearest&#39;, vmin=0, vmax=10)
+    plt.axis(&#39;off&#39;)
+
+# Crear animación
+ani = animation.FuncAnimation(fig, update, frames=100, init_func=init, blit=False, interval=100, repeat=False)
+
+# Mostrar la animación
+HTML(ani.to_jshtml())
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+from ipywidgets import interactive
+
+def update_fire_behavior(time=60):
+    # Asumiendo que las variables &#39;ros&#39;, &#39;bros&#39;, &#39;fros&#39;, y &#39;accn&#39; ya están definidas globalmente con valores de ejemplo
+    global ros, bros, fros, accn
+    
+    # Cálculo de la distancia y tasa de propagación de la cabeza del incendio en el tiempo dado
+    hdist, hrost = spread_distance(ros, time, accn)
+    
+    # Cálculo de la distancia y tasa de propagación de retroceso en el tiempo dado
+    bdist, brost = spread_distance(bros, time, accn)
+    
+    # Cálculo de la distancia y tasa de propagación lateral en el tiempo dado
+    fdist, rost, lbt = flank_spread_distance(hrost, brost, hdist, bdist, lb, accn, time)
+    
+    # Visualización
+    plt.figure(figsize=(10, 6))
+    times = np.linspace(0, time, 100)
+    hros_t = ros * (1.0 - np.exp(-accn * times))
+    bros_t = bros * (1.0 - np.exp(-accn * times))
+    
+    plt.plot(times, hros_t, label=&#39;HROS (Cabeza del Incendio)&#39;)
+    plt.plot(times, bros_t, label=&#39;BROS (Retroceso del Incendio)&#39;)
+    
+    plt.xlabel(&#39;Tiempo (min)&#39;)
+    plt.ylabel(&#39;Tasa de Propagación (m/min)&#39;)
+    plt.title(&#39;Evolución de la Tasa de Propagación del Incendio&#39;)
+    plt.legend()
+    plt.grid(True)
+    
+    plt.show()
+
+# Widget interactivo
+interactive_plot = interactive(update_fire_behavior, time=(0, 120, 1))
+output = interactive_plot.children[-1]
+output.layout.height = &#39;350px&#39;
+interactive_plot
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+from ipywidgets import interactive
+
+def calculate_ros(ffmc, ftype):
+    # Simular una variación de la tasa de propagación del fuego (ROS) en función de FFMC para un tipo de combustible específico
+    # Asumiendo una relación simplificada entre FFMC y la tasa de propagación para el propósito de esta demostración
+    ff = ffmc_effect(ffmc)  # Calcular el efecto FFMC
+    isi = 0.208 * ff  # Calcular el ISI basado en el efecto FFMC
+    # Usar valores de ejemplo para &#39;a&#39;, &#39;b&#39;, &#39;c&#39; basados en el tipo de combustible
+    a_val, b_val, c_val = a[ftype], b[ftype], c[ftype]
+    ros = a_val * (1.0 - np.exp(-b_val * isi)) ** c_val  # Calcular ROS basado en ISI
+    return ros
+
+def plot_ros_vs_ffmc(ftype=&#39;C1&#39;):
+    ffmc_values = np.linspace(75, 95, 50)  # Rango de FFMC para análisis
+    ros_values = [calculate_ros(ffmc, ftype) for ffmc in ffmc_values]
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(ffmc_values, ros_values, &#39;-o&#39;, label=f&#39;Tipo de combustible: {ftype}&#39;)
+    plt.xlabel(&#39;FFMC&#39;)
+    plt.ylabel(&#39;Tasa de Propagación del Fuego (ROS) [m/min]&#39;)
+    plt.title(&#39;Relación entre FFMC y Tasa de Propagación del Fuego&#39;)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Crear un widget interactivo para seleccionar el tipo de combustible
+interactive_plot = interactive(plot_ros_vs_ffmc, ftype=[&#39;C1&#39;, &#39;C2&#39;, &#39;C3&#39;, &#39;C4&#39;, &#39;C5&#39;, &#39;C6&#39;, &#39;O1a&#39;, &#39;O1b&#39;])
+interactive_plot
+
+# -
+
+# #  Traducciones directas de los gráficos adicionales del matlab
+
+# +
+# Foliar Moisture Content
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+
+# Crear el rango de días julianos
+x = np.arange(1, 366)  # 365 días
+y = np.zeros_like(x, dtype=float)
+
+# Calcular FMC para cada día juliano
+for i in x:
+    y[i-1] = foliar_moisture(lat, long, elev, i)
+
+# Crear la figura y el gráfico
+plt.figure(figsize=(10, 6))  # Tamaño opcional
+plt.plot(x, y, &#39;-.&#39;, label=&#39;FMC [%]&#39;)  # Etiqueta opcional para leyenda
+plt.xlabel(&#39;Julian day&#39;, fontsize=14)
+plt.ylabel(&#39;FMC [%]&#39;, fontsize=14)
+plt.box(False)  # Deshabilitar el borde del gráfico
+plt.ylim([0, 140])
+plt.legend()  # Muestra la leyenda si es que se añadió una etiqueta en plt.plot
+plt.show()
+
+# +
+#  Rate of Spread
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+
+# Seleccionar la primera fila del DataFrame para las simulaciones
+wdfh = Weather.iloc[0].copy()
+
+# Parámetros de entrada
+ps = 0
+saz = 0
+x = np.array([0, 5, 10, 20, 30, 40, 50, 60])  # Velocidades del viento para la simulación
+y = np.zeros(len(x))  # Para almacenar los resultados de ROS
+
+# Asegúrate de que las constantes como ftype, a, b, c, FuelConst2, bui0, q están definidas
+
+for i, ws in enumerate(x):
+    # Actualizar la velocidad del viento en la fila seleccionada
+    wdfh[&#39;WS&#39;] = ws
+    
+    # Calcular la tasa de propagación del fuego para esta velocidad del viento
+    # Como &#39;rate_of_spread&#39; devuelve varios valores, y solo nos interesa el primero (ROS), usamos [0]
+    # Asumiendo que &#39;rate_of_spread&#39; puede trabajar directamente con una Serie de pandas como &#39;wdfh&#39;
+    ros, _, _, _ = rate_of_spread(ftype, wdfh, a, b, c, ps, saz, FuelConst2, bui0, q)
+    y[i] = ros
+
+# Graficar los resultados
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, &#39;o-&#39;, label=&#39;Rate of Spread vs Wind Speed&#39;)
+plt.xlabel(&#39;Wind Speed (km/h)&#39;, fontsize=14)
+plt.ylabel(&#39;Rate of Spread (m/min)&#39;, fontsize=14)
+plt.legend()
+plt.grid(True)  # Añade una cuadrícula al gráfico para mejor visualización
+plt.title(&#39;Rate of Spread for varying Wind Speeds&#39;, fontsize=16)
+plt.show()
+
+# +
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Función para la tasa de propagación del fuego
+def fHROS(x, p1, p2, p3):
+    return 1 / (p1 * np.exp(-p2 * x) + p3)
+
+# Datos iniciales
+x = np.array([0, 5, 10, 20, 30, 40, 50, 60])
+x1 = np.array([0, 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60])
+
+# Configuración del layout de los subgráficos
+fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+fig.subplots_adjust(hspace=0.3, wspace=0.2)
+fig.suptitle(&#39;Rate of Spread vs Wind Speed&#39;, fontsize=18)
+
+# Subgráfico 1: Fuel Type C1 - FBP System
+y = np.array([0.4, 0.6, 2.5, 6.1, 10.6, 15.8, 21.5, 27.8, 34.6, 41.7, 49.3, 57.3, 65.6, 74.2])
+axs[0, 0].plot(x1, y, &#39;o&#39;)  # Usar x1 en lugar de x
+axs[0, 0].plot(x1, fHROS(x1, 5.223, 0.1658, 0.01366), label=&#39;R-square = 0.9992&#39;)  # Usar x1 aquí también
+axs[0, 0].set_title(&#39;Fuel Type C1 - FBP System&#39;)
+axs[0, 0].grid(True)
+axs[0, 0].legend()
+
+# Subgráfico 2: Fuel Type PL01 - KITRAL System
+ws = np.array([0, 5, 10, 20, 30, 40, 50, 60])  # Velocidades del viento hipotéticas
+# Suponiendo factores hipotéticos para el ejemplo
+Fmc = 1.0  # Factor de combustible hipotético
+Fch = 1.0  # Factor de carga hipotético
+Fv = np.linspace(0.1, 1.0, len(ws))  # Factor de viento hipotético
+HROSdataPL01 = Fmc * Fch * (1 + Fv)  # Cálculo simplificado de HROSdataPL01
+axs[0, 1].plot(ws, HROSdataPL01, &#39;o&#39;)
+axs[0, 1].plot(ws, fHROS(ws, 0.06332, 0.1599, 0.01836), label=&#39;R-square = 0.9964&#39;)
+axs[0, 1].set_title(&#39;Fuel Type PL01 - KITRAL System&#39;)
+axs[0, 1].grid(True)
+axs[0, 1].legend()
+
+# Subgráfico 3: Fuel Type 10 - Rothermel Models
+y1 = np.array([0.4, 0.6, 2.5, 6.1, 10.6, 15.8, 21.5, 27.8, 34.6, 41.7, 49.3, 57.3, 65.6, 74.2])
+axs[1, 0].plot(x1, y1, &#39;o&#39;)
+axs[1, 0].plot(x1, fHROS(x1, 0.2802, 0.07786, 0.01123), label=&#39;R-square = 0.9933&#39;)
+axs[1, 0].set_title(&#39;Fuel Type 10 - Rothermel Models&#39;)
+axs[1, 0].grid(True)
+axs[1, 0].legend()
+
+# Subgráfico 4: Fuel Type TU4 (164) - Scott &amp; Burgan Models
+y1 = np.array([0.6, 0.8, 3.1, 8.5, 15.9, 24.9, 35.5, 47.5, 60.8, 75.3, 91.0, 107.9, 125.8, 144.7])
+axs[1, 1].plot(x1, y1, &#39;o&#39;)
+axs[1, 1].plot(x1, fHROS(x1, 0.1843, 0.07911, 0.005477), label=&#39;R-square = 0.9957&#39;)
+axs[1, 1].set_title(&#39;Fuel Type TU4 (164) - Scott &amp; Burgan Models&#39;)
+axs[1, 1].grid(True)
+axs[1, 1].legend()
+
+# Ajuste de las etiquetas de los ejes para todos los subgráficos
+for ax in axs.flat:
+    ax.set(xlabel=&#39;Wind Speed [Km/h]&#39;, ylabel=&#39;Rate of Spread [m/min]&#39;)
+    ax.label_outer()  # Oculta las etiquetas x y y para los subgráficos internos
+
+plt.show()
+
+
+# +
+#  Length to Breadth
+
+import numpy as np
+import matplotlib.pyplot as plt
+from math import exp
+
+# Definición de la función Length to Breadth Ratio (LB) para el sistema FBP
+def l2bFBP(ftype, x):
+    l1 = 3.053 if ftype == &#34;C1&#34; else 2.454  # Valor ejemplo para &#34;C1&#34;, ajustar según sea necesario
+    l2 = 0.02667 if ftype == &#34;C1&#34; else 0.07154  # Valor ejemplo para &#34;C1&#34;, ajustar según sea necesario
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2
+
+# Datos de entrada
+x1 = np.array([0, 1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60])
+y1 = l2bFBP(&#34;C1&#34;, x1)
+y2 = l2bFBP(&#34;Others&#34;, x1)  # Asumiendo que quieres otra línea para &#34;Others&#34;
+
+# Creación del gráfico
+plt.figure(figsize=(10, 8))
+
+# Primer subplot
+plt.subplot(2, 2, 1)
+plt.plot(x1, y1, &#39;o&#39;, label=&#39;C1 Type&#39;)
+# Ajuste de curva para C1
+x_fit = np.linspace(0, 60, 600)
+y_fit1 = l2bFBP(&#34;C1&#34;, x_fit)
+plt.plot(x_fit, y_fit1, label=&#39;C1 Fit, R-square = 0.9999&#39;)
+
+# Segundo subplot (Ejemplo adicional)
+plt.subplot(2, 2, 2)
+plt.plot(x1, y2, &#39;o&#39;, label=&#39;Others Type&#39;)
+# Ajuste de curva para Others
+y_fit2 = l2bFBP(&#34;Others&#34;, x_fit)
+plt.plot(x_fit, y_fit2, label=&#39;Others Fit, R-square = 0.969&#39;)
+
+# Ajustes finales del gráfico
+for i in range(1, 3):
+    plt.subplot(2, 2, i)
+    plt.xlim([0, 60])
+    plt.ylim([0, 8])
+    plt.xticks(np.arange(0, 61, 5))
+    plt.yticks(np.arange(0, 9, 1))
+    plt.grid(True)
+    plt.legend(loc=&#39;upper left&#39;)
+    plt.xlabel(&#39;Wind Speed [Km/h]&#39;)
+    plt.ylabel(&#39;Length-to-breath (LB)&#39;)
+    
+plt.tight_layout()
+plt.show()
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+
+def l2bAnderson1983(typefire, x):
+    if typefire == &#34;dense-forest-stand&#34;:
+        l1, l2 = 1.411, 0.01745
+    elif typefire == &#34;open-forest-stand&#34;:
+        l1, l2 = 2.587, 0.01142
+    elif typefire == &#34;grass-slash&#34;:
+        l1, l2 = 5.578, 0.006023
+    elif typefire == &#34;heavy-slash&#34;:
+        l1, l2 = 37.49, 0.0009885
+    elif typefire == &#34;crown-fire&#34;:
+        l1, l2 = 3432, 3.497e-05
+    else:
+        l1, l2 = 0, 0  # Por defecto, si el tipo no coincide
+    
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2
+
+# Datos de entrada
+x1 = np.arange(0, 61, 5)
+types = [
+    &#34;dense-forest-stand&#34;,
+    &#34;open-forest-stand&#34;,
+    &#34;grass-slash&#34;,
+    &#34;heavy-slash&#34;,
+    &#34;crown-fire&#34;
+]
+
+# Configuración del gráfico
+plt.figure(figsize=(10, 8))
+
+# Trama para cada tipo con sus valores de R cuadrado reales
+for typefire in types:
+    y = l2bAnderson1983(typefire, x1)
+    plt.plot(x1, y, &#39;o-&#39;, label=f&#39;{typefire.replace(&#34;-&#34;, &#34; &#34;).title()}, R-square = ...&#39;)  # Placeholder para R-square
+
+# Añadiendo valores de R cuadrado reales en la leyenda
+r_values = {
+    &#34;dense-forest-stand&#34;: &#34;0.993&#34;,
+    &#34;open-forest-stand&#34;: &#34;0.995&#34;,
+    &#34;grass-slash&#34;: &#34;0.996&#34;,
+    &#34;heavy-slash&#34;: &#34;0.997&#34;,
+    &#34;crown-fire&#34;: &#34;0.9095&#34;  # No se proporcionó el valor de R cuadrado para &#34;crown-fire&#34; en el código original
+}
+
+# Actualizar la leyenda con valores de R cuadrado
+labels = [f&#39;{typefire.replace(&#34;-&#34;, &#34; &#34;).title()}, R-square = {r_values[typefire]}&#39; for typefire in types]
+plt.legend(labels, fontsize=12, loc=&#39;upper left&#39;)
+
+# Ajustes del gráfico
+plt.xticks(np.arange(0, 61, 5))
+plt.xlim([0, 60])
+plt.grid(True)
+plt.title(&#39;Anderson (1983)&#39;)
+plt.xlabel(&#39;Wind Speed [Km/h]&#39;)
+plt.ylabel(&#39;Length-to-breadth (LB)&#39;)
+plt.show()
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Función para el sistema Alexander (1985)
+def l2bAlexander1985(x):
+    l1, l2 = 3.063, -0.01165
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2
+
+# Función para el sistema KITRAL
+def lbKITRAL(x):
+    l1, l2 = 2.233, -0.01031
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2
+
+# Datos de entrada
+x1 = np.arange(0, 61, 5)
+x2 = np.arange(0, 26)
+
+# Creación del gráfico para Alexander (1985)
+plt.figure(figsize=(12, 6))
+
+# Primer subplot para Alexander (1985)
+plt.subplot(1, 2, 1)
+y8 = l2bAlexander1985(x1)
+plt.plot(x1, y8, &#39;o&#39;, label=&#39;R-square = 0.9977&#39;)
+# Ajuste de curva para Alexander (1985)
+x_fit = np.linspace(0, 60, 600)
+y_fit = l2bAlexander1985(x_fit)
+plt.plot(x_fit, y_fit)
+
+# Ajustes del gráfico
+plt.xticks(np.arange(0, 61, 5))
+plt.xlim([0, 60])
+plt.ylim([0, 11])
+plt.grid(True)
+plt.title(&#39;Alexander (1985)&#39;)
+plt.xlabel(&#39;Wind Speed [Km/h]&#39;)
+plt.ylabel(&#39;Length-to-breadth (LB)&#39;)
+plt.legend(loc=&#39;upper left&#39;)
+
+# Segundo subplot para KITRAL System
+plt.subplot(1, 2, 2)
+LB = lbKITRAL(x2)  # Asumiendo que esta es una función o un arreglo predefinido
+plt.plot(x2, LB, &#39;o&#39;, label=&#39;R-square = 0.9848&#39;)
+# Ajuste de curva para KITRAL
+y_fit_kitral = lbKITRAL(np.linspace(0, 25, 260))
+plt.plot(np.linspace(0, 25, 260), y_fit_kitral)
+
+# Ajustes del gráfico
+plt.grid(True)
+plt.title(&#39;KITRAL System&#39;)
+plt.xlabel(&#39;Wind Speed [Km/h]&#39;)
+plt.xlim([0, 60])
+plt.ylim([0, 7])
+plt.legend(loc=&#39;upper left&#39;)
+
+plt.tight_layout()
+plt.show()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="firebehavior_sample.calculate_ros"><code class="name flex">
+<span>def <span class="ident">calculate_ros</span></span>(<span>ffmc, ftype)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def calculate_ros(ffmc, ftype):
+    # Simular una variación de la tasa de propagación del fuego (ROS) en función de FFMC para un tipo de combustible específico
+    # Asumiendo una relación simplificada entre FFMC y la tasa de propagación para el propósito de esta demostración
+    ff = ffmc_effect(ffmc)  # Calcular el efecto FFMC
+    isi = 0.208 * ff  # Calcular el ISI basado en el efecto FFMC
+    # Usar valores de ejemplo para &#39;a&#39;, &#39;b&#39;, &#39;c&#39; basados en el tipo de combustible
+    a_val, b_val, c_val = a[ftype], b[ftype], c[ftype]
+    ros = a_val * (1.0 - np.exp(-b_val * isi)) ** c_val  # Calcular ROS basado en ISI
+    return ros</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.fHROS"><code class="name flex">
+<span>def <span class="ident">fHROS</span></span>(<span>x, p1, p2, p3)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fHROS(x, p1, p2, p3):
+    return 1 / (p1 * np.exp(-p2 * x) + p3)</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Función de inicialización para la animación.
+Limpia el eje y muestra la cuadrícula inicial del fuego.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def init():
+    &#34;&#34;&#34;
+    Función de inicialización para la animación.
+    Limpia el eje y muestra la cuadrícula inicial del fuego.
+    &#34;&#34;&#34;
+    ax.clear()
+    ax.imshow(fire_grid, cmap=&#39;hot&#39;, interpolation=&#39;nearest&#39;, vmin=0, vmax=10)  # Asigna la intensidad del fuego de 0 a 10
+    plt.axis(&#39;off&#39;)</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.l2bAlexander1985"><code class="name flex">
+<span>def <span class="ident">l2bAlexander1985</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bAlexander1985(x):
+    l1, l2 = 3.063, -0.01165
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.l2bAnderson1983"><code class="name flex">
+<span>def <span class="ident">l2bAnderson1983</span></span>(<span>typefire, x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bAnderson1983(typefire, x):
+    if typefire == &#34;dense-forest-stand&#34;:
+        l1, l2 = 1.411, 0.01745
+    elif typefire == &#34;open-forest-stand&#34;:
+        l1, l2 = 2.587, 0.01142
+    elif typefire == &#34;grass-slash&#34;:
+        l1, l2 = 5.578, 0.006023
+    elif typefire == &#34;heavy-slash&#34;:
+        l1, l2 = 37.49, 0.0009885
+    elif typefire == &#34;crown-fire&#34;:
+        l1, l2 = 3432, 3.497e-05
+    else:
+        l1, l2 = 0, 0  # Por defecto, si el tipo no coincide
+    
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.l2bFBP"><code class="name flex">
+<span>def <span class="ident">l2bFBP</span></span>(<span>ftype, x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def l2bFBP(ftype, x):
+    l1 = 3.053 if ftype == &#34;C1&#34; else 2.454  # Valor ejemplo para &#34;C1&#34;, ajustar según sea necesario
+    l2 = 0.02667 if ftype == &#34;C1&#34; else 0.07154  # Valor ejemplo para &#34;C1&#34;, ajustar según sea necesario
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.lbKITRAL"><code class="name flex">
+<span>def <span class="ident">lbKITRAL</span></span>(<span>x)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def lbKITRAL(x):
+    l1, l2 = 2.233, -0.01031
+    return 1.0 + (l1 * (1 - np.exp(-l2 * x)))**2</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.plot_ros_vs_ffmc"><code class="name flex">
+<span>def <span class="ident">plot_ros_vs_ffmc</span></span>(<span>ftype='C1')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_ros_vs_ffmc(ftype=&#39;C1&#39;):
+    ffmc_values = np.linspace(75, 95, 50)  # Rango de FFMC para análisis
+    ros_values = [calculate_ros(ffmc, ftype) for ffmc in ffmc_values]
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(ffmc_values, ros_values, &#39;-o&#39;, label=f&#39;Tipo de combustible: {ftype}&#39;)
+    plt.xlabel(&#39;FFMC&#39;)
+    plt.ylabel(&#39;Tasa de Propagación del Fuego (ROS) [m/min]&#39;)
+    plt.title(&#39;Relación entre FFMC y Tasa de Propagación del Fuego&#39;)
+    plt.legend()
+    plt.grid(True)
+    plt.show()</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>frame)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Función de actualización para la animación.
+Actualiza el estado del fuego en cada frame de la animación.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(frame):
+    &#34;&#34;&#34;
+    Función de actualización para la animación.
+    Actualiza el estado del fuego en cada frame de la animación.
+    &#34;&#34;&#34;
+    global fire_grid
+    ax.clear()
+    fire_grid = update_fire(fire_grid, hros_t, hros_eq, hfi, cfb)
+    ax.imshow(fire_grid, cmap=&#39;hot&#39;, interpolation=&#39;nearest&#39;, vmin=0, vmax=10)
+    plt.axis(&#39;off&#39;)</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.update_fire"><code class="name flex">
+<span>def <span class="ident">update_fire</span></span>(<span>grid, hros_t, hros_eq, hfi, cfb)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Función que actualiza la propagación del fuego en la cuadrícula.</p>
+<h2 id="parametros">Parámetros</h2>
+<p>grid (numpy.ndarray): Cuadrícula que representa el estado actual del fuego.
+hros_t (float): Velocidad de propagación del fuego (m/min).
+hros_eq (float): Velocidad de propagación del fuego equivalente (m/min).
+hfi (float): Intensidad de la propagación del fuego (kW/m).
+cfb (float): Porcentaje de velocidad de propagación del fuego.</p>
+<h2 id="retorna">Retorna</h2>
+<p>numpy.ndarray: Nueva cuadrícula con el estado actualizado del fuego.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_fire(grid, hros_t, hros_eq, hfi, cfb):
+    &#34;&#34;&#34;
+    Función que actualiza la propagación del fuego en la cuadrícula.
+
+    Parámetros:
+        grid (numpy.ndarray): Cuadrícula que representa el estado actual del fuego.
+        hros_t (float): Velocidad de propagación del fuego (m/min).
+        hros_eq (float): Velocidad de propagación del fuego equivalente (m/min).
+        hfi (float): Intensidad de la propagación del fuego (kW/m).
+        cfb (float): Porcentaje de velocidad de propagación del fuego.
+
+    Retorna:
+        numpy.ndarray: Nueva cuadrícula con el estado actualizado del fuego.
+    &#34;&#34;&#34;
+    new_grid = np.copy(grid)
+    for i in range(grid.shape[0]):
+        for j in range(grid.shape[1]):
+            if grid[i, j] &gt; 0:  # Si hay fuego en esta celda
+                # Ajustar los parámetros de propagación según las funciones dadas
+                hros_prob = hros_eq / 10  # Normalizamos HROS_eq para que esté en el rango de 0 a 1
+                hfi_factor = hfi / 1000  # Normalizamos HFI para que esté en el rango de 0 a 1
+                # Modificamos la probabilidad de propagación en la cabeza del fuego
+                hros_prob *= (cfb / 100)  # Ajustamos la probabilidad en función de cfb
+                # Modificamos la probabilidad de propagación en función de hfi
+                hros_prob *= (1 + hfi_factor)  # Incrementa la probabilidad en función de HFI Factor
+                for di in [-1, 0, 1]:
+                    for dj in [-1, 0, 1]:
+                        if 0 &lt;= i + di &lt; grid.shape[0] and 0 &lt;= j + dj &lt; grid.shape[1]:
+                            if di == 0 and dj == 1:  # Hacia la derecha (cabeza del fuego)
+                                prob = hros_prob
+                            elif di in [-1, 1] or dj in [-1, 1]:  # Diagonal y flancos
+                                prob = fros_prob
+                            else:  # Hacia atrás y la propia celda
+                                prob = bros_prob
+                            if np.random.rand() &lt; prob:
+                                new_grid[i + di, j + dj] = min(10, grid[i + di, j + dj] + 1)  # Incrementa la intensidad del fuego
+    return new_grid</code></pre>
+</details>
+</dd>
+<dt id="firebehavior_sample.update_fire_behavior"><code class="name flex">
+<span>def <span class="ident">update_fire_behavior</span></span>(<span>time=60)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update_fire_behavior(time=60):
+    # Asumiendo que las variables &#39;ros&#39;, &#39;bros&#39;, &#39;fros&#39;, y &#39;accn&#39; ya están definidas globalmente con valores de ejemplo
+    global ros, bros, fros, accn
+    
+    # Cálculo de la distancia y tasa de propagación de la cabeza del incendio en el tiempo dado
+    hdist, hrost = spread_distance(ros, time, accn)
+    
+    # Cálculo de la distancia y tasa de propagación de retroceso en el tiempo dado
+    bdist, brost = spread_distance(bros, time, accn)
+    
+    # Cálculo de la distancia y tasa de propagación lateral en el tiempo dado
+    fdist, rost, lbt = flank_spread_distance(hrost, brost, hdist, bdist, lb, accn, time)
+    
+    # Visualización
+    plt.figure(figsize=(10, 6))
+    times = np.linspace(0, time, 100)
+    hros_t = ros * (1.0 - np.exp(-accn * times))
+    bros_t = bros * (1.0 - np.exp(-accn * times))
+    
+    plt.plot(times, hros_t, label=&#39;HROS (Cabeza del Incendio)&#39;)
+    plt.plot(times, bros_t, label=&#39;BROS (Retroceso del Incendio)&#39;)
+    
+    plt.xlabel(&#39;Tiempo (min)&#39;)
+    plt.ylabel(&#39;Tasa de Propagación (m/min)&#39;)
+    plt.title(&#39;Evolución de la Tasa de Propagación del Incendio&#39;)
+    plt.legend()
+    plt.grid(True)
+    
+    plt.show()</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="firebehavior_sample.calculate_ros" href="#firebehavior_sample.calculate_ros">calculate_ros</a></code></li>
+<li><code><a title="firebehavior_sample.fHROS" href="#firebehavior_sample.fHROS">fHROS</a></code></li>
+<li><code><a title="firebehavior_sample.init" href="#firebehavior_sample.init">init</a></code></li>
+<li><code><a title="firebehavior_sample.l2bAlexander1985" href="#firebehavior_sample.l2bAlexander1985">l2bAlexander1985</a></code></li>
+<li><code><a title="firebehavior_sample.l2bAnderson1983" href="#firebehavior_sample.l2bAnderson1983">l2bAnderson1983</a></code></li>
+<li><code><a title="firebehavior_sample.l2bFBP" href="#firebehavior_sample.l2bFBP">l2bFBP</a></code></li>
+<li><code><a title="firebehavior_sample.lbKITRAL" href="#firebehavior_sample.lbKITRAL">lbKITRAL</a></code></li>
+<li><code><a title="firebehavior_sample.plot_ros_vs_ffmc" href="#firebehavior_sample.plot_ros_vs_ffmc">plot_ros_vs_ffmc</a></code></li>
+<li><code><a title="firebehavior_sample.update" href="#firebehavior_sample.update">update</a></code></li>
+<li><code><a title="firebehavior_sample.update_fire" href="#firebehavior_sample.update_fire">update_fire</a></code></li>
+<li><code><a title="firebehavior_sample.update_fire_behavior" href="#firebehavior_sample.update_fire_behavior">update_fire_behavior</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
