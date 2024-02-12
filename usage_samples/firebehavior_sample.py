@@ -145,12 +145,12 @@ print(f'BROS = {bros:.3f} [m/min]\tBFI = {bfi:.3f} [kW/m]\tDB = {bdist:.3f} [m]\
 
 
 # +
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import animation, rc
-from IPython.display import HTML
+import numpy as np 
+import matplotlib.pyplot as plt 
+from matplotlib import animation, rc  
+from IPython.display import HTML  
 
-# Función para actualizar el fuego en la cuadrícula
+# Definimos una función para actualizar el estado del fuego en la cuadrícula
 def update_fire(grid, hros_t, hros_eq, hfi, cfb):
     """
     Función que actualiza la propagación del fuego en la cuadrícula.
@@ -165,46 +165,43 @@ def update_fire(grid, hros_t, hros_eq, hfi, cfb):
     Retorna:
         numpy.ndarray: Nueva cuadrícula con el estado actualizado del fuego.
     """
+    # Creamos una copia de la cuadrícula para almacenar el nuevo estado del fuego
     new_grid = np.copy(grid)
+    # Iteramos sobre cada celda en la cuadrícula
     for i in range(grid.shape[0]):
         for j in range(grid.shape[1]):
-            if grid[i, j] > 0:  # Si hay fuego en esta celda
-                # Ajustar los parámetros de propagación según las funciones dadas
-                hros_prob = hros_eq / 10  # Normalizamos HROS_eq para que esté en el rango de 0 a 1
-                hfi_factor = hfi / 1000  # Normalizamos HFI para que esté en el rango de 0 a 1
-                # Modificamos la probabilidad de propagación en la cabeza del fuego
-                hros_prob *= (cfb / 100)  # Ajustamos la probabilidad en función de cfb
-                # Modificamos la probabilidad de propagación en función de hfi
-                hros_prob *= (1 + hfi_factor)  # Incrementa la probabilidad en función de HFI Factor
+            if grid[i, j] > 0:  # Verificamos si hay fuego en la celda actual
+                # Calculamos la probabilidad de propagación del fuego en esta celda
+                hros_prob = hros_eq / 10  # Normalizamos la velocidad de propagación equivalente
+                hfi_factor = hfi / 1000  # Normalizamos la intensidad de propagación del fuego
+                hros_prob *= (cfb / 100)  # Ajustamos la probabilidad según el porcentaje de velocidad de propagación
+                hros_prob *= (1 + hfi_factor)  # Aumentamos la probabilidad en función de la intensidad de propagación
+                # Iteramos sobre las celdas vecinas para propagar el fuego
                 for di in [-1, 0, 1]:
                     for dj in [-1, 0, 1]:
+                        # Verificamos que la celda vecina esté dentro de los límites de la cuadrícula
                         if 0 <= i + di < grid.shape[0] and 0 <= j + dj < grid.shape[1]:
-                            if di == 0 and dj == 1:  # Hacia la derecha (cabeza del fuego)
-                                prob = hros_prob
-                            elif di in [-1, 1] or dj in [-1, 1]:  # Diagonal y flancos
-                                prob = fros_prob
-                            else:  # Hacia atrás y la propia celda
-                                prob = bros_prob
+                            if di == 0 and dj == 0:  # Si es la celda actual
+                                prob = hros_prob  # La probabilidad es la misma que la calculada
+                            elif di == 0 or dj == 0:  # Si es una celda adyacente horizontal o verticalmente
+                                prob = 0.02  # Probabilidad de propagación en los flancos
+                            else:  # Si es una celda adyacente diagonalmente
+                                prob = 0.05  # Probabilidad de propagación en el retroceso
+                            # Generamos un número aleatorio y comparamos con la probabilidad
                             if np.random.rand() < prob:
-                                new_grid[i + di, j + dj] = min(10, grid[i + di, j + dj] + 1)  # Incrementa la intensidad del fuego
+                                # Incrementamos la intensidad del fuego en la celda vecina
+                                new_grid[i + di, j + dj] = min(10, grid[i + di, j + dj] + 1)
+    # Retornamos la nueva cuadrícula con el estado actualizado del fuego
     return new_grid
 
-
-# Configuración inicial
+# Definimos el tamaño de la cuadrícula
 grid_size = 100
+# Creamos una cuadrícula de ceros para representar el estado inicial del fuego
 fire_grid = np.zeros((grid_size, grid_size))
-start_point = grid_size // 2
-fire_grid[start_point, start_point] = 1  # Inicia el fuego en el centro
+start_point = grid_size // 2  # Coordenadas del punto de inicio del fuego en el centro de la cuadrícula
+fire_grid[start_point, start_point] = 1  # Encendemos el fuego en el punto de inicio
 
-# Parámetros de propagación (simplificados)
-fros_prob = 0.02  # Probabilidad de propagación en los flancos
-bros_prob = 0.05  # Probabilidad de propagación en el retroceso
 
-# Parámetros secundarios
-hros_t = 6.083  # [m/min]
-hros_eq = 6.089  # [m/min]
-hfi = 3455.373  # [kW/m]
-cfb = 65.702  # [Percentage]
 
 # Configuración de la animación
 fig, ax = plt.subplots(figsize=(5, 5))
@@ -215,9 +212,9 @@ def init():
     Función de inicialización para la animación.
     Limpia el eje y muestra la cuadrícula inicial del fuego.
     """
-    ax.clear()
-    ax.imshow(fire_grid, cmap='hot', interpolation='nearest', vmin=0, vmax=10)  # Asigna la intensidad del fuego de 0 a 10
-    plt.axis('off')
+    ax.clear()  # Limpiamos el eje
+    ax.imshow(fire_grid, cmap='hot', interpolation='nearest', vmin=0, vmax=10)  # Mostramos la cuadrícula de fuego inicial
+    plt.axis('off')  # Desactivamos los ejes
 
 # Función de actualización para la animación
 def update(frame):
@@ -225,17 +222,18 @@ def update(frame):
     Función de actualización para la animación.
     Actualiza el estado del fuego en cada frame de la animación.
     """
-    global fire_grid
-    ax.clear()
-    fire_grid = update_fire(fire_grid, hros_t, hros_eq, hfi, cfb)
-    ax.imshow(fire_grid, cmap='hot', interpolation='nearest', vmin=0, vmax=10)
-    plt.axis('off')
+    global fire_grid  # Usamos la variable global para actualizar el estado del fuego
+    ax.clear()  # Limpiamos el eje
+    fire_grid = update_fire(fire_grid, hros_t, hros_eq, hfi, cfb)  # Actualizamos el estado del fuego
+    ax.imshow(fire_grid, cmap='hot', interpolation='nearest', vmin=0, vmax=10)  # Mostramos la cuadrícula actualizada
+    plt.axis('off')  # Desactivamos los ejes
 
-# Crear animación
+# Creamos la animación
 ani = animation.FuncAnimation(fig, update, frames=100, init_func=init, blit=False, interval=100, repeat=False)
 
-# Mostrar la animación
+# Mostramos la animación en formato HTML
 HTML(ani.to_jshtml())
+
 
 # +
 import numpy as np
