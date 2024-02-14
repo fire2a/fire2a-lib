@@ -151,15 +151,15 @@ from matplotlib import animation, rc
 from IPython.display import HTML  
 
 # Definimos una función para actualizar el estado del fuego en la cuadrícula
-def update_fire(grid, hros_t, hros_eq, hfi, cfb):
+def update_fire(grid, hrost, ros, fi, cfb):
     """
     Función que actualiza la propagación del fuego en la cuadrícula.
 
     Parámetros:
         grid (numpy.ndarray): Cuadrícula que representa el estado actual del fuego.
-        hros_t (float): Velocidad de propagación del fuego (m/min).
-        hros_eq (float): Velocidad de propagación del fuego equivalente (m/min).
-        hfi (float): Intensidad de la propagación del fuego (kW/m).
+        hrost (float): Velocidad de propagación del fuego (m/min).
+        ros (float): Velocidad de propagación del fuego equivalente (m/min).
+        fi (float): Intensidad de la propagación del fuego (kW/m).
         cfb (float): Porcentaje de velocidad de propagación del fuego.
 
     Retorna:
@@ -172,8 +172,8 @@ def update_fire(grid, hros_t, hros_eq, hfi, cfb):
         for j in range(grid.shape[1]):
             if grid[i, j] > 0:  # Verificamos si hay fuego en la celda actual
                 # Calculamos la probabilidad de propagación del fuego en esta celda
-                hros_prob = hros_eq / 10  # Normalizamos la velocidad de propagación equivalente
-                hfi_factor = hfi / 1000  # Normalizamos la intensidad de propagación del fuego
+                hros_prob = ros / 10  # Normalizamos la velocidad de propagación equivalente
+                hfi_factor = fi / 1000  # Normalizamos la intensidad de propagación del fuego
                 hros_prob *= (cfb / 100)  # Ajustamos la probabilidad según el porcentaje de velocidad de propagación
                 hros_prob *= (1 + hfi_factor)  # Aumentamos la probabilidad en función de la intensidad de propagación
                 # Iteramos sobre las celdas vecinas para propagar el fuego
@@ -224,7 +224,7 @@ def update(frame):
     """
     global fire_grid  # Usamos la variable global para actualizar el estado del fuego
     ax.clear()  # Limpiamos el eje
-    fire_grid = update_fire(fire_grid, hros_t, hros_eq, hfi, cfb)  # Actualizamos el estado del fuego
+    fire_grid = update_fire(fire_grid, hrost, ros, fi, cfb)  # Actualizamos el estado del fuego
     ax.imshow(fire_grid, cmap='hot', interpolation='nearest', vmin=0, vmax=10)  # Mostramos la cuadrícula actualizada
     plt.axis('off')  # Desactivamos los ejes
 
@@ -233,6 +233,37 @@ ani = animation.FuncAnimation(fig, update, frames=100, init_func=init, blit=Fals
 
 # Mostramos la animación en formato HTML
 HTML(ani.to_jshtml())
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+from ipywidgets import interact, IntSlider
+
+def plot_fire_propagation(time=0):
+    hdist = 100 + 10 * time  # Distancia de propagación hacia adelante
+    bdist = 100 + 8 * time   # Distancia de propagación hacia atrás
+    fdist = 50 + 6 * time    # Distancia de propagación lateral
+
+    # Crear una elipse basada en las distancias de propagación
+    theta = np.linspace(0, 2*np.pi, 100)
+    x = (hdist + bdist) / 2 * np.cos(theta)  # La mitad de la suma de hdist y bdist para el radio x
+    y = fdist * np.sin(theta)                # fdist para el radio y
+    
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.plot(x, y, 'r-', label='Perímetro del fuego')
+    ax.fill(x, y, 'r', alpha=0.5)
+    ax.set_xlim(-max(hdist, bdist) - 10, max(hdist, bdist) + 10)
+    ax.set_ylim(-fdist - 10, fdist + 10)
+    ax.set_xlabel('Distancia X')
+    ax.set_ylabel('Distancia Y')
+    ax.set_title('Propagación del fuego')
+    ax.legend()
+    ax.axis('equal')
+    plt.show()
+
+# Crea un control deslizante para interactuar con el tiempo
+interact(plot_fire_propagation, time=IntSlider(min=0, max=60, step=1, value=0, description='Tiempo (min):'));
 
 
 # +
