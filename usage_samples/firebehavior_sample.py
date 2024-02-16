@@ -12,6 +12,112 @@
 #     name: python3
 # ---
 
+#
+# # Análisis de Unidades 
+#
+# Función `acceleration`
+#
+# - Entradas: 
+#   - `ftype`: sin unidad.
+#   - `cfb`: adimensional, representando una proporción.
+# - Salida: 
+#   - Aceleración como coeficiente adimensional, correcto para modificar tasas de propagación en el modelo.
+#
+# Función `area`
+#
+# - Entradas: 
+#   - `dt` y `df`: en metros ($m$), adecuado para dimensiones físicas.
+# - Salida: 
+#   - Área en hectáreas ($ha$), correcto para la escala de análisis de incendios.
+#
+# Función `back_fire_behaviour` y Similar
+#
+# - Entradas:
+#   - Incluyen unidades de $kg/m^2$, $m/min$, $\%$, y adimensionales, coherentes con sus propósitos físicos o de modelado.
+# - Salida:
+#   - Tasa de propagación en $m/min$, intensidad en $kW/m$, consumo en $kg/m^2$, y clasificaciones sin unidad, todas adecuadas.
+#
+# Función `ffmc_effect`, `final_ros`, `fire_intensity`
+#
+# - Entradas:
+#   - Mezclan índices adimensionales, porcentajes, y tasas en $m/min$, que son estándar para su uso.
+# - Salidas:
+#   - Adimensionales o en unidades físicas estandarizadas ($kW/m$, $m/min$), correctas para sus respectivos cálculos.
+#
+# Función `flank_fire_behaviour`, `flank_spread_distance`, `flankfire_ros`
+#
+# - Entradas y Salidas:
+#   - Mantienen coherencia en unidades de distancia ($m$), tasa ($m/min$), consumo ($kg/m^2$), y relaciones adimensionales, adecuadas para la modelación.
+#
+# Función `foliar_moisture`, `get_fueltype_number`
+#
+# - Entradas:
+#   - Latitud, longitud en grados, elevación en $m$, y día juliano sin unidad, correcto para cálculos ambientales.
+# - Salidas:
+#   - Humedad en $\%$, y clasificaciones de combustible sin unidad, lo cual es estándar.
+#
+# ## Observaciones Generales
+#
+# Las unidades a través de las funciones analizadas están bien definidas y son coherentes con las expectativas para el modelado del comportamiento de incendios. Las conversiones de unidades (como $m^2$ a $ha$) son adecuadas para el contexto de los incendios forestales, facilitando la interpretación de los resultados. Las tasas de propagación, intensidades del fuego, y consumos de combustible usan unidades físicas estándar ($m/min$, $kW/m$, $kg/m^2$), mientras que los índices y clasificaciones son adimensionales, reflejando su naturaleza de coeficientes o factores de corrección dentro del modelo.
+#
+# En conclusión, las unidades en el código proporcionado son coherentes y aplicables al análisis de incendios forestales, asegurando que los cálculos sean relevantes y útiles para la planificación y gestión de incendios.
+#
+# ## Algunas funciones clave:
+#
+# ### Función `acceleration`
+#
+# $ \text{Aceleración} = \begin{cases} 0.115 - 18.8 \cdot cfb^{2.5} \cdot e^{-8.0 \cdot cfb}, & \text{para combustibles cerrados} \\ 0.115, & \text{para combustibles abiertos} \end{cases} $
+#
+# - **Unidades**: Sin unidades, dado que representa un coeficiente adimensional.
+#
+# ### Función `area`
+#
+# $ \text{Área} = \frac{\left( \frac{dt}{2} \right) \cdot df \cdot \pi}{10000} $
+#
+# - **Entradas**: `dt` y `df` en metros (\(m\)).
+# - **Salida**: Área en hectáreas (\(ha\)), adecuada tras la conversión de \(m^2\) a \(ha\).
+#
+# ### Función `fire_intensity`
+#
+# $ \text{FI} = 300 \cdot fc \cdot ros $
+#
+# - **Entradas**: 
+#   - `fc` en \(kg/m^2\),
+#   - `ros` en \(m/min\).
+# - **Salida**: Intensidad del fuego en \(kW/m\).
+#
+# ### Función `ffmc_effect`
+#
+# $ \text{ff} = 91.9 \cdot \exp(-0.1386 \cdot mc) \cdot \left(1 + \frac{mc^{5.31}}{49300000}\right) $
+#
+# - **Entrada**: `ffmc` como índice adimensional.
+# - **Salida**: Factor de corrección adimensional basado en `ffmc`.
+#
+# ### Función `crit_surf_intensity`
+#
+# $ \text{CSI} = 0.001 \cdot cbh^{1.5} \cdot (460 + 25.9 \cdot fmc)^{1.5} $
+#
+# - **Entradas**: 
+#   - `cbh` en metros (\(m\)),
+#   - `fmc` en porcentaje (\(\%\)).
+# - **Salida**: Intensidad crítica de la superficie en \(kW/m\).
+#
+# ### Función `perimeter`
+#
+# $ \text{Perímetro} = \frac{(hdist + bdist)}{2} \cdot \pi \cdot \left(1.0 + \frac{1.0}{lb}\right) \cdot \left(1.0 + \left(\frac{lb - 1.0}{2.0 \cdot (lb + 1.0)}\right)^2\right) $
+#
+# - **Entradas**: `hdist` y `bdist` en metros (\(m\)), `lb` adimensional.
+# - **Salida**: Perímetro en metros (\(m\)).
+#
+# ### Función `length2breadth`
+#
+# $ lb = \text{función}\left( \text{tipo de combustible, velocidad del viento} \right) $
+#
+# - **Entrada**: `ws` en \(km/h\).
+# - **Salida**: Relación longitud/ancho adimensional.
+#
+#
+
 # +
 from firebehavior import *
 import pandas as pd
