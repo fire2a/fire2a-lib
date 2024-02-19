@@ -118,11 +118,56 @@
 #
 #
 
-# +
 from firebehavior import *
 import pandas as pd
 
 
+# +
+## Análisis Dimensional
+
+# Variables tipo dict con 18 elementos (simuladas)
+a = {i: None for i in range(18)}  # a, b, c, q, bui0, CFL, CBH tienen la misma estructura
+# Simulación de un DataFrame con 8 filas y 13 columnas (Weather)
+Weather = pd.DataFrame(np.random.rand(8, 13))
+# Seleccionando una fila del DataFrame Weather como ejemplo de wdfh
+wdfh = Weather.iloc[0]
+# Variables de ejemplo para valores simples (float)
+sfc, ros, wsv, raz, isi, sfi, fmc, csi, rso, cfb, cfc, tfc, fi, ff, lb, bisi, brss, fros, ffi, ffc, elapsetime, accn, hdist, hrost, bdist, brost, fdist, rost, lbt, areaelipse, perelipse = (0.5 for _ in range(31))
+# Variable de ejemplo para 'flank_firetype' como string
+flank_firetype = "surface"
+
+# Función ajustada para imprimir las dimensiones de las variables
+def print_variable_dimensions():
+    variables = {
+        'a': a, 'b': b, 'c': c, 'q': a, 'bui0': a, 'CFL': a, 'CBH': a, 'FuelConst2': {'pc': 50, 'pdf': 35, 'gfl': 0.35, 'cur': 60},
+        'Weather': Weather, 'wdfh': wdfh, 'sfc': sfc, 'ros': ros, 'wsv': wsv, 'raz': raz, 'isi': isi, 'sfi': sfi, 'fmc': fmc,
+        'csi': csi, 'rso': rso, 'cfb': cfb, 'cfc': cfc, 'tfc': tfc, 'fi': fi, 'ff': ff, 'lb': lb, 'bisi': bisi, 'brss': brss,
+        'fros': fros, 'ffi': ffi, 'ffc': ffc, 'flank_firetype': flank_firetype, 'elapsetime': elapsetime, 'accn': accn,
+        'hdist': hdist, 'hrost': hrost, 'bdist': bdist, 'brost': brost, 'fdist': fdist, 'rost': rost, 'lbt': lbt,
+        'areaelipse': areaelipse, 'perelipse': perelipse
+    }
+
+    for var_name, var in variables.items():
+        if isinstance(var, dict):
+            # Para los diccionarios, simplemente mostramos la cantidad de claves y asumimos "1" como la segunda dimensión.
+            dim = f"{len(var)}x1"
+        elif isinstance(var, pd.DataFrame):
+            dim = f"{var.shape[0]}x{var.shape[1]}"
+        elif isinstance(var, pd.Series):
+            # Para pd.Series, mostramos "1xN" si se trata de una fila de DataFrame, de lo contrario "Nx1".
+            dim = f"1x{var.size}" if var.name is not None else f"{var.size}x1"
+        elif isinstance(var, (np.ndarray)):
+            # Para arreglos de Numpy, mostramos sus dimensiones directamente.
+            dim = 'x'.join(map(str, var.shape))
+        elif isinstance(var, (int, float, str)):
+            # Para tipos simples, indicamos que es un valor único.
+            dim = "Single value"
+        else:
+            # Para cualquier otro tipo, indicamos que el tipo es desconocido.
+            dim = "Unknown type"
+        print(f"{var_name}: Dimension = {dim}")
+
+print_variable_dimensions()
 
 # +
 ###  Inputs
@@ -248,6 +293,9 @@ print('Secondary Outputs:')
 print(f'RSO = {rso:.3f} [m/min]\tCSI = {csi:.3f} [kW/m]\tDH = {hdist:.3f} [m]\tLB = {lb:.3f} [m]')
 print(f'FROS = {fros:.3f} [m/min]\tFFI = {ffi:.3f} [kW/m]\tDF = {fdist:.3f} [m]\t\tArea = {areaelipse:.3f} [ha]')
 print(f'BROS = {bros:.3f} [m/min]\tBFI = {bfi:.3f} [kW/m]\tDB = {bdist:.3f} [m]\t\tPerimeter = {perelipse:.3f} [m]')
+
+# -
+
 
 
 # +
