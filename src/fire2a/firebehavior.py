@@ -765,3 +765,8 @@ FuelConst2 = {
     "gfl": 0.35, # Grass Fuel Load [kg/m^2]
     "cur": 60  # Percent Cured for O1a/O1b [percent]
 }
+
+"""
+Ecuaciones obtenidas desde "Development and Structure of the Canadian Forest Fire Behavior Prediction System ST-X-3"
+
+"""
