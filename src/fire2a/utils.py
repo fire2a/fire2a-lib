@@ -1,5 +1,5 @@
 #!python3
-"""👋🌎  
+"""👋🌎
 Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
@@ -79,3 +79,27 @@ def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> np.dtype:
         return np.float32
     if qgis_dtype == Qgis.DataType.Float64 or qgis_dtype == "Float64":
         return np.float64
+
+
+def getGDALdrivers():
+    from osgeo import gdal  # isort: skip # fmt: skip
+    ret = []
+    for i in range(gdal.GetDriverCount()):
+        drv = {"ShortName": gdal.GetDriver(i).GetDescription()}
+        meta = gdal.GetDriver(i).GetMetadata()
+        assert "ShortName" not in meta
+        drv.update(meta)
+        ret += [drv]
+    return ret
+
+
+def getOGRdrivers():
+    from osgeo import ogr  # isort: skip # fmt: skip
+    ret = []
+    for i in range(ogr.GetDriverCount()):
+        drv = {"ShortName": ogr.GetDriver(i).GetDescription()}
+        meta = ogr.GetDriver(i).GetMetadata()
+        assert "ShortName" not in meta
+        drv.update(meta)
+        ret += [drv]
+    return ret
