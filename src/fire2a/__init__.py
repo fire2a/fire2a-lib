@@ -16,7 +16,7 @@ __revision__ = "$Format:%H$"
 from pathlib import Path
 
 
-def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None = None):
+def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
     """Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
     Args:
         name (str, optional): Name of the logger. Defaults to \__name __. Don't change unless you know what you are doing!
