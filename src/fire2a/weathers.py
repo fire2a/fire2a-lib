@@ -1,6 +1,6 @@
 #!python3
-"""👋🌎  
-Some functions related to weather scenario creation. 
+"""👋🌎
+Some functions related to weather scenario creation.
 """
 __author__ = "Rodrigo Mahaluf-Recasens"
 __version__ = 'v0.0.1+0-gf866f08'
@@ -23,8 +23,7 @@ def re_size_durations(scenario_lengths: List[int], n_samples: int = 100) -> List
 
     Args:
         scenario_lengths (List[int]): A list of integers representing desired lengths (in hours) for each weather scenario.
-        n_samples (int): Optional integer indicating how many weather files (scenarios) will be created following the
-        distribution of 'scenario_lengths'. If not provided, defaults to 100.
+        n_samples (int): Optional integer indicating how many weather files (scenarios) will be created following the distribution of 'scenario_lengths'. If not provided, defaults to 100.
 
     Returns:
         List[int]

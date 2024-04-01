@@ -1,6 +1,9 @@
 #!python3
 """👋🌎 🌲🔥
 This is the raster module docstring
+
+List all gdal available drivers:
+$ python -c "from osgeo import gdal;print('\n'.join(sorted([gdal.GetDriver(i).GetDescription() for i in range(gdal.GetDriverCount())])))"
 """
 __author__ = "Fernando Badilla"
 __version__ = 'v0.0.1+0-gf866f08'
@@ -124,9 +127,9 @@ def get_geotransform(raster_filename: str) -> tuple[float, float, float, float, 
 
     reference: https://gdal.org/tutorials/geotransforms_tut.html
     """  # fmt: skip
-    dataset = gdal.Open(filename, gdal.GA_ReadOnly)
+    dataset = gdal.Open(raster_filename, gdal.GA_ReadOnly)
     if dataset is None:
-        raise Exception(f"Data set is None, could not open {filename}")
+        raise Exception(f"Data set is None, could not open {raster_filename}")
     return dataset.GetGeoTransform()
 
 
