@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 from osgeo import gdal, ogr
-from qgis.core import Qgis, QgsRasterLayer
+from qgis.core import QgsRasterLayer
 
 from .utils import qgis2numpy_dtype
 
@@ -104,6 +104,7 @@ def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = Tr
             "RasterXSize": dataset.RasterXSize,
             "RasterYSize": dataset.RasterYSize,
             "DataType": gdal.GetDataTypeName(raster_band.DataType),
+            "NoDataValue": raster_band.GetNoDataValue(),
         }
         if info
         else None
