@@ -1,0 +1,639 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>fire2a-lib.src.fire2a.weathers API documentation</title>
+<meta name="description" content="👋🌎
+Some functions related to weather scenario creation." />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>fire2a-lib.src.fire2a.weathers</code></h1>
+</header>
+<section id="section-intro">
+<p>👋🌎
+Some functions related to weather scenario creation.</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">#!python3
+&#34;&#34;&#34;👋🌎
+Some functions related to weather scenario creation.
+&#34;&#34;&#34;
+__author__ = &#34;Rodrigo Mahaluf-Recasens&#34;
+__version__ = &#39;v0.0.1+0-gf866f08&#39;
+__revision__ = &#34;$Format:%H$&#34;
+
+from collections import Counter
+from datetime import datetime, timedelta
+from pathlib import Path
+from random import choice, randint
+from typing import List, Optional, Union
+
+from numpy import vstack
+from numpy.random import normal
+from pandas import DataFrame
+
+
+def re_size_durations(scenario_lengths: List[int], n_samples: int = 100) -&gt; List[int]:
+    &#34;&#34;&#34;Resize a list of scenario durations to generate a new list maintaining representation
+    while considering outliers.
+
+    Args:
+        scenario_lengths (List[int]): A list of integers representing desired lengths (in hours) for each weather scenario.
+        n_samples (int): Optional integer indicating how many weather files (scenarios) will be created following the distribution of &#39;scenario_lengths&#39;. If not provided, defaults to 100.
+
+    Returns:
+        List[int]
+        A new list of durations, preserving the representation of the original list.
+
+    Raises:
+        ValueError: If &#39;scenario_lengths&#39; is not a list of integers.
+        ValueError: If &#39;n_samples&#39; is provided but not an integer.
+    &#34;&#34;&#34;
+    # Check if input is a list of integers
+    if not all(isinstance(length, int) for length in scenario_lengths):
+        raise ValueError(&#34;Input &#39;scenario_lengths&#39; must be a list of integers.&#34;)
+
+    # Check if input is a list of integers
+    if not isinstance(n_samples, int):
+        raise ValueError(&#34;Input &#39;total_samples&#39; must be an integer.&#34;)
+
+    # Calculate occurrences of each duration
+    duration_counts = Counter(scenario_lengths)
+
+    # Get the total number of scenarios
+    total_scenarios = len(scenario_lengths)
+
+    # Determine the number of items to be sampled for each duration
+    samples_per_duration = {
+        duration: min(max(int(n_samples * count / total_scenarios), 1), 10)
+        for duration, count in duration_counts.items()
+    }
+    # Generate a new list based on stratified sampling
+    new_list = []
+    for duration, count in duration_counts.items():
+        occurrences = min(count, samples_per_duration[duration])
+        new_list.extend([duration] * occurrences)
+
+    # If the new list is shorter than the required number of samples, add random durations
+    while len(new_list) &lt; n_samples:
+        new_list.append(choice(scenario_lengths))
+
+    # If the new list is longer than the required number of samples, remove random durations
+    while len(new_list) &gt; n_samples:
+        new_list.remove(choice(new_list))
+    return new_list
+
+
+def cut_weather_scenarios(
+    weather_records: DataFrame,
+    scenario_lengths: List[int],
+    output_folder: Union[Path, str] = None,
+    n_output_files: int = None,
+) -&gt; None:
+    &#34;&#34;&#34;Split weather records into smaller scenarios following specified scenario lengths. The
+    number of output weather scenarios can be customized using the &#39;n_output_files&#39; parameter.
+
+    Args:
+        weather_records (DataFrame): weather records where each row represents an hour of data.
+        scenario_lengths (List[int]): desired lengths (in hours) for each weather scenario.
+    - output_folder : Union[Path,str], optional
+        A Path object or a string representing the folder path where the output will be stored.
+        If not provided, &#39;Weathers&#39; directory will be used.
+    - n_output_files : integer, optional
+        An integer that indicates how many weather files (scenarios) will be created following the
+        distribution of &#39;weather_records&#39;.
+        If not provided, will be set to 100.
+
+    Output:
+    - write as many file as weather scenarios generated based on specified lengths.
+
+    Raises:
+    - ValueError
+        If input &#39;weather_records&#39; is not a Pandas DataFrame.
+        If input &#39;scenario_lengths&#39; is not a List of integers.
+        If input &#39;n_output_files&#39; is not an integer.
+        If any scenario length is greater than the total length of weather_records.
+    &#34;&#34;&#34;
+
+    # Check if input is a Pandas DataFrame
+    if not isinstance(weather_records, DataFrame):
+        raise ValueError(&#34;Input &#39;weather_records&#39; must be a Pandas DataFrame.&#34;)
+
+    # Check if input is a list of integers
+    if not all(isinstance(length, int) for length in scenario_lengths):
+        raise ValueError(&#34;Input &#39;scenario_lengths&#39; must be a list of integers.&#34;)
+
+    # Create a representative sample
+    sample = re_size_durations(scenario_lengths, n_output_files)
+
+    # Define the output folder
+    output_folder = output_folder if output_folder else Path(&#34;Weathers&#34;)
+    output_folder = Path(output_folder)  # Ensure output_folder is a Path object
+    output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn&#39;t exist
+
+    total_data_length = len(weather_records)
+
+    # Check if any scenario length is greater than the total data length
+    if any(length &gt; total_data_length for length in sample):
+        raise ValueError(&#34;Scenario length cannot be greater than the total length of weather records&#34;)
+
+    scenarios = []  # List to store weather scenarios
+
+    # Generate scenarios based on specified lengths
+    for index, length in enumerate(sample, start=1):
+
+        # Randomly select a start index for the scenario
+        start_index = randint(0, total_data_length - length)
+
+        # Extract the scenario based on the start index and length
+        scenario = weather_records.iloc[start_index : start_index + length]
+
+        # Save the weather scenario
+        output_path = output_folder / f&#34;Weather{index}.csv&#34;
+        scenario.to_csv(output_path, index=False)
+
+    return scenarios
+
+
+# Example usage:
+# Assuming &#39;weather_data&#39; is your DataFrame and &#39;scenario_lengths&#39; is a list of desired scenario lengths
+# weather_data = pd.read_csv(&#39;your_weather_data.csv&#39;)
+# scenario_lengths = [24, 48, 72]  # Example lengths
+# weather_scenarios = cut_weather_scenarios(weather_data, scenario_lengths)
+
+
+def random_weather_scenario_generator(
+    n_scenarios: int,
+    hr_limit: Optional[int] = None,
+    lambda_ws: Optional[float] = None,
+    lambda_wd: Optional[float] = None,
+    output_folder: Optional[str] = None,
+):
+    &#34;&#34;&#34;Generates random weather scenarios and saves them as CSV files.
+
+    Parameters:
+    - n_scenarios : int
+        Number of weather scenarios to generate.
+    - hr_limit : int, optional
+        Limit for the number of hours for each scenario (default is 72).
+    - lambda_ws : float, optional
+        Lambda parameter for wind speed variation (default is 0.5). If set to 0, all rows will have the same wind speed.
+    - lambda_wd : float, optional
+        Lambda parameter for wind direction variation (default is 0.5). If set to 0, all rows will have the same wind direction.
+    - output_folder : str, optional
+        Path to the folder where output files will be saved (default is &#39;Weathers&#39;).
+
+    Output:
+    - Saves generated weather scenarios as CSV files in the specified output folder.
+    &#34;&#34;&#34;
+    hr_limit = hr_limit if hr_limit else 72
+    lambda_ws = lambda_ws if lambda_ws else 0.5
+    lambda_wd = lambda_wd if lambda_wd else 0.5
+    output_folder = Path(output_folder) if output_folder else Path(&#34;Weathers&#34;)
+    output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn&#39;t exist
+
+    for index, _ in enumerate(range(n_scenarios), start=1):
+        n_rows = randint(5, hr_limit)
+
+        instance = [&#34;NA&#34;] * n_rows
+        fire_scenario = [2] * n_rows
+
+        wd_0 = randint(0, 359)
+        ws_0 = randint(1, 100)
+
+        wd_1 = abs(wd_0 + normal(loc=0.0, scale=30.0, size=None))
+        ws_1 = abs(ws_0 + normal(loc=0.0, scale=8.0, size=None))
+
+        ws = [ws_0, ws_1]
+        wd = [wd_0, wd_1]
+
+        dt = [(datetime.now() + timedelta(hours=i)).isoformat(timespec=&#34;minutes&#34;) for i in range(n_rows)]
+        for row in range(2, n_rows):
+            wd_i = wd[row - 1] * lambda_wd + wd[row - 2] * (1 - lambda_wd)
+            ws_i = ws[row - 1] * lambda_wd + ws[row - 2] * (1 - lambda_wd)
+
+            wd.append(wd_i)
+            ws.append(ws_i)
+
+        df = DataFrame(
+            vstack((instance, dt, wd, ws, fire_scenario)).T,
+            columns=[&#34;Instance&#34;, &#34;datetime&#34;, &#34;WD&#34;, &#34;WS&#34;, &#34;FireScenario&#34;],
+        )
+        output_path = output_folder / f&#34;weather{index}.csv&#34;
+        df.to_csv(output_path, index=False)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="fire2a-lib.src.fire2a.weathers.cut_weather_scenarios"><code class="name flex">
+<span>def <span class="ident">cut_weather_scenarios</span></span>(<span>weather_records: pandas.core.frame.DataFrame, scenario_lengths: List[int], output_folder: Union[pathlib.Path, str] = None, n_output_files: int = None) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Split weather records into smaller scenarios following specified scenario lengths. The
+number of output weather scenarios can be customized using the 'n_output_files' parameter.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>weather_records</code></strong> :&ensp;<code>DataFrame</code></dt>
+<dd>weather records where each row represents an hour of data.</dd>
+<dt><strong><code>scenario_lengths</code></strong> :&ensp;<code>List[int]</code></dt>
+<dd>desired lengths (in hours) for each weather scenario.</dd>
+</dl>
+<ul>
+<li>output_folder : Union[Path,str], optional
+A Path object or a string representing the folder path where the output will be stored.
+If not provided, 'Weathers' directory will be used.</li>
+<li>n_output_files : integer, optional
+An integer that indicates how many weather files (scenarios) will be created following the
+distribution of 'weather_records'.
+If not provided, will be set to 100.</li>
+</ul>
+<p>Output:
+- write as many file as weather scenarios generated based on specified lengths.</p>
+<p>Raises:
+- ValueError
+If input 'weather_records' is not a Pandas DataFrame.
+If input 'scenario_lengths' is not a List of integers.
+If input 'n_output_files' is not an integer.
+If any scenario length is greater than the total length of weather_records.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cut_weather_scenarios(
+    weather_records: DataFrame,
+    scenario_lengths: List[int],
+    output_folder: Union[Path, str] = None,
+    n_output_files: int = None,
+) -&gt; None:
+    &#34;&#34;&#34;Split weather records into smaller scenarios following specified scenario lengths. The
+    number of output weather scenarios can be customized using the &#39;n_output_files&#39; parameter.
+
+    Args:
+        weather_records (DataFrame): weather records where each row represents an hour of data.
+        scenario_lengths (List[int]): desired lengths (in hours) for each weather scenario.
+    - output_folder : Union[Path,str], optional
+        A Path object or a string representing the folder path where the output will be stored.
+        If not provided, &#39;Weathers&#39; directory will be used.
+    - n_output_files : integer, optional
+        An integer that indicates how many weather files (scenarios) will be created following the
+        distribution of &#39;weather_records&#39;.
+        If not provided, will be set to 100.
+
+    Output:
+    - write as many file as weather scenarios generated based on specified lengths.
+
+    Raises:
+    - ValueError
+        If input &#39;weather_records&#39; is not a Pandas DataFrame.
+        If input &#39;scenario_lengths&#39; is not a List of integers.
+        If input &#39;n_output_files&#39; is not an integer.
+        If any scenario length is greater than the total length of weather_records.
+    &#34;&#34;&#34;
+
+    # Check if input is a Pandas DataFrame
+    if not isinstance(weather_records, DataFrame):
+        raise ValueError(&#34;Input &#39;weather_records&#39; must be a Pandas DataFrame.&#34;)
+
+    # Check if input is a list of integers
+    if not all(isinstance(length, int) for length in scenario_lengths):
+        raise ValueError(&#34;Input &#39;scenario_lengths&#39; must be a list of integers.&#34;)
+
+    # Create a representative sample
+    sample = re_size_durations(scenario_lengths, n_output_files)
+
+    # Define the output folder
+    output_folder = output_folder if output_folder else Path(&#34;Weathers&#34;)
+    output_folder = Path(output_folder)  # Ensure output_folder is a Path object
+    output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn&#39;t exist
+
+    total_data_length = len(weather_records)
+
+    # Check if any scenario length is greater than the total data length
+    if any(length &gt; total_data_length for length in sample):
+        raise ValueError(&#34;Scenario length cannot be greater than the total length of weather records&#34;)
+
+    scenarios = []  # List to store weather scenarios
+
+    # Generate scenarios based on specified lengths
+    for index, length in enumerate(sample, start=1):
+
+        # Randomly select a start index for the scenario
+        start_index = randint(0, total_data_length - length)
+
+        # Extract the scenario based on the start index and length
+        scenario = weather_records.iloc[start_index : start_index + length]
+
+        # Save the weather scenario
+        output_path = output_folder / f&#34;Weather{index}.csv&#34;
+        scenario.to_csv(output_path, index=False)
+
+    return scenarios</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.weathers.normal"><code class="name flex">
+<span>def <span class="ident">normal</span></span>(<span>loc=0.0, scale=1.0, size=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Draw random samples from a normal (Gaussian) distribution.</p>
+<p>The probability density function of the normal distribution, first
+derived by De Moivre and 200 years later by both Gauss and Laplace
+independently [2]_, is often called the bell curve because of
+its characteristic shape (see the example below).</p>
+<p>The normal distributions occurs often in nature.
+For example, it
+describes the commonly occurring distribution of samples influenced
+by a large number of tiny, random disturbances, each with its own
+unique distribution [2]_.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>New code should use the <code>~numpy.random.Generator.normal</code>
+method of a <code>~numpy.random.Generator</code> instance instead;
+please see the :ref:<code>random-quick-start</code>.</p>
+</div>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>loc</code></strong> :&ensp;<code>float</code> or <code>array_like</code> of <code>floats</code></dt>
+<dd>Mean ("centre") of the distribution.</dd>
+<dt><strong><code>scale</code></strong> :&ensp;<code>float</code> or <code>array_like</code> of <code>floats</code></dt>
+<dd>Standard deviation (spread or "width") of the distribution. Must be
+non-negative.</dd>
+<dt><strong><code>size</code></strong> :&ensp;<code>int</code> or <code>tuple</code> of <code>ints</code>, optional</dt>
+<dd>Output shape.
+If the given shape is, e.g., <code>(m, n, k)</code>, then
+<code>m * n * k</code> samples are drawn.
+If size is <code>None</code> (default),
+a single value is returned if <code>loc</code> and <code>scale</code> are both scalars.
+Otherwise, <code>np.broadcast(loc, scale).size</code> samples are drawn.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>out</code></strong> :&ensp;<code>ndarray</code> or <code>scalar</code></dt>
+<dd>Drawn samples from the parameterized normal distribution.</dd>
+</dl>
+<h2 id="see-also">See Also</h2>
+<dl>
+<dt><code>scipy.stats.norm</code></dt>
+<dd>probability density function, distribution or cumulative density function, etc.</dd>
+<dt><code>random.Generator.normal</code></dt>
+<dd>which should be used for new code.</dd>
+</dl>
+<h2 id="notes">Notes</h2>
+<p>The probability density for the Gaussian distribution is</p>
+<p><span><span class="MathJax_Preview"> e^{ - \frac{ (x - \mu)^2 } {2 \sigma^2} }, </span><script type="math/tex; mode=display"> e^{ - \frac{ (x - \mu)^2 } {2 \sigma^2} }, </script></span>
+where :math:<code>\mu</code> is the mean and :math:<code>\sigma</code> the standard
+deviation. The square of the standard deviation, :math:<code>\sigma^2</code>,
+is called the variance.</p>
+<p>The function has its peak at the mean, and its "spread" increases with
+the standard deviation (the function reaches 0.607 times its maximum at
+:math:<code>x + \sigma</code> and :math:<code>x - \sigma</code> [2]_).
+This implies that
+normal is more likely to return samples lying close to the mean, rather
+than those far away.</p>
+<h2 id="references">References</h2>
+<p>.. [1] Wikipedia, "Normal distribution",
+<a href="https://en.wikipedia.org/wiki/Normal_distribution">https://en.wikipedia.org/wiki/Normal_distribution</a>
+.. [2] P. R. Peebles Jr., "Central Limit Theorem" in "Probability,
+Random Variables and Random Signal Principles", 4th ed., 2001,
+pp. 51, 51, 125.</p>
+<h2 id="examples">Examples</h2>
+<p>Draw samples from the distribution:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; mu, sigma = 0, 0.1 # mean and standard deviation
+&gt;&gt;&gt; s = np.random.normal(mu, sigma, 1000)
+</code></pre>
+<p>Verify the mean and the variance:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; abs(mu - np.mean(s))
+0.0  # may vary
+</code></pre>
+<pre><code class="language-python-repl">&gt;&gt;&gt; abs(sigma - np.std(s, ddof=1))
+0.1  # may vary
+</code></pre>
+<p>Display the histogram of the samples, along with
+the probability density function:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; import matplotlib.pyplot as plt
+&gt;&gt;&gt; count, bins, ignored = plt.hist(s, 30, density=True)
+&gt;&gt;&gt; plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) *
+...                np.exp( - (bins - mu)**2 / (2 * sigma**2) ),
+...          linewidth=2, color='r')
+&gt;&gt;&gt; plt.show()
+</code></pre>
+<p>Two-by-four array of samples from the normal distribution with
+mean 3 and standard deviation 2.5:</p>
+<pre><code class="language-python-repl">&gt;&gt;&gt; np.random.normal(3, 2.5, size=(2, 4))
+array([[-4.49401501,  4.00950034, -1.81814867,  7.29718677],   # random
+       [ 0.39924804,  4.68456316,  4.99394529,  4.84057254]])  # random
+</code></pre></div>
+</dd>
+<dt id="fire2a-lib.src.fire2a.weathers.random_weather_scenario_generator"><code class="name flex">
+<span>def <span class="ident">random_weather_scenario_generator</span></span>(<span>n_scenarios: int, hr_limit: Optional[int] = None, lambda_ws: Optional[float] = None, lambda_wd: Optional[float] = None, output_folder: Optional[str] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates random weather scenarios and saves them as CSV files.</p>
+<p>Parameters:
+- n_scenarios : int
+Number of weather scenarios to generate.
+- hr_limit : int, optional
+Limit for the number of hours for each scenario (default is 72).
+- lambda_ws : float, optional
+Lambda parameter for wind speed variation (default is 0.5). If set to 0, all rows will have the same wind speed.
+- lambda_wd : float, optional
+Lambda parameter for wind direction variation (default is 0.5). If set to 0, all rows will have the same wind direction.
+- output_folder : str, optional
+Path to the folder where output files will be saved (default is 'Weathers').</p>
+<p>Output:
+- Saves generated weather scenarios as CSV files in the specified output folder.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def random_weather_scenario_generator(
+    n_scenarios: int,
+    hr_limit: Optional[int] = None,
+    lambda_ws: Optional[float] = None,
+    lambda_wd: Optional[float] = None,
+    output_folder: Optional[str] = None,
+):
+    &#34;&#34;&#34;Generates random weather scenarios and saves them as CSV files.
+
+    Parameters:
+    - n_scenarios : int
+        Number of weather scenarios to generate.
+    - hr_limit : int, optional
+        Limit for the number of hours for each scenario (default is 72).
+    - lambda_ws : float, optional
+        Lambda parameter for wind speed variation (default is 0.5). If set to 0, all rows will have the same wind speed.
+    - lambda_wd : float, optional
+        Lambda parameter for wind direction variation (default is 0.5). If set to 0, all rows will have the same wind direction.
+    - output_folder : str, optional
+        Path to the folder where output files will be saved (default is &#39;Weathers&#39;).
+
+    Output:
+    - Saves generated weather scenarios as CSV files in the specified output folder.
+    &#34;&#34;&#34;
+    hr_limit = hr_limit if hr_limit else 72
+    lambda_ws = lambda_ws if lambda_ws else 0.5
+    lambda_wd = lambda_wd if lambda_wd else 0.5
+    output_folder = Path(output_folder) if output_folder else Path(&#34;Weathers&#34;)
+    output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn&#39;t exist
+
+    for index, _ in enumerate(range(n_scenarios), start=1):
+        n_rows = randint(5, hr_limit)
+
+        instance = [&#34;NA&#34;] * n_rows
+        fire_scenario = [2] * n_rows
+
+        wd_0 = randint(0, 359)
+        ws_0 = randint(1, 100)
+
+        wd_1 = abs(wd_0 + normal(loc=0.0, scale=30.0, size=None))
+        ws_1 = abs(ws_0 + normal(loc=0.0, scale=8.0, size=None))
+
+        ws = [ws_0, ws_1]
+        wd = [wd_0, wd_1]
+
+        dt = [(datetime.now() + timedelta(hours=i)).isoformat(timespec=&#34;minutes&#34;) for i in range(n_rows)]
+        for row in range(2, n_rows):
+            wd_i = wd[row - 1] * lambda_wd + wd[row - 2] * (1 - lambda_wd)
+            ws_i = ws[row - 1] * lambda_wd + ws[row - 2] * (1 - lambda_wd)
+
+            wd.append(wd_i)
+            ws.append(ws_i)
+
+        df = DataFrame(
+            vstack((instance, dt, wd, ws, fire_scenario)).T,
+            columns=[&#34;Instance&#34;, &#34;datetime&#34;, &#34;WD&#34;, &#34;WS&#34;, &#34;FireScenario&#34;],
+        )
+        output_path = output_folder / f&#34;weather{index}.csv&#34;
+        df.to_csv(output_path, index=False)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.weathers.re_size_durations"><code class="name flex">
+<span>def <span class="ident">re_size_durations</span></span>(<span>scenario_lengths: List[int], n_samples: int = 100) ‑> List[int]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resize a list of scenario durations to generate a new list maintaining representation
+while considering outliers.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>scenario_lengths</code></strong> :&ensp;<code>List[int]</code></dt>
+<dd>A list of integers representing desired lengths (in hours) for each weather scenario.</dd>
+<dt><strong><code>n_samples</code></strong> :&ensp;<code>int</code></dt>
+<dd>Optional integer indicating how many weather files (scenarios) will be created following the distribution of 'scenario_lengths'. If not provided, defaults to 100.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>List[int]
+A new list of durations, preserving the representation of the original list.</p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>ValueError</code></dt>
+<dd>If 'scenario_lengths' is not a list of integers.</dd>
+<dt><code>ValueError</code></dt>
+<dd>If 'n_samples' is provided but not an integer.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def re_size_durations(scenario_lengths: List[int], n_samples: int = 100) -&gt; List[int]:
+    &#34;&#34;&#34;Resize a list of scenario durations to generate a new list maintaining representation
+    while considering outliers.
+
+    Args:
+        scenario_lengths (List[int]): A list of integers representing desired lengths (in hours) for each weather scenario.
+        n_samples (int): Optional integer indicating how many weather files (scenarios) will be created following the distribution of &#39;scenario_lengths&#39;. If not provided, defaults to 100.
+
+    Returns:
+        List[int]
+        A new list of durations, preserving the representation of the original list.
+
+    Raises:
+        ValueError: If &#39;scenario_lengths&#39; is not a list of integers.
+        ValueError: If &#39;n_samples&#39; is provided but not an integer.
+    &#34;&#34;&#34;
+    # Check if input is a list of integers
+    if not all(isinstance(length, int) for length in scenario_lengths):
+        raise ValueError(&#34;Input &#39;scenario_lengths&#39; must be a list of integers.&#34;)
+
+    # Check if input is a list of integers
+    if not isinstance(n_samples, int):
+        raise ValueError(&#34;Input &#39;total_samples&#39; must be an integer.&#34;)
+
+    # Calculate occurrences of each duration
+    duration_counts = Counter(scenario_lengths)
+
+    # Get the total number of scenarios
+    total_scenarios = len(scenario_lengths)
+
+    # Determine the number of items to be sampled for each duration
+    samples_per_duration = {
+        duration: min(max(int(n_samples * count / total_scenarios), 1), 10)
+        for duration, count in duration_counts.items()
+    }
+    # Generate a new list based on stratified sampling
+    new_list = []
+    for duration, count in duration_counts.items():
+        occurrences = min(count, samples_per_duration[duration])
+        new_list.extend([duration] * occurrences)
+
+    # If the new list is shorter than the required number of samples, add random durations
+    while len(new_list) &lt; n_samples:
+        new_list.append(choice(scenario_lengths))
+
+    # If the new list is longer than the required number of samples, remove random durations
+    while len(new_list) &gt; n_samples:
+        new_list.remove(choice(new_list))
+    return new_list</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="fire2a-lib.src.fire2a" href="index.html">fire2a-lib.src.fire2a</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.weathers.cut_weather_scenarios" href="#fire2a-lib.src.fire2a.weathers.cut_weather_scenarios">cut_weather_scenarios</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.weathers.normal" href="#fire2a-lib.src.fire2a.weathers.normal">normal</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.weathers.random_weather_scenario_generator" href="#fire2a-lib.src.fire2a.weathers.random_weather_scenario_generator">random_weather_scenario_generator</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.weathers.re_size_durations" href="#fire2a-lib.src.fire2a.weathers.re_size_durations">re_size_durations</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
