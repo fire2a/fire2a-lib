@@ -96,6 +96,12 @@ def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = Tr
     raster_band = dataset.GetRasterBand(band)
     data_output = raster_band.ReadAsArray() if data else None
 
+    if info:
+        rmin = raster_band.GetMinimum()
+        rmax = raster_band.GetMaximum()
+        if not rmin or not rmax:
+            (rmin, rmax) = raster_band.ComputeRasterMinMax(True)
+
     info_output = (
         {
             "Transform": dataset.GetGeoTransform(),
@@ -105,6 +111,8 @@ def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = Tr
             "RasterYSize": dataset.RasterYSize,
             "DataType": gdal.GetDataTypeName(raster_band.DataType),
             "NoDataValue": raster_band.GetNoDataValue(),
+            "Minimum": rmin,
+            "Maximum": rmax,
         }
         if info
         else None
