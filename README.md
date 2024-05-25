@@ -58,6 +58,7 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
+# choose your hook
 cp hooks/* .git/hooks/.
 chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
