@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>fire2a-lib.src.fire2a.firebreaks API documentation</title>
-<meta name="description" content="A Cell2Fire-W simulator firebreak.csv file is a one row csv with values identifying the unburnable cells.
-Cells are identified by their cell number, …" />
+<meta name="description" content="To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -24,66 +23,78 @@ Cells are identified by their cell number, …" />
 <h1 class="title">Module <code>fire2a-lib.src.fire2a.firebreaks</code></h1>
 </header>
 <section id="section-intro">
-<p>A Cell2Fire-W simulator firebreak.csv file is a one row csv with values identifying the unburnable cells.
-Cells are identified by their cell number, starting from 1. See fire2a.raster.xy2id and add 1
-Headers are: Year, Ncell</p>
-<p>Example: The topleft cell and the one below is a firebreak (in a 80 pixels width raster)
-Year,Ncell
-1,1,81</p>
-<p>CFW-W only supports single year, so Year,1 is always the first column.</p>
-<p>Use QGIS to draw firebreaks on a raster layer and export the firebreaks to a csv file for CF2-W
-Requires:
-- QGIS
-- Serval QGIS plugin, check the manual here: <a href="https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md">https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md</a>
-- A raster layer loaded in QGIS</p>
-<p>How To:
-1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster
-2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks
-3. The script will create a csv file with the firebreaks
-4. Run C2F-W with the firebreaks csv file:</p>
+<p>To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.</p>
+<p>Cell2Fire-W simulator features placing firebreaks (that internally are represented as unburnable cells); making it easier than to manually create a new fuels raster for every firebreak experiment/simulation.</p>
+<p>This is done by appending a <code>.csv</code> file to the simulation command. For example: <code>--FirebreakCells fbv.csv</code>, containing:</p>
+<pre><code>    Year,Ncell
+    1,1,81,161,162
+</code></pre>
+<p>Values represents an "L" shaped firebreak: topleft cell is 1, the one below 81, below 161, to the right 162. (in a 80 pixels width raster)</p>
+<p>Headers are: Year, Ncell.<br>
+The first column always is Year, 1 (as CFW-W only supports one fire before resetting the landscape).<br>
+Unburnable values are placed as a row of cells id (starting from 1)</p>
+<p>Requires:<br>
+- QGIS<br>
+- Serval QGIS plugin, check the manual here: <a href="https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md">https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md</a><br>
+- A raster layer loaded in QGIS
+</p>
+<p>Steps:<br>
+1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster<br>
+2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks<br>
+3. The script will create a csv file with the firebreaks<br>
+4. Run C2F-W with the firebreaks csv file:
+</p>
 <pre><code>$ cd /path/to/instance
 $ rm -f Data.csv
 $ rm -fr result_wFirebreaks
 $ mkdir result_wFirebreaks
-$ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells firebreak.csv | tee result_wFirebreaks/LogFile.txt
+$ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells fbv.csv | tee result_wFirebreaks/LogFile.txt
 </code></pre>
-<p>Or append the fullpath to the firebreaks.csv file to the Advanced Parameters in the GUI as: &ndash;FirebreakCells /full/path/firebreaks.csv</p>
+<p>Or append the fullpath to the <code>fbv.csv</code> file to the Advanced Parameters in the GUI as: <code>--FirebreakCells /full/path/fbv.csv</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!python
+# fmt: off
 &#34;&#34;&#34;
-A Cell2Fire-W simulator firebreak.csv file is a one row csv with values identifying the unburnable cells.
-Cells are identified by their cell number, starting from 1. See fire2a.raster.xy2id and add 1
-Headers are: Year, Ncell
+To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.
 
-Example: The topleft cell and the one below is a firebreak (in a 80 pixels width raster)
+Cell2Fire-W simulator features placing firebreaks (that internally are represented as unburnable cells); making it easier than to manually create a new fuels raster for every firebreak experiment/simulation.
+
+This is done by appending a `.csv` file to the simulation command. For example: `--FirebreakCells fbv.csv`, containing:
+
         Year,Ncell
-        1,1,81
+        1,1,81,161,162
 
-CFW-W only supports single year, so Year,1 is always the first column.
+Values represents an &#34;L&#34; shaped firebreak: topleft cell is 1, the one below 81, below 161, to the right 162. (in a 80 pixels width raster)
 
-Use QGIS to draw firebreaks on a raster layer and export the firebreaks to a csv file for CF2-W
-Requires:
- - QGIS
- - Serval QGIS plugin, check the manual here: https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md
- - A raster layer loaded in QGIS
+Headers are: Year, Ncell.  
+The first column always is Year, 1 (as CFW-W only supports one fire before resetting the landscape).  
+Unburnable values are placed as a row of cells id (starting from 1)
 
-How To:
-1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster
-2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks
-3. The script will create a csv file with the firebreaks
-4. Run C2F-W with the firebreaks csv file:
+Requires:  
+ - QGIS  
+ - Serval QGIS plugin, check the manual here: https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md  
+ - A raster layer loaded in QGIS  
+
+Steps:  
+1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster  
+2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks  
+3. The script will create a csv file with the firebreaks  
+4. Run C2F-W with the firebreaks csv file:  
 
     $ cd /path/to/instance
     $ rm -f Data.csv
     $ rm -fr result_wFirebreaks
     $ mkdir result_wFirebreaks
-    $ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells firebreak.csv | tee result_wFirebreaks/LogFile.txt
+    $ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells fbv.csv | tee result_wFirebreaks/LogFile.txt
 
-Or append the fullpath to the firebreaks.csv file to the Advanced Parameters in the GUI as: --FirebreakCells /full/path/firebreaks.csv
+Or append the fullpath to the `fbv.csv` file to the Advanced Parameters in the GUI as: `--FirebreakCells /full/path/fbv.csv`
 &#34;&#34;&#34;
+# fmt: on
+
+from pathlib import Path
 
 from numpy import array, where
 from qgis.core import QgsRasterLayer
@@ -91,22 +102,21 @@ from qgis.core import QgsRasterLayer
 from fire2a.raster import get_rlayer_data, xy2id
 
 
-def write_firebreak_csv_from_qgis_raster(
-    layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str = &#34;firebreaks.csv&#34;
-):
-    &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer
+def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;):
+    &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer  
+    Usage cli argument `--FirebreakCells firebreaks.csv`
+
     Args:
         layer (QgsRasterLayer): A QGIS raster layer, default is the active layer
         firebreak_val (int): The value used to identify the firebreaks, default is 666
-        output_file (str | Path): The path to the output csv file, default is firebreaks.csv
-    Returns:
-        None
-    Raises:
-        None
-    QGIS Console Example:
-        layer = iface.activeLayer()
+        output_file (str or Path): The path to the output csv file, default is firebreaks.csv
+
+    QGIS Console Example:  
+    ```
+        layer = iface.activeLayer()  
         write_firebreak_csv_from_qgis_raster(layer)
-    &#34;&#34;&#34;
+    ```
+    &#34;&#34;&#34; # fmt: skip
     width = layer.width()
     data = get_rlayer_data(layer)
 
@@ -127,46 +137,45 @@ def write_firebreak_csv_from_qgis_raster(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.src.fire2a.firebreaks.write_firebreak_csv_from_qgis_raster"><code class="name flex">
-<span>def <span class="ident">write_firebreak_csv_from_qgis_raster</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str = 'firebreaks.csv')</span>
+<dt id="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv"><code class="name flex">
+<span>def <span class="ident">raster_layer_to_csv</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str | pathlib.Path = 'firebreaks.csv')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer</p>
+<div class="desc"><p>Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer<br>
+Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>layer</code></strong> :&ensp;<code>QgsRasterLayer</code></dt>
 <dd>A QGIS raster layer, default is the active layer</dd>
 <dt><strong><code>firebreak_val</code></strong> :&ensp;<code>int</code></dt>
 <dd>The value used to identify the firebreaks, default is 666</dd>
+<dt><strong><code>output_file</code></strong> :&ensp;<code>str</code> or <code>Path</code></dt>
+<dd>The path to the output csv file, default is firebreaks.csv</dd>
 </dl>
-<p>output_file (str | Path): The path to the output csv file, default is firebreaks.csv</p>
-<h2 id="returns">Returns</h2>
-<p>None</p>
-<h2 id="raises">Raises</h2>
-<p>None
-QGIS Console Example:
-layer = iface.activeLayer()
-write_firebreak_csv_from_qgis_raster(layer)</p></div>
+<p>QGIS Console Example:
+</p>
+<pre><code>    layer = iface.activeLayer()  
+    write_firebreak_csv_from_qgis_raster(layer)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def write_firebreak_csv_from_qgis_raster(
-    layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str = &#34;firebreaks.csv&#34;
-):
-    &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer
+<pre><code class="python">def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;):
+    &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer  
+    Usage cli argument `--FirebreakCells firebreaks.csv`
+
     Args:
         layer (QgsRasterLayer): A QGIS raster layer, default is the active layer
         firebreak_val (int): The value used to identify the firebreaks, default is 666
-        output_file (str | Path): The path to the output csv file, default is firebreaks.csv
-    Returns:
-        None
-    Raises:
-        None
-    QGIS Console Example:
-        layer = iface.activeLayer()
+        output_file (str or Path): The path to the output csv file, default is firebreaks.csv
+
+    QGIS Console Example:  
+    ```
+        layer = iface.activeLayer()  
         write_firebreak_csv_from_qgis_raster(layer)
-    &#34;&#34;&#34;
+    ```
+    &#34;&#34;&#34; # fmt: skip
     width = layer.width()
     data = get_rlayer_data(layer)
 
@@ -198,7 +207,7 @@ write_firebreak_csv_from_qgis_raster(layer)</p></div>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.src.fire2a.firebreaks.write_firebreak_csv_from_qgis_raster" href="#fire2a-lib.src.fire2a.firebreaks.write_firebreak_csv_from_qgis_raster">write_firebreak_csv_from_qgis_raster</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv" href="#fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv">raster_layer_to_csv</a></code></li>
 </ul>
 </li>
 </ul>
