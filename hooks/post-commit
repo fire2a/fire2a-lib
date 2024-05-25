@@ -1,4 +1,4 @@
 #!/bin/bash
-echo "Version number now is $(python -m setuptools_scm --version)"
+echo "Version number now is $(python -m setuptools_scm)"
 echo "Local update by running pip install -e ."
 cp src/fire2a/_version.py src/fire2template/_version.py
