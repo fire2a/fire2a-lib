@@ -45,7 +45,9 @@ from qgis.core import QgsRasterLayer
 from fire2a.raster import get_rlayer_data, xy2id
 
 
-def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = "firebreaks.csv"):
+def raster_layer_to_firebreak_csv(
+    layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = "firebreaks.csv"
+):
     """Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer  
     Usage cli argument `--FirebreakCells firebreaks.csv`
 
@@ -57,7 +59,10 @@ def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_
     QGIS Console Example:  
     ```
         layer = iface.activeLayer()  
-        write_firebreak_csv_from_qgis_raster(layer)
+        from fire2a.firebreaks import raster_layer_to_firebreak_csv
+        raster_layer_to_firebreak_csv(layer)
+        import processing
+        processing.run("fire2a:cell2firesimulator", ...
     ```
     """ # fmt: skip
     width = layer.width()
