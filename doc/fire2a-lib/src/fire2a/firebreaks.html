@@ -102,7 +102,9 @@ from qgis.core import QgsRasterLayer
 from fire2a.raster import get_rlayer_data, xy2id
 
 
-def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;):
+def raster_layer_to_firebreak_csv(
+    layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;
+):
     &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer  
     Usage cli argument `--FirebreakCells firebreaks.csv`
 
@@ -114,7 +116,10 @@ def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_
     QGIS Console Example:  
     ```
         layer = iface.activeLayer()  
-        write_firebreak_csv_from_qgis_raster(layer)
+        from fire2a.firebreaks import raster_layer_to_firebreak_csv
+        raster_layer_to_firebreak_csv(layer)
+        import processing
+        processing.run(&#34;fire2a:cell2firesimulator&#34;, ...
     ```
     &#34;&#34;&#34; # fmt: skip
     width = layer.width()
@@ -137,8 +142,8 @@ def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv"><code class="name flex">
-<span>def <span class="ident">raster_layer_to_csv</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str | pathlib.Path = 'firebreaks.csv')</span>
+<dt id="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv"><code class="name flex">
+<span>def <span class="ident">raster_layer_to_firebreak_csv</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str | pathlib.Path = 'firebreaks.csv')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer<br>
@@ -155,13 +160,18 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
 <p>QGIS Console Example:
 </p>
 <pre><code>    layer = iface.activeLayer()  
-    write_firebreak_csv_from_qgis_raster(layer)
+    from fire2a.firebreaks import raster_layer_to_firebreak_csv
+    raster_layer_to_firebreak_csv(layer)
+    import processing
+    processing.run(&quot;fire2a:cell2firesimulator&quot;, ...
 </code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def raster_layer_to_csv(layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;):
+<pre><code class="python">def raster_layer_to_firebreak_csv(
+    layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = &#34;firebreaks.csv&#34;
+):
     &#34;&#34;&#34;Write a (Cell2)Fire Simulator (C2F-W) firebreak csv file from a QGIS raster layer  
     Usage cli argument `--FirebreakCells firebreaks.csv`
 
@@ -173,7 +183,10 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
     QGIS Console Example:  
     ```
         layer = iface.activeLayer()  
-        write_firebreak_csv_from_qgis_raster(layer)
+        from fire2a.firebreaks import raster_layer_to_firebreak_csv
+        raster_layer_to_firebreak_csv(layer)
+        import processing
+        processing.run(&#34;fire2a:cell2firesimulator&#34;, ...
     ```
     &#34;&#34;&#34; # fmt: skip
     width = layer.width()
@@ -207,7 +220,7 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv" href="#fire2a-lib.src.fire2a.firebreaks.raster_layer_to_csv">raster_layer_to_csv</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv" href="#fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv">raster_layer_to_firebreak_csv</a></code></li>
 </ul>
 </li>
 </ul>
