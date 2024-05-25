@@ -20,7 +20,7 @@ from importlib_metadata import PackageNotFoundError, distribution
 logger = logging.getLogger(__name__)
 
 try:
-    __version__ = distribution("my-project-name").version
+    __version__ = distribution("fire2a-lib").version
     version_from = "importlib_metadata"
 except PackageNotFoundError:
     if (Path(__file__).parent / "_version.py").exists():
