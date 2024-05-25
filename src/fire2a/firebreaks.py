@@ -1,4 +1,6 @@
 #!python
+__author__ = "Fernando Badilla"
+__revision__ = "$Format:%H$"
 # fmt: off
 """
 To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.

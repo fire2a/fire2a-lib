@@ -58,7 +58,7 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
-# choose your hook
+# choose your hook [if any, very optional]
 cp hooks/* .git/hooks/.
 chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
@@ -95,6 +95,22 @@ if [ -d doc/fire2a-lib ]; then
     rm -r doc/fire2a-lib
 fi
 pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+```
+
+### Build and versioning
+```bash
+# clean (-n is dry-run, remove to delete)
+git clean -dfX -n
+
+# tag
+git tag -a v1.2.3 -m 'message'
+git push origin v1.2.3
+
+# view calculated version to check is not dirty
+python -m setuptools_scm
+
+# build : creates `dist` with .whl & tar.gz files
+python -m build
 ```
 
 ### Uninstall

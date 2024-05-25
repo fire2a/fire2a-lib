@@ -3,7 +3,6 @@
 Some functions related to kitral weather scenario creation.
 """
 __author__ = "Caro"
-__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"
 
 from datetime import timedelta

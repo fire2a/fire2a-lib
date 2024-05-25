@@ -1,4 +1,3 @@
--r requirements.txt
 pdoc3
 qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git
 

@@ -8,4 +8,4 @@ pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True
 
 # Add the modified files to the commit
 git add doc/fire2a-lib/*
-git commit --amend --no-edit
+git commit -m "Update documentation"
