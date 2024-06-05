@@ -44,7 +44,7 @@ from pathlib import Path
 from numpy import array, where
 from qgis.core import QgsRasterLayer
 
-from fire2a.raster import get_rlayer_data, xy2id
+from .raster import get_rlayer_data, xy2id
 
 
 def raster_layer_to_firebreak_csv(
@@ -57,6 +57,14 @@ def raster_layer_to_firebreak_csv(
         layer (QgsRasterLayer): A QGIS raster layer, default is the active layer
         firebreak_val (int): The value used to identify the firebreaks, default is 666
         output_file (str or Path): The path to the output csv file, default is firebreaks.csv
+
+    QGIS Desktop Example:
+        A. Use the 'Create constant raster layer' tool to create a with the same extent extent, crs and pixel size than the fuels raster layer.
+            Recommended: 
+                constant value = 0, and (Advanced Parameters) output raster data type = Byte
+        B. Use the 'raster calculator' with a base layer and 0 in the formula
+        Use 'Serval' tool to draw the firebreaks on the new raster layer (values =1).
+            Reload or save as to see changes
 
     QGIS Console Example:  
     ```
