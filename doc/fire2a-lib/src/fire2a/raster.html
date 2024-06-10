@@ -41,7 +41,6 @@ List all gdal available drivers:
 $ python -c &#34;from osgeo import gdal;print(&#39;\n&#39;.join(sorted([gdal.GetDriver(i).GetDescription() for i in range(gdal.GetDriverCount())])))&#34;
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;v0.0.1+0-gf866f08&#39;
 __revision__ = &#34;$Format:%H$&#34;
 
 import logging

@@ -33,7 +33,7 @@
 Previous Read Data Prometheus
 &#34;&#34;&#34;
 __author__ = &#34;David Palacios Meneses&#34;
-__version__ = &#39;v0.0.1+0-gf866f08&#39;
+__revision__ = &#34;$Format:%H$&#34;
 
 from pathlib import Path
 
@@ -176,156 +176,180 @@ def ForestGrid(filename: str, Lookupdict: dict) -&gt; tuple[(list, list, int, in
 
                 if r == 0:
                     if c == 0:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: None,
-                            East: [n + 1],
-                            West: None,
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
                         n += 1
                     if c == tcols - 2:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: None,
-                            SouthWest: [n + tcols - 2],
-                            East: None,
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: None,
+                                SouthWest: [n + tcols - 2],
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
                     if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: [n + tcols - 2],
-                            East: [n + 1],
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: [n + tcols - 2],
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
 
                 if r &gt; 0 and r &lt; len(grid) - 1:
                     if c == 0:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: None,
-                            East: [n + 1],
-                            West: None,
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
                         n += 1
                     if c == tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: None,
-                            NorthWest: [n - tcols],
-                            South: [n + tcols - 1],
-                            SouthEast: None,
-                            SouthWest: [n + tcols - 2],
-                            East: None,
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: None,
+                                NorthWest: [n - tcols],
+                                South: [n + tcols - 1],
+                                SouthEast: None,
+                                SouthWest: [n + tcols - 2],
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
                     if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: [n - tcols],
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: [n + tcols - 2],
-                            East: [n + 1],
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: [n - tcols],
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: [n + tcols - 2],
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
 
                 if r == len(grid) - 1:
                     if c == 0:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: None,
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
+                        n += 1
+
+                    if c == tcols - 2:
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: None,
+                                NorthWest: [n - tcols],
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
+                        n += 1
+
+                    if c &gt; 0 and c &lt; tcols - 2:
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: [n - tcols],
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
+                        n += 1
+
+            if len(grid) == 1:
+                if c == 0:
+                    AdjCells.append(
+                        {
+                            North: None,
+                            NorthEast: None,
                             NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: [n + 1],
                             West: None,
-                        })
-                        n += 1
-
-                    if c == tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
+                        }
+                    )
+                    n += 1
+                if c == tcols - 2:
+                    AdjCells.append(
+                        {
+                            North: None,
                             NorthEast: None,
-                            NorthWest: [n - tcols],
+                            NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: None,
                             West: [n - 1],
-                        })
-                        n += 1
-
-                    if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: [n - tcols],
+                        }
+                    )
+                    n += 1
+                if c &gt; 0 and c &lt; tcols - 2:
+                    AdjCells.append(
+                        {
+                            North: None,
+                            NorthEast: None,
+                            NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: [n + 1],
                             West: [n - 1],
-                        })
-                        n += 1
-
-            if len(grid) == 1:
-                if c == 0:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: [n + 1],
-                        West: None,
-                    })
-                    n += 1
-                if c == tcols - 2:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: None,
-                        West: [n - 1],
-                    })
-                    n += 1
-                if c &gt; 0 and c &lt; tcols - 2:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: [n + 1],
-                        West: [n - 1],
-                    })
+                        }
+                    )
                     n += 1
 
     return gridcell3, gridcell4, len(grid), tcols - 1, AdjCells, CoordCells, cellsize
@@ -818,156 +842,180 @@ elevation, ascpect, slope, curing, canopy bulk density, crown base height, conif
 
                 if r == 0:
                     if c == 0:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: None,
-                            East: [n + 1],
-                            West: None,
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
                         n += 1
                     if c == tcols - 2:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: None,
-                            SouthWest: [n + tcols - 2],
-                            East: None,
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: None,
+                                SouthWest: [n + tcols - 2],
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
                     if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: None,
-                            NorthEast: None,
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: [n + tcols - 2],
-                            East: [n + 1],
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: None,
+                                NorthEast: None,
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: [n + tcols - 2],
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
 
                 if r &gt; 0 and r &lt; len(grid) - 1:
                     if c == 0:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: None,
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: None,
-                            East: [n + 1],
-                            West: None,
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: None,
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
                         n += 1
                     if c == tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: None,
-                            NorthWest: [n - tcols],
-                            South: [n + tcols - 1],
-                            SouthEast: None,
-                            SouthWest: [n + tcols - 2],
-                            East: None,
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: None,
+                                NorthWest: [n - tcols],
+                                South: [n + tcols - 1],
+                                SouthEast: None,
+                                SouthWest: [n + tcols - 2],
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
                     if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: [n - tcols],
-                            South: [n + tcols - 1],
-                            SouthEast: [n + tcols],
-                            SouthWest: [n + tcols - 2],
-                            East: [n + 1],
-                            West: [n - 1],
-                        })
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: [n - tcols],
+                                South: [n + tcols - 1],
+                                SouthEast: [n + tcols],
+                                SouthWest: [n + tcols - 2],
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
                         n += 1
 
                 if r == len(grid) - 1:
                     if c == 0:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: None,
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: None,
+                            }
+                        )
+                        n += 1
+
+                    if c == tcols - 2:
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: None,
+                                NorthWest: [n - tcols],
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: None,
+                                West: [n - 1],
+                            }
+                        )
+                        n += 1
+
+                    if c &gt; 0 and c &lt; tcols - 2:
+                        AdjCells.append(
+                            {
+                                North: [n - tcols + 1],
+                                NorthEast: [n - tcols + 2],
+                                NorthWest: [n - tcols],
+                                South: None,
+                                SouthEast: None,
+                                SouthWest: None,
+                                East: [n + 1],
+                                West: [n - 1],
+                            }
+                        )
+                        n += 1
+
+            if len(grid) == 1:
+                if c == 0:
+                    AdjCells.append(
+                        {
+                            North: None,
+                            NorthEast: None,
                             NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: [n + 1],
                             West: None,
-                        })
-                        n += 1
-
-                    if c == tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
+                        }
+                    )
+                    n += 1
+                if c == tcols - 2:
+                    AdjCells.append(
+                        {
+                            North: None,
                             NorthEast: None,
-                            NorthWest: [n - tcols],
+                            NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: None,
                             West: [n - 1],
-                        })
-                        n += 1
-
-                    if c &gt; 0 and c &lt; tcols - 2:
-                        AdjCells.append({
-                            North: [n - tcols + 1],
-                            NorthEast: [n - tcols + 2],
-                            NorthWest: [n - tcols],
+                        }
+                    )
+                    n += 1
+                if c &gt; 0 and c &lt; tcols - 2:
+                    AdjCells.append(
+                        {
+                            North: None,
+                            NorthEast: None,
+                            NorthWest: None,
                             South: None,
                             SouthEast: None,
                             SouthWest: None,
                             East: [n + 1],
                             West: [n - 1],
-                        })
-                        n += 1
-
-            if len(grid) == 1:
-                if c == 0:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: [n + 1],
-                        West: None,
-                    })
-                    n += 1
-                if c == tcols - 2:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: None,
-                        West: [n - 1],
-                    })
-                    n += 1
-                if c &gt; 0 and c &lt; tcols - 2:
-                    AdjCells.append({
-                        North: None,
-                        NorthEast: None,
-                        NorthWest: None,
-                        South: None,
-                        SouthEast: None,
-                        SouthWest: None,
-                        East: [n + 1],
-                        West: [n - 1],
-                    })
+                        }
+                    )
                     n += 1
 
     return gridcell3, gridcell4, len(grid), tcols - 1, AdjCells, CoordCells, cellsize</code></pre>

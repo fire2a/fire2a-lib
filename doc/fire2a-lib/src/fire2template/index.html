@@ -48,13 +48,31 @@ More info on:
     www.fire2a.com  
 &#34;&#34;&#34;  # fmt: skip
 __author__ = &#34;Fernando Badilla&#34;
-__version__ = &#39;v0.0.1+0-gf866f08&#39;
 __revision__ = &#34;$Format:%H$&#34;
 
+import logging
 from pathlib import Path
 
+from importlib_metadata import PackageNotFoundError, distribution
 
-def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None = None):
+logger = logging.getLogger(__name__)
+
+try:
+    __version__ = distribution(&#34;fire2a&#34;).version
+    version_from = &#34;importlib_metadata&#34;
+except PackageNotFoundError:
+    if (Path(__file__).parent / &#34;_version.py&#34;).exists():
+        from ._version import __version__
+
+        version_from = &#34;_version.py&#34;
+    else:
+        __version__ = &#34;0.0.0&#34;
+        version_from = &#34;fallback&#34;
+
+logger.warning(&#34;%s Package version: %s, from %s&#34;, __name__, __version__, version_from)
+
+
+def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
     &#34;&#34;&#34;Capture the logger and setup name, verbosity, stream handler &amp; rotating logfile if provided.
     Args:
         name (str, optional): Name of the logger. Defaults to \__name __. Don&#39;t change unless you know what you are doing!
@@ -66,22 +84,24 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None 
     ## Developers implementing their own logger
         * All fire2a modules uses `logger = logging.getLogger(__name__)`
 
-        * Reuse this logging setup as shown in `usage_template/template.ipynb`
-    ## typical usage
+    # Regular Usage Guideline  
     logging.critical(&#34;Something went wrong, exception info?&#34;, exc_info=True)  
     logging.error(&#34;Something went wrong, but we keep going?&#34;)  
     logging.warning(&#34;Default message level&#34;)  
     logging.info(&#34;Something planned happened&#34;)  
     logging.debug(&#34;Details of the planned thing that happened&#34;)  
+    print(&#34;Normal program output, not logged&#34;)
     &#34;&#34;&#34;  # fmt: skip
-    import logging
     import sys
 
+    # Capture the logger
     logger = logging.getLogger(name)
     # Create a stream handler
     stream_handler = logging.StreamHandler(sys.stdout)
     # Create a rotating file handler
     if logfile:
+        from logging.handlers import RotatingFileHandler
+
         rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
     # Set the log level
     if verbosity == 0:
@@ -96,7 +116,7 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None 
         rf_handler.setLevel(level)
     # formatter
     formatter = logging.Formatter(
-        &#34;%(asctime)s %(levelname)s %(name)s:%(lineno)d %(message)s&#34;, datefmt=&#34;%Y-%m-%d %H:%M:%S&#34;
+        &#34;%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s&#34;, datefmt=&#34;%Y-%m-%d %H:%M:%S&#34;
     )
     stream_handler.setFormatter(formatter)
     if logfile:
@@ -105,6 +125,7 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None 
     logger.addHandler(stream_handler)
     if logfile:
         logger.addHandler(rf_handler)
+    logger.warning(&#34;Logger initialized @level %s&#34;, logging.getLevelName(level))
     return logger</code></pre>
 </details>
 </section>
@@ -127,7 +148,7 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None 
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="fire2a-lib.src.fire2template.setup_logger"><code class="name flex">
-<span>def <span class="ident">setup_logger</span></span>(<span>name: str = 'fire2a-lib.src.fire2template', verbosity: int = 0, logfile: pathlib.Path | None = None)</span>
+<span>def <span class="ident">setup_logger</span></span>(<span>name: str = 'fire2a-lib.src.fire2template', verbosity: int = 0, logfile: pathlib.Path = None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Capture the logger and setup name, verbosity, stream handler &amp; rotating logfile if provided.</p>
@@ -144,20 +165,19 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None 
 </p>
 <h2 id="developers-implementing-their-own-logger">Developers implementing their own logger</h2>
 <pre><code>* All fire2a modules uses `logger = logging.getLogger(__name__)`
-
-* Reuse this logging setup as shown in `usage_template/template.ipynb`
 </code></pre>
-<h2 id="typical-usage">typical usage</h2>
+<h1 id="regular-usage-guideline">Regular Usage Guideline</h1>
 <p>logging.critical("Something went wrong, exception info?", exc_info=True)<br>
 logging.error("Something went wrong, but we keep going?")<br>
 logging.warning("Default message level")<br>
 logging.info("Something planned happened")<br>
-logging.debug("Details of the planned thing that happened")</p></div>
+logging.debug("Details of the planned thing that happened")<br>
+print("Normal program output, not logged")</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path | None = None):
+<pre><code class="python">def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
     &#34;&#34;&#34;Capture the logger and setup name, verbosity, stream handler &amp; rotating logfile if provided.
     Args:
         name (str, optional): Name of the logger. Defaults to \__name __. Don&#39;t change unless you know what you are doing!
@@ -169,22 +189,24 @@ logging.debug("Details of the planned thing that happened")</p></div>
     ## Developers implementing their own logger
         * All fire2a modules uses `logger = logging.getLogger(__name__)`
 
-        * Reuse this logging setup as shown in `usage_template/template.ipynb`
-    ## typical usage
+    # Regular Usage Guideline  
     logging.critical(&#34;Something went wrong, exception info?&#34;, exc_info=True)  
     logging.error(&#34;Something went wrong, but we keep going?&#34;)  
     logging.warning(&#34;Default message level&#34;)  
     logging.info(&#34;Something planned happened&#34;)  
     logging.debug(&#34;Details of the planned thing that happened&#34;)  
+    print(&#34;Normal program output, not logged&#34;)
     &#34;&#34;&#34;  # fmt: skip
-    import logging
     import sys
 
+    # Capture the logger
     logger = logging.getLogger(name)
     # Create a stream handler
     stream_handler = logging.StreamHandler(sys.stdout)
     # Create a rotating file handler
     if logfile:
+        from logging.handlers import RotatingFileHandler
+
         rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
     # Set the log level
     if verbosity == 0:
@@ -199,7 +221,7 @@ logging.debug("Details of the planned thing that happened")</p></div>
         rf_handler.setLevel(level)
     # formatter
     formatter = logging.Formatter(
-        &#34;%(asctime)s %(levelname)s %(name)s:%(lineno)d %(message)s&#34;, datefmt=&#34;%Y-%m-%d %H:%M:%S&#34;
+        &#34;%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s&#34;, datefmt=&#34;%Y-%m-%d %H:%M:%S&#34;
     )
     stream_handler.setFormatter(formatter)
     if logfile:
@@ -208,6 +230,7 @@ logging.debug("Details of the planned thing that happened")</p></div>
     logger.addHandler(stream_handler)
     if logfile:
         logger.addHandler(rf_handler)
+    logger.warning(&#34;Logger initialized @level %s&#34;, logging.getLevelName(level))
     return logger</code></pre>
 </details>
 </dd>

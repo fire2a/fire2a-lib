@@ -15,13 +15,13 @@ __revision__ = "$Format:%H$"
 import logging
 from pathlib import Path
 
-from importlib_metadata import PackageNotFoundError, distribution
+from importlib.metadata import PackageNotFoundError, distribution
 
 logger = logging.getLogger(__name__)
 
 try:
     __version__ = distribution("fire2a-lib").version
-    version_from = "importlib_metadata"
+    version_from = "importlib.metadata"
 except PackageNotFoundError:
     if (Path(__file__).parent / "_version.py").exists():
         from ._version import __version__

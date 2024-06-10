@@ -48,6 +48,8 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!/bin/env python3
+__author__ = &#34;Fernando Badilla&#34;
+__revision__ = &#34;$Format:%H$&#34;
 __doc__ = &#34;&#34;&#34;
 DownStream Protection Value Algorithm can be reduced to recursively counting out nodes in a directed tree graph; When providing node values, recursively summing them. In the context of Cell2Fire simulator, the graph is a (or many) fire propagation tree(s), represented in a (multi) directed graph.
 
@@ -501,7 +503,7 @@ def main(argv=None):
     args = argument_parser(argv)
     logger = setup_logger(__name__, args.verbosity, args.logfile)
     logger.info(f&#34;{args=}&#34;)
-    logger.debug(f&#34;debugging...&#34;)
+    logger.debug(&#34;debugging...&#34;)
 
     file_list = []
     for path_str in args.messages:
@@ -1092,7 +1094,7 @@ also returns width and height</p></div>
     args = argument_parser(argv)
     logger = setup_logger(__name__, args.verbosity, args.logfile)
     logger.info(f&#34;{args=}&#34;)
-    logger.debug(f&#34;debugging...&#34;)
+    logger.debug(&#34;debugging...&#34;)
 
     file_list = []
     for path_str in args.messages:

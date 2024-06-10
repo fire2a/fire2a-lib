@@ -18,7 +18,6 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 dependencies = [
-    "importlib-metadata",
     "numpy>=1.24.1",
     "pandas>=2.0.2",
 ]

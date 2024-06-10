@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>fire2a-lib.src.fire2a.firebreaks API documentation</title>
-<meta name="description" content="To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module …" />
+<title>fire2a-lib.src.fire2a.cell2fire API documentation</title>
+<meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -20,42 +20,16 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>fire2a-lib.src.fire2a.firebreaks</code></h1>
+<h1 class="title">Module <code>fire2a-lib.src.fire2a.cell2fire</code></h1>
 </header>
 <section id="section-intro">
-<p>To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.</p>
-<p>Cell2Fire-W simulator features placing firebreaks (that internally are represented as unburnable cells); making it easier than to manually create a new fuels raster for every firebreak experiment/simulation.</p>
-<p>This is done by appending a <code>.csv</code> file to the simulation command. For example: <code>--FirebreakCells fbv.csv</code>, containing:</p>
-<pre><code>    Year,Ncell
-    1,1,81,161,162
-</code></pre>
-<p>Values represents an "L" shaped firebreak: topleft cell is 1, the one below 81, below 161, to the right 162. (in a 80 pixels width raster)</p>
-<p>Headers are: Year, Ncell.<br>
-The first column always is Year, 1 (as CFW-W only supports one fire before resetting the landscape).<br>
-Unburnable values are placed as a row of cells id (starting from 1)</p>
-<p>Requires:<br>
-- QGIS<br>
-- Serval QGIS plugin, check the manual here: <a href="https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md">https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md</a><br>
-- A raster layer loaded in QGIS
-</p>
-<p>Steps:<br>
-1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster<br>
-2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks<br>
-3. The script will create a csv file with the firebreaks<br>
-4. Run C2F-W with the firebreaks csv file:
-</p>
-<pre><code>$ cd /path/to/instance
-$ rm -f Data.csv
-$ rm -fr result_wFirebreaks
-$ mkdir result_wFirebreaks
-$ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells fbv.csv | tee result_wFirebreaks/LogFile.txt
-</code></pre>
-<p>Or append the fullpath to the <code>fbv.csv</code> file to the Advanced Parameters in the GUI as: <code>--FirebreakCells /full/path/fbv.csv</code></p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!python
+__author__ = &#34;Fernando Badilla&#34;
+__revision__ = &#34;$Format:%H$&#34;
 # fmt: off
 &#34;&#34;&#34;
 To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.
@@ -99,7 +73,7 @@ from pathlib import Path
 from numpy import array, where
 from qgis.core import QgsRasterLayer
 
-from fire2a.raster import get_rlayer_data, xy2id
+from .raster import get_rlayer_data, xy2id
 
 
 def raster_layer_to_firebreak_csv(
@@ -112,6 +86,14 @@ def raster_layer_to_firebreak_csv(
         layer (QgsRasterLayer): A QGIS raster layer, default is the active layer
         firebreak_val (int): The value used to identify the firebreaks, default is 666
         output_file (str or Path): The path to the output csv file, default is firebreaks.csv
+
+    QGIS Desktop Example:
+        A. Use the &#39;Create constant raster layer&#39; tool to create a with the same extent extent, crs and pixel size than the fuels raster layer.
+            Recommended: 
+                constant value = 0, and (Advanced Parameters) output raster data type = Byte
+        B. Use the &#39;raster calculator&#39; with a base layer and 0 in the formula
+        Use &#39;Serval&#39; tool to draw the firebreaks on the new raster layer (values =1).
+            Reload or save as to see changes
 
     QGIS Console Example:  
     ```
@@ -142,7 +124,7 @@ def raster_layer_to_firebreak_csv(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv"><code class="name flex">
+<dt id="fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv"><code class="name flex">
 <span>def <span class="ident">raster_layer_to_firebreak_csv</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str | pathlib.Path = 'firebreaks.csv')</span>
 </code></dt>
 <dd>
@@ -157,6 +139,13 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
 <dt><strong><code>output_file</code></strong> :&ensp;<code>str</code> or <code>Path</code></dt>
 <dd>The path to the output csv file, default is firebreaks.csv</dd>
 </dl>
+<p>QGIS Desktop Example:
+A. Use the 'Create constant raster layer' tool to create a with the same extent extent, crs and pixel size than the fuels raster layer.
+Recommended:
+constant value = 0, and (Advanced Parameters) output raster data type = Byte
+B. Use the 'raster calculator' with a base layer and 0 in the formula
+Use 'Serval' tool to draw the firebreaks on the new raster layer (values =1).
+Reload or save as to see changes</p>
 <p>QGIS Console Example:
 </p>
 <pre><code>    layer = iface.activeLayer()  
@@ -179,6 +168,14 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
         layer (QgsRasterLayer): A QGIS raster layer, default is the active layer
         firebreak_val (int): The value used to identify the firebreaks, default is 666
         output_file (str or Path): The path to the output csv file, default is firebreaks.csv
+
+    QGIS Desktop Example:
+        A. Use the &#39;Create constant raster layer&#39; tool to create a with the same extent extent, crs and pixel size than the fuels raster layer.
+            Recommended: 
+                constant value = 0, and (Advanced Parameters) output raster data type = Byte
+        B. Use the &#39;raster calculator&#39; with a base layer and 0 in the formula
+        Use &#39;Serval&#39; tool to draw the firebreaks on the new raster layer (values =1).
+            Reload or save as to see changes
 
     QGIS Console Example:  
     ```
@@ -220,7 +217,7 @@ Usage cli argument <code>--FirebreakCells firebreaks.csv</code></p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv" href="#fire2a-lib.src.fire2a.firebreaks.raster_layer_to_firebreak_csv">raster_layer_to_firebreak_csv</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv" href="#fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv">raster_layer_to_firebreak_csv</a></code></li>
 </ul>
 </li>
 </ul>
