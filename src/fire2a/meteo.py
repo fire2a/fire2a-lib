@@ -29,6 +29,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         outdict (dict): output dictionary at least 'filelist': list of filenames created
     """
     try:
+        print("hola munndo")
         if not outdir.is_dir():
             outdir.mkdir()
 
