@@ -70,7 +70,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
             tmpfile = outdir / file_name(i, numsims)
             filelist += [tmpfile.name]
             df.to_csv(tmpfile, header=True, index=False)
-        return 0, {"filelist": filelist}
+        return 0, {"filelist": filelist, "test":True}
     except Exception as e:
         return 1, {"filelist": filelist, "exception": e}
 
