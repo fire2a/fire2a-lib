@@ -40,6 +40,7 @@ Or append the fullpath to the `fbv.csv` file to the Advanced Parameters in the G
 # fmt: on
 
 from pathlib import Path
+from typing import Tuple
 
 from numpy import array, where
 from qgis.core import QgsRasterLayer
@@ -86,3 +87,101 @@ def raster_layer_to_firebreak_csv(
     with open(output_file, "w") as f:
         f.write("Year,Ncell\n")
         f.write(f"1,{','.join(map(str,ids))}\n")
+
+
+# def burn_probability(in_data, out_fname='bp.tif', fformat='GTiff', geotransform, epsg,  qprint = print):
+#     try:
+#         h,w,s = in_data.shape
+#         if s==1:
+#             qprint("Single band raster", level='warning')
+#         burn_prob_ds = gdal.GetDriverByName(fformat).Create(out_fname, w, h, 1, GDT_Float32)
+#         burn_prob_ds.SetGeoTransform(geotransform)  # specify coords
+#         burn_prob_ds.SetProjection(epsg)  # export coords to file
+#         band = burn_prob_ds.GetRasterBand(1)
+#         band.SetUnitType("probability")
+#         if 0 != band.SetNoDataValue(0):
+#             qprint(f"Set No Data failed for {afile}", level='warning')
+#         if 0 != band.WriteArray(burn_prob_data):
+#             qprint(f"WriteArray failed for {afile}", level='warning')
+#         burn_prob_ds.FlushCache()  # write to disk
+#         burn_prob_ds = None
+#         return 0
+#     except Exception as e:
+#         qprint(f"Error: {e}", level='error')
+#         return 1
+
+
+def get_scar_files(sample_file: Path) -> Tuple[list[Path], Path, str, str]:
+    """Get a list of files with the same name (+ any digit) and extension and the directory and name of the sample file
+    sample_file = Path('/home/fdo/source/C2F-W/data/Vilopriu_2013/firesim_231001_145657/results/Grids/Grids1/ForestGrid00.csv')
+    sample_file = Path('/home/fdo/source/C2FSB/examples/Hom_Fuel/Grids/Grids1/ForestGrid00.csv')
+    """
+    from os import sep
+    from re import compile as re_compile
+    from re import search as re_search
+
+    ext = sample_file.suffix
+    if match := re_search("(\d+)$", sample_file.stem):
+        num = match.group()
+    # else:
+    #     return False, f"sample_file: {sample_file} does not contain a number at the end", [], None, None, None
+    file_name = sample_file.stem[: -len(num)]
+    parent1 = sample_file.absolute().parent
+    parent2 = sample_file.absolute().parent.parent
+    if match := re_search("(\d+)$", parent1.name):
+        num = match.group()
+    # else:
+    #     return False, f"sample_file parent: {sample_file} does not contain a number at the end", [], None, None, None
+    parent1name = parent1.name[: -len(num)]
+    file_gen = parent2.rglob(parent1name + "[0-9]*" + sep + file_name + "[0-9]*" + ext)
+    files = []
+    pattern = re_compile(parent1name + "(\d+)" + sep + file_name + "(\d+)" + ext)
+    for afile in sorted(file_gen):
+        sim_id, per_id = map(int, re_search(pattern, str(afile)).groups())
+        if afile.is_file() and afile.stat().st_size > 0:
+            files += [afile.relative_to(parent2)]
+    # QgsMessageLog.logMessage(f"files: {files}, adir: {adir}, aname: {aname}, ext: {ext}", "fire2a", Qgis.Info)
+
+    return True, "", files, parent2, file_name, ext
+
+
+def get_scars_files(sample_file: Path) -> Tuple[bool, str, list[Path], list[list[Path]]]:
+    """Get a sorted list of (non-empty) files with the same pattern 'root/directory(+any digit)/name(+any digit).(any extension)'.
+    Args:
+        sample_file (Path): A sample file to extract the root, directory, name and extension
+    Returns:
+        bool: True if successful, False otherwise
+        str: Error message if any
+        list[Path]: A list of directories
+        list[list[Path]]: A SORTED list of lists of files
+    """
+    from re import search
+
+    ext = sample_file.suffix
+    if match := search("(\d+)$", sample_file.stem):
+        num = match.group()
+    else:
+        return False, f"sample_file: {sample_file} does not contain a number at the end", None, None
+    file_name = sample_file.stem[: -len(num)]
+    parent1 = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    if match := search("(\\d+)$", parent1.name):
+        num = match.group()
+    else:
+        return False, f"sample_file parent: {sample_file} does not contain a number at the end", None, None
+
+    parent1_wo_num = parent1.name[: -len(num)]
+    parent1list = sorted(root.glob(parent1_wo_num + "[0-9]*"), key=lambda x: int(search("(\d+)$", x.name).group(0)))
+    parent1list = [x for x in parent1list if x.is_dir()]
+
+    files = []
+    for adir in parent1list:
+        dir_files = sorted(adir.glob(file_name + "[0-9]*" + ext), key=lambda x: int(search("(\d+)$", x.stem).group(0)))
+        dir_files = [x for x in dir_files if x.is_file() and x.stat().st_size > 0]
+        files += [dir_files]
+
+    return True, "", parent1list, files
+
+
+def calc_burn_probabilities(sample_file="Grids/Grids1/ForestGrid00.csv"):
+    retval, retmsg, files, scar_dir, scar_name, ext = get_scar_files(Path(sample_file))
