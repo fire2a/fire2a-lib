@@ -1,48 +1,19 @@
 #!python
-__author__ = "Fernando Badilla"
-__revision__ = "$Format:%H$"
 # fmt: off
 """
-To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.
-
-Cell2Fire-W simulator features placing firebreaks (that internally are represented as unburnable cells); making it easier than to manually create a new fuels raster for every firebreak experiment/simulation.
-
-This is done by appending a `.csv` file to the simulation command. For example: `--FirebreakCells fbv.csv`, containing:
-
-        Year,Ncell
-        1,1,81,161,162
-
-Values represents an "L" shaped firebreak: topleft cell is 1, the one below 81, below 161, to the right 162. (in a 80 pixels width raster)
-
-Headers are: Year, Ncell.  
-The first column always is Year, 1 (as CFW-W only supports one fire before resetting the landscape).  
-Unburnable values are placed as a row of cells id (starting from 1)
-
-Requires:  
- - QGIS  
- - Serval QGIS plugin, check the manual here: https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md  
- - A raster layer loaded in QGIS  
-
-Steps:  
-1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster  
-2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks  
-3. The script will create a csv file with the firebreaks  
-4. Run C2F-W with the firebreaks csv file:  
-
-    $ cd /path/to/instance
-    $ rm -f Data.csv
-    $ rm -fr result_wFirebreaks
-    $ mkdir result_wFirebreaks
-    $ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells fbv.csv | tee result_wFirebreaks/LogFile.txt
-
-Or append the fullpath to the `fbv.csv` file to the Advanced Parameters in the GUI as: `--FirebreakCells /full/path/fbv.csv`
+Classes and methods to auxiliary to using Cell2Fire and its QGIS integration
+Currently:
+    - raster_layer_to_firebreak_csv
+    - get_scars_files (all together but a bit slowen than the next two methods)
+    - get_scars_indexed (part 1/2)
+    - group_scars (part 2/2)
 """
 # fmt: on
+__author__ = "Fernando Badilla"
+__revision__ = "$Format:%H$"
 
 from pathlib import Path
-from typing import Tuple
 
-from numpy import array, where
 from qgis.core import QgsRasterLayer
 
 from .raster import get_rlayer_data, xy2id
@@ -75,18 +46,204 @@ def raster_layer_to_firebreak_csv(
         import processing
         processing.run("fire2a:cell2firesimulator", ...
     ```
+    See also: https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html
     """ # fmt: skip
+    from numpy import array as np_array
+    from numpy import where as np_where
+
     width = layer.width()
     data = get_rlayer_data(layer)
 
     # numpy is hh,ww indexing
-    yy, xx = where(data == firebreak_val)
-    ids = array([xy2id(x, y, width) for x, y in zip(xx, yy)])
+    yy, xx = np_where(data == firebreak_val)
+    ids = np_array([xy2id(x, y, width) for x, y in zip(xx, yy)])
     ids += 1
 
     with open(output_file, "w") as f:
         f.write("Year,Ncell\n")
         f.write(f"1,{','.join(map(str,ids))}\n")
+
+
+def get_scars_files(sample_file):
+    """Get sorted lists of (non-empty) files matching the pattern 'root/parent(+any digit)/children(+any digit).(any extension)'. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    Args:
+        sample_file (Path): A sample file to extract the name and extension, parent and root directories
+    Returns:
+        bool: True if successful, False otherwise
+        str: Error message if any
+        root (Path): all other paths are relative to this and must be used as root/parent or root/child
+        parents (list[Path]): sorted list of parent directories
+        parents_ids (list[int]): corresponding simulation ids of these parents
+        children (list[list[Path]]): sorted list of lists of children files
+        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
+    Sample Usage:
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+        if ret_val:
+            final_scars = [ root / chl[-1] for chl in children ]
+            ignitions_scars = [ root / chl[0] for chl in children ]
+            length_of_each_simulation = [ len(chl) for chl in children ]
+        else:
+            print(msg)
+    """
+    from re import search as re_search
+
+    ext = sample_file.suffix
+    if match := re_search("(\d+)$", sample_file.stem):
+        num = match.group()
+    else:
+        msg = f"sample_file: {sample_file} does not contain a number at the end"
+        return False, msg, None, None, None, None, None
+    file_name_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search("(\d+)$", parent.name):
+        num = match.group()
+    else:
+        msg = f"sample_file:{sample_file} parent:{parent} does not contain a number at the end"
+        return False, msg, root, None, None, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+    parent_dirs = []
+    parent_ids = []
+    for par in root.glob(parent_wo_num + "[0-9]*"):
+        if par.is_dir():
+            par = par.relative_to(root)
+            parent_ids += [int(re_search("(\d+)$", par.name).group(0))]
+            parent_dirs += [par]
+    adict = dict(zip(parent_dirs, parent_ids))
+    parent_dirs.sort(key=lambda x: adict[x])
+    parent_ids.sort()
+
+    children = []
+    children_ids = []
+    for par in parent_dirs:
+        chl_files = []
+        chl_ids = []
+        for afile in (root / par).glob(file_name_wo_num + "[0-9]*" + ext):
+            if afile.is_file() and afile.stat().st_size > 0:
+                afile = afile.relative_to(root)
+                chl_ids += [int(re_search("(\d+)$", afile.stem).group(0))]
+                chl_files += [afile]
+        adict = dict(zip(chl_files, chl_ids))
+        chl_files.sort(key=lambda x: adict[x])
+        chl_ids.sort()
+        children += [chl_files]
+        children_ids += [chl_ids]
+
+    # msg = f"Got {len(parent_dirs)} parent directories with {sum([len(chl) for chl in children])} children files"
+    msg = ""
+    return True, msg, root, parent_dirs, parent_ids, children, children_ids
+
+
+def get_scars_indexed(sample_file):
+    """Get a sorted list of files with the same pattern 'root/parent(+any digit)/children(+any digit).(any extension)'.
+    Args:
+        sample_file (Path): A sample file to extract the extension, children name (wo ending number),  parent (wo ending number) and root directory
+    Returns:
+        return_value (bool): True if successful, False otherwise
+        return_message (str): Debug/Error message if any
+        root (Path): all paths are relative to this and must be used as root/file
+        parent_wo_num (str): parent name without the ending number
+        child_wo_num (str): children name without the ending number
+        extension (str): file extension
+        files (list[Path]): sorted list of (relative paths) files
+        indexes (list[Tuple[int,int]]]): list of tuples of simulation and period ids
+
+    Sample:
+        retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    """
+    from os import sep
+    from re import findall as re_findall
+    from re import search as re_search
+
+    from numpy import array as np_array
+    from numpy import fromiter as np_fromiter
+
+    ext = sample_file.suffix
+    if match := re_search("(\d+)$", sample_file.stem):
+        num = match.group()
+    else:
+        msg = f"sample_file: {sample_file} does not contain a number at the end"
+        return False, msg, None, None, None, ext, None, None
+    child_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search("(\d+)$", parent.name):
+        num = match.group()
+    else:
+        msg = f"sample_file:{sample_file} parent:{parent} does not contain a number at the end"
+        return False, msg, root, None, child_wo_num, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+
+    files = np_array(
+        [
+            afile.relative_to(root)
+            for afile in root.glob(parent_wo_num + "[0-9]*" + sep + child_wo_num + "[0-9]*" + ext)
+            if afile.is_file() and afile.stat().st_size > 0
+        ]
+    )
+
+    indexes = np_fromiter(
+        # re_findall(parent_wo_num + "(\d+)" + sep + child_wo_num + "(\d+)" + ext, " ".join(map(str, files))),
+        re_findall("(\d+)" + sep + child_wo_num + "(\d+)", " ".join(map(str, files))),
+        dtype=[("sim", int), ("per", int)],
+        count=len(files),
+    )
+
+    files = files[indexes.argsort(order=("sim", "per"))]
+    indexes.sort()
+
+    msg = ""
+    # msg = f"Got {len(files)} files\n"
+    # msg += f"{len(np_unique(indexes['sim']))} simulations\n"
+    # msg += f"{len(np_unique(indexes['per']))} different periods"
+
+    return True, msg, root, parent_wo_num, child_wo_num, ext, files, indexes
+
+
+def group_scars(root, parent_wo_num, child_wo_num, ext, files, indexes):
+    """Group scars files by simulation and period
+    Args:
+        files (list[Path]): list of files
+        indexes (list[Tuple[int,int]]): list of tuples of simulation and period ids
+    Returns:
+        parent_ids (list[int]): list of simulation ids
+        parent_dirs (list[Path]): list of parent directories
+        children_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        children_files (list[Path]): list of children files
+        final_scars_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        final_scars_files (list[Path]): list of final scars files
+    Sample:
+        parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(files, indexes)
+    """
+    from numpy import array as np_array
+    from numpy import in1d as np_in1d
+    from numpy import unique as np_unique
+    from numpy import where as np_where
+
+    parent_ids = [sim_id for sim_id in np_unique(indexes["sim"])]
+    children_ids = [[(sim_id, per_id) for per_id in indexes["per"][indexes["sim"] == sim_id]] for sim_id in parent_ids]
+
+    parent_dirs = [root / (parent_wo_num + str(sim_id)) for sim_id in parent_ids]
+    children_files = [
+        [
+            root / (parent_wo_num + str(sim_id)) / (child_wo_num + str(per_id) + ext)
+            for per_id in indexes["per"][indexes["sim"] == sim_id]
+        ]
+        for sim_id in parent_ids
+    ]
+    final_scars_ids = np_array(
+        # is sorted [(sim_id, indexes["per"][indexes["sim"] == sim_id].max()) for sim_id in parent_ids],
+        [(sim_id, indexes["per"][indexes["sim"] == sim_id][-1]) for sim_id in parent_ids],
+        dtype=[("sim", int), ("per", int)],
+    )
+    final_scars_indices = np_where(np_in1d(indexes.view(dtype="void"), final_scars_ids.view(dtype="void")))[0]
+    final_scars_files = files[final_scars_indices]
+
+    return parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files
 
 
 # def burn_probability(in_data, out_fname='bp.tif', fformat='GTiff', geotransform, epsg,  qprint = print):
@@ -109,79 +266,3 @@ def raster_layer_to_firebreak_csv(
 #     except Exception as e:
 #         qprint(f"Error: {e}", level='error')
 #         return 1
-
-
-def get_scar_files(sample_file: Path) -> Tuple[list[Path], Path, str, str]:
-    """Get a list of files with the same name (+ any digit) and extension and the directory and name of the sample file
-    sample_file = Path('/home/fdo/source/C2F-W/data/Vilopriu_2013/firesim_231001_145657/results/Grids/Grids1/ForestGrid00.csv')
-    sample_file = Path('/home/fdo/source/C2FSB/examples/Hom_Fuel/Grids/Grids1/ForestGrid00.csv')
-    """
-    from os import sep
-    from re import compile as re_compile
-    from re import search as re_search
-
-    ext = sample_file.suffix
-    if match := re_search("(\d+)$", sample_file.stem):
-        num = match.group()
-    # else:
-    #     return False, f"sample_file: {sample_file} does not contain a number at the end", [], None, None, None
-    file_name = sample_file.stem[: -len(num)]
-    parent1 = sample_file.absolute().parent
-    parent2 = sample_file.absolute().parent.parent
-    if match := re_search("(\d+)$", parent1.name):
-        num = match.group()
-    # else:
-    #     return False, f"sample_file parent: {sample_file} does not contain a number at the end", [], None, None, None
-    parent1name = parent1.name[: -len(num)]
-    file_gen = parent2.rglob(parent1name + "[0-9]*" + sep + file_name + "[0-9]*" + ext)
-    files = []
-    pattern = re_compile(parent1name + "(\d+)" + sep + file_name + "(\d+)" + ext)
-    for afile in sorted(file_gen):
-        sim_id, per_id = map(int, re_search(pattern, str(afile)).groups())
-        if afile.is_file() and afile.stat().st_size > 0:
-            files += [afile.relative_to(parent2)]
-    # QgsMessageLog.logMessage(f"files: {files}, adir: {adir}, aname: {aname}, ext: {ext}", "fire2a", Qgis.Info)
-
-    return True, "", files, parent2, file_name, ext
-
-
-def get_scars_files(sample_file: Path) -> Tuple[bool, str, list[Path], list[list[Path]]]:
-    """Get a sorted list of (non-empty) files with the same pattern 'root/directory(+any digit)/name(+any digit).(any extension)'.
-    Args:
-        sample_file (Path): A sample file to extract the root, directory, name and extension
-    Returns:
-        bool: True if successful, False otherwise
-        str: Error message if any
-        list[Path]: A list of directories
-        list[list[Path]]: A SORTED list of lists of files
-    """
-    from re import search
-
-    ext = sample_file.suffix
-    if match := search("(\d+)$", sample_file.stem):
-        num = match.group()
-    else:
-        return False, f"sample_file: {sample_file} does not contain a number at the end", None, None
-    file_name = sample_file.stem[: -len(num)]
-    parent1 = sample_file.absolute().parent
-    root = sample_file.absolute().parent.parent
-    if match := search("(\\d+)$", parent1.name):
-        num = match.group()
-    else:
-        return False, f"sample_file parent: {sample_file} does not contain a number at the end", None, None
-
-    parent1_wo_num = parent1.name[: -len(num)]
-    parent1list = sorted(root.glob(parent1_wo_num + "[0-9]*"), key=lambda x: int(search("(\d+)$", x.name).group(0)))
-    parent1list = [x for x in parent1list if x.is_dir()]
-
-    files = []
-    for adir in parent1list:
-        dir_files = sorted(adir.glob(file_name + "[0-9]*" + ext), key=lambda x: int(search("(\d+)$", x.stem).group(0)))
-        dir_files = [x for x in dir_files if x.is_file() and x.stat().st_size > 0]
-        files += [dir_files]
-
-    return True, "", parent1list, files
-
-
-def calc_burn_probabilities(sample_file="Grids/Grids1/ForestGrid00.csv"):
-    retval, retmsg, files, scar_dir, scar_name, ext = get_scar_files(Path(sample_file))
