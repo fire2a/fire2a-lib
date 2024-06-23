@@ -272,8 +272,6 @@ def build_scars(
         scar_raster_ds = gdal.GetDriverByName("GTiff").Create(scar_raster, W, H, len(final_scars_ids), gdal.GDT_Byte)
         scar_raster_ds.SetGeoTransform(geotransform)
         scar_raster_ds.SetProjection(authid)
-        # scar_raster_band = scar_raster_ds.GetRasterBand(1)
-        # scar_raster_band.SetUnitType("probability")
     else:
         scar_raster_ds = None
 
@@ -285,9 +283,9 @@ def build_scars(
                 fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
             if 0 != band.WriteArray(data):
                 fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
-            scar_raster_ds.FlushCache()  # write to disk
+            scar_raster_ds.FlushCache()
         if burn_prob:
-            burn_prob_arr += data[i]
+            burn_prob_arr += data
 
     if scar_poly:
         # raster for each grid
@@ -311,14 +309,10 @@ def build_scars(
         count_fin = 0
         for sim_id, ids, files in zip(parent_ids, children_ids, children_files):
             count_fin += 1
-            for (sim_id2, per_id), afile in zip(ids, files):
+            for (_, per_id), afile in zip(ids, files):
                 count_evo += 1
 
-                # debug
-                assert sim_id == sim_id2, fprint(f"{sim_id=} {sim_id2=}", level="error", feedback=feedback)
-
                 # read data
-                fprint(f"file is {root / afile}", level="error", feedback=feedback)
                 data = loadtxt(root / afile, delimiter=",", dtype=np.int8)
                 if not np.any(data == 1):
                     fprint(f"no fire in {afile}", level="warning", feedback=feedback)
@@ -337,8 +331,8 @@ def build_scars(
                 featureDefn = otrolyr.GetLayerDefn()
                 feature = ogr.Feature(featureDefn)
                 feature.SetGeometry(geom)
-                feature.SetField("simulation", int(sim))
-                feature.SetField("time", int(per))
+                feature.SetField("simulation", int(sim_id))
+                feature.SetField("time", int(per_id))
                 feature.SetField("area", int(geom.GetArea()))
                 feature.SetField("perimeter", int(geom.Boundary().Length()))
                 otrolyr.CreateFeature(feature)
@@ -350,7 +344,8 @@ def build_scars(
                 count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
             )
             if callback and (scar_raster or burn_prob):
-                callback(count_evo / len(files) * 100, f"Processed Final-Scar {count_evo }/{len(files)}")
+                callback(None, f"Processed Final-Scar {count_evo}/{len(files)}")
+        # clean up
         scar_raster_ds.FlushCache()
         scar_raster_ds = None
         otrolyr.SyncToDisk()
