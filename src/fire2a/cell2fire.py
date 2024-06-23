@@ -17,6 +17,7 @@ from pathlib import Path
 from qgis.core import QgsRasterLayer
 
 from .raster import get_rlayer_data, xy2id
+from .utils import fprint, loadtxt
 
 
 def raster_layer_to_firebreak_csv(
@@ -219,50 +220,170 @@ def group_scars(root, parent_wo_num, child_wo_num, ext, files, indexes):
     Sample:
         parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(files, indexes)
     """
-    from numpy import array as np_array
-    from numpy import in1d as np_in1d
     from numpy import unique as np_unique
     from numpy import where as np_where
 
     parent_ids = [sim_id for sim_id in np_unique(indexes["sim"])]
     children_ids = [[(sim_id, per_id) for per_id in indexes["per"][indexes["sim"] == sim_id]] for sim_id in parent_ids]
+    children_files = [[afile for afile in files[np_where(indexes["sim"] == pid)[0]]] for pid in parent_ids]
 
-    parent_dirs = [root / (parent_wo_num + str(sim_id)) for sim_id in parent_ids]
-    children_files = [
-        [
-            root / (parent_wo_num + str(sim_id)) / (child_wo_num + str(per_id) + ext)
-            for per_id in indexes["per"][indexes["sim"] == sim_id]
-        ]
-        for sim_id in parent_ids
-    ]
-    final_scars_ids = np_array(
-        # is sorted [(sim_id, indexes["per"][indexes["sim"] == sim_id].max()) for sim_id in parent_ids],
-        [(sim_id, indexes["per"][indexes["sim"] == sim_id][-1]) for sim_id in parent_ids],
-        dtype=[("sim", int), ("per", int)],
-    )
-    final_scars_indices = np_where(np_in1d(indexes.view(dtype="void"), final_scars_ids.view(dtype="void")))[0]
-    final_scars_files = files[final_scars_indices]
+    final_idx = [np_where(indexes["sim"] == pid)[0][-1] for pid in parent_ids]
+
+    parent_dirs = [afile.parent for afile in files[final_idx]]
+
+    final_scars_files = files[final_idx]
+    final_scars_ids = indexes[final_idx]
 
     return parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files
 
 
-# def burn_probability(in_data, out_fname='bp.tif', fformat='GTiff', geotransform, epsg,  qprint = print):
-#     try:
-#         h,w,s = in_data.shape
-#         if s==1:
-#             qprint("Single band raster", level='warning')
-#         burn_prob_ds = gdal.GetDriverByName(fformat).Create(out_fname, w, h, 1, GDT_Float32)
-#         burn_prob_ds.SetGeoTransform(geotransform)  # specify coords
-#         burn_prob_ds.SetProjection(epsg)  # export coords to file
-#         band = burn_prob_ds.GetRasterBand(1)
-#         band.SetUnitType("probability")
-#         if 0 != band.SetNoDataValue(0):
-#             qprint(f"Set No Data failed for {afile}", level='warning')
-#         if 0 != band.WriteArray(burn_prob_data):
-#             qprint(f"WriteArray failed for {afile}", level='warning')
-#         burn_prob_ds.FlushCache()  # write to disk
-#         burn_prob_ds = None
-#         return 0
-#     except Exception as e:
-#         qprint(f"Error: {e}", level='error')
-#         return 1
+def build_scars(
+    scar_raster: str,
+    scar_poly: str,
+    burn_prob: str,
+    sample_file: Path,
+    W: int,
+    H: int,
+    geotransform: tuple,
+    authid: str,
+    callback=None,
+    feedback=None,
+):
+    """Build the final scars raster, evolution scars polygons and burn probability raster files
+    Assummes (scar_raster or scar_poly or burn_prob) == True
+    """
+    import numpy as np
+    from osgeo import gdal, ogr, osr
+
+    retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    if not retval:
+        fprint(retmsg, level="error", feedback=feedback)
+        return 1
+    parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(
+        root, parent_wo_num, child_wo_num, ext, files, indexes
+    )
+
+    if burn_prob:
+        burn_prob_arr = np.zeros((H, W), dtype=np.float32)
+    else:
+        burn_prob_arr = None
+
+    if scar_raster:
+        scar_raster_ds = gdal.GetDriverByName("GTiff").Create(scar_raster, W, H, len(final_scars_ids), gdal.GDT_Byte)
+        scar_raster_ds.SetGeoTransform(geotransform)
+        scar_raster_ds.SetProjection(authid)
+        # scar_raster_band = scar_raster_ds.GetRasterBand(1)
+        # scar_raster_band.SetUnitType("probability")
+    else:
+        scar_raster_ds = None
+
+    def final_scar_step(i, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=None):
+        if scar_raster:
+            band = scar_raster_ds.GetRasterBand(i)
+            band.SetUnitType("burned")
+            if 0 != band.SetNoDataValue(0):
+                fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+            if 0 != band.WriteArray(data):
+                fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+            scar_raster_ds.FlushCache()  # write to disk
+        if burn_prob:
+            burn_prob_arr += data[i]
+
+    if scar_poly:
+        # raster for each grid
+        src_ds = gdal.GetDriverByName("MEM").Create("", W, H, len(files), gdal.GDT_Byte)
+        src_ds.SetGeoTransform(geotransform)
+        src_ds.SetProjection(authid)  # export coords to file
+        # datasource for shadow geometry vector layer (polygonize output)
+        ogr_ds = ogr.GetDriverByName("Memory").CreateDataSource("")
+        # srs
+        sp_ref = osr.SpatialReference()
+        sp_ref.SetFromUserInput(authid)
+        # otro
+        otrods = ogr.GetDriverByName("GPKG").CreateDataSource(scar_poly)
+        otrolyr = otrods.CreateLayer("", srs=sp_ref, geom_type=ogr.wkbPolygon)
+        otrolyr.CreateField(ogr.FieldDefn("simulation", ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn("time", ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+        # full loop
+        count_evo = 0
+        count_fin = 0
+        for sim_id, ids, files in zip(parent_ids, children_ids, children_files):
+            count_fin += 1
+            for (sim_id2, per_id), afile in zip(ids, files):
+                count_evo += 1
+
+                # debug
+                assert sim_id == sim_id2, fprint(f"{sim_id=} {sim_id2=}", level="error", feedback=feedback)
+
+                # read data
+                fprint(f"file is {root / afile}", level="error", feedback=feedback)
+                data = loadtxt(root / afile, delimiter=",", dtype=np.int8)
+                if not np.any(data == 1):
+                    fprint(f"no fire in {afile}", level="warning", feedback=feedback)
+
+                # SCARS POLY
+                # raster polygonize
+                src_band = src_ds.GetRasterBand(count_evo)
+                src_band.SetNoDataValue(0)
+                src_band.WriteArray(data)
+                ogr_layer = ogr_ds.CreateLayer("", srs=sp_ref)
+                gdal.Polygonize(src_band, src_band, ogr_layer, -1, ["8CONNECTED=8"])
+                # assumes only one feature : 8 neighbors provides that
+                feat = ogr_layer.GetNextFeature()
+                geom = feat.GetGeometryRef()
+                # create the feature and set values
+                featureDefn = otrolyr.GetLayerDefn()
+                feature = ogr.Feature(featureDefn)
+                feature.SetGeometry(geom)
+                feature.SetField("simulation", int(sim))
+                feature.SetField("time", int(per))
+                feature.SetField("area", int(geom.GetArea()))
+                feature.SetField("perimeter", int(geom.Boundary().Length()))
+                otrolyr.CreateFeature(feature)
+
+                if callback:
+                    callback(count_evo / len(files) * 100, f"Processed Evolution-Scar {count_evo}/{len(files)}")
+
+            final_scar_step(
+                count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+            )
+            if callback and (scar_raster or burn_prob):
+                callback(count_evo / len(files) * 100, f"Processed Final-Scar {count_evo }/{len(files)}")
+        scar_raster_ds.FlushCache()
+        scar_raster_ds = None
+        otrolyr.SyncToDisk()
+        otrolyr = None
+        otrods.FlushCache()
+        otrods = None
+        src_ds.FlushCache()
+        src_ds = None
+    else:
+        # final scar loop
+        count_fin = 0
+        for (sim_id, per_id), afile in zip(final_scars_ids, final_scars_files):
+            count_fin += 1
+            data = loadtxt(root / afile, delimiter=",", dtype=np.int8)
+            if not np.any(data == 1):
+                fprint(f"no fire in Final-Scar {afile}", level="warning", feedback=feedback)
+            final_scar_step(
+                count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+            )
+            if callback and (scar_raster or burn_prob):
+                callback(count_fin / len(files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
+
+    if burn_prob:
+        burn_prob_ds = gdal.GetDriverByName("GTiff").Create(burn_prob, W, H, 1, gdal.GDT_Float32)
+        burn_prob_ds.SetGeoTransform(geotransform)
+        burn_prob_ds.SetProjection(authid)
+        band = burn_prob_ds.GetRasterBand(1)
+        band.SetUnitType("probability")
+        if 0 != band.SetNoDataValue(0):
+            fprint(f"Set NoData failed for Burn Probability {burn_prob}", level="warning", feedback=feedback)
+        if 0 != band.WriteArray(burn_prob_arr / len(final_scars_files)):
+            fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback)
+        burn_prob_ds.FlushCache()
+        burn_prob_ds = None
+
+    return 0

@@ -4,11 +4,14 @@ Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
+import logging
 from functools import partial
 
 import numpy as np
 from numpy import float32, loadtxt
 from qgis.core import Qgis
+
+logger = logging.getLogger(__name__)
 
 
 def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
@@ -102,3 +105,33 @@ def getOGRdrivers():
         drv.update(meta)
         ret += [drv]
     return ret
+
+
+def fprint(*args, sep=" ", end="", level="warning", feedback=None, **kwargs):
+    """replacement for print into logger and QgsProcessingFeedback
+    Args:
+        *args: positional arguments
+        sep (str, optional): separator between args. Defaults to " ".
+        end (str, optional): end of line. Defaults to "".
+        level (str, optional): logging level: debug, info, warning(default), error.
+        feedback (QgsProcessingFeedback, optional): QgsProcessingFeedback object. Defaults to None.
+        **kwargs: keyword arguments
+    """
+    msg = sep.join(map(str, args)) + sep
+    msg += sep.join([f"{k}={v}" for k, v in kwargs.items()]) + end
+    if level == "debug":
+        if feedback:
+            return feedback.pushDebugInfo(msg)
+        return logger.debug(msg)
+    if level == "info":
+        if feedback:
+            return feedback.pushInfo(msg)
+        return logger.info(msg)
+    if level == "warning":
+        if feedback:
+            return feedback.pushWarning(msg)
+        return logger.warning(msg)
+    if level == "error":
+        if feedback:
+            return feedback.reportError(msg)
+        return logger.error(msg)
