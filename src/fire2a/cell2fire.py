@@ -407,7 +407,11 @@ def build_scars(
         count_fin = 0
         for (sim_id, per_id), afile in zip(final_scars_ids, final_scars_files):
             count_fin += 1
-            data = loadtxt(root / afile, delimiter=",", dtype=np_int8)
+            try:
+                data = np_loadtxt(root / afile, delimiter=",", dtype=np_int8)
+            except:
+                fprint(f"Error reading {afile}, retrying with nodata = 0", level="error", feedback=feedback)
+                data = loadtxt_nodata(root / afile, delimiter=",", dtype=np_int8, no_data=0)
             if not np_any(data == 1):
                 fprint(f"no fire in Final-Scar {afile}", level="warning", feedback=feedback)
             final_scar_step(
