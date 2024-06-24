@@ -4,14 +4,15 @@ Miscellaneous utility functions that simplify common tasks.
 """
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
-from functools import partial
+import logging
 
 import numpy as np
-from numpy import float32, loadtxt
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsProcessingFeedback
+
+logger = logging.getLogger(__name__)
 
 
-def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
+def loadtxt_nodata(fname, no_data=-9999, dtype=np.float32, **kwargs) -> np.ndarray:
     """Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)
 
@@ -36,6 +37,7 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
     See Also:
         numpy: loadtxt, load, fromstring, fromregex
     """
+    from functools import partial
 
     def conv(no_data, dtype, val):
         try:
@@ -44,7 +46,7 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
             return no_data
 
     conv = partial(conv, no_data, dtype)
-    return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
+    return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
 
 def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> np.dtype:
@@ -102,3 +104,37 @@ def getOGRdrivers():
         drv.update(meta)
         ret += [drv]
     return ret
+
+
+def fprint(*args, sep=" ", end="", level="warning", feedback: QgsProcessingFeedback = None, **kwargs) -> None:
+    """replacement for print into logger and QgsProcessingFeedback
+    Args:
+        *args: positional arguments
+        sep (str, optional): separator between args. Defaults to " ".
+        end (str, optional): end of line. Defaults to "".
+        level (str, optional): logging level: debug, info, warning(default), error.
+        feedback (QgsProcessingFeedback, optional): QgsProcessingFeedback object. Defaults to None.
+        **kwargs: keyword arguments
+    """
+    msg = sep.join(map(str, args)) + sep
+    msg += sep.join([f"{k}={v}" for k, v in kwargs.items()]) + end
+    if level == "debug":
+        if feedback:
+            feedback.pushDebugInfo(msg)
+        else:
+            logger.debug(msg)
+    elif level == "info":
+        if feedback:
+            feedback.pushInfo(msg)
+        else:
+            logger.info(msg)
+    elif level == "warning":
+        if feedback:
+            feedback.pushWarning(msg)
+        else:
+            logger.warning(msg)
+    elif level == "error":
+        if feedback:
+            feedback.reportError(msg)
+        else:
+            logger.error(msg)

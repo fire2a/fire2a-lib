@@ -36,14 +36,15 @@ Miscellaneous utility functions that simplify common tasks.
 &#34;&#34;&#34;
 __author__ = &#34;Fernando Badilla&#34;
 __revision__ = &#34;$Format:%H$&#34;
-from functools import partial
+import logging
 
 import numpy as np
-from numpy import float32, loadtxt
-from qgis.core import Qgis
+from qgis.core import Qgis, QgsProcessingFeedback
+
+logger = logging.getLogger(__name__)
 
 
-def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
+def loadtxt_nodata(fname, no_data=-9999, dtype=np.float32, **kwargs) -&gt; np.ndarray:
     &#34;&#34;&#34;Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
 
@@ -68,6 +69,7 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
     See Also:
         numpy: loadtxt, load, fromstring, fromregex
     &#34;&#34;&#34;
+    from functools import partial
 
     def conv(no_data, dtype, val):
         try:
@@ -76,7 +78,7 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
             return no_data
 
     conv = partial(conv, no_data, dtype)
-    return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
+    return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
 
 def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -&gt; np.dtype:
@@ -133,7 +135,41 @@ def getOGRdrivers():
         assert &#34;ShortName&#34; not in meta
         drv.update(meta)
         ret += [drv]
-    return ret</code></pre>
+    return ret
+
+
+def fprint(*args, sep=&#34; &#34;, end=&#34;&#34;, level=&#34;warning&#34;, feedback: QgsProcessingFeedback = None, **kwargs) -&gt; None:
+    &#34;&#34;&#34;replacement for print into logger and QgsProcessingFeedback
+    Args:
+        *args: positional arguments
+        sep (str, optional): separator between args. Defaults to &#34; &#34;.
+        end (str, optional): end of line. Defaults to &#34;&#34;.
+        level (str, optional): logging level: debug, info, warning(default), error.
+        feedback (QgsProcessingFeedback, optional): QgsProcessingFeedback object. Defaults to None.
+        **kwargs: keyword arguments
+    &#34;&#34;&#34;
+    msg = sep.join(map(str, args)) + sep
+    msg += sep.join([f&#34;{k}={v}&#34; for k, v in kwargs.items()]) + end
+    if level == &#34;debug&#34;:
+        if feedback:
+            feedback.pushDebugInfo(msg)
+        else:
+            logger.debug(msg)
+    elif level == &#34;info&#34;:
+        if feedback:
+            feedback.pushInfo(msg)
+        else:
+            logger.info(msg)
+    elif level == &#34;warning&#34;:
+        if feedback:
+            feedback.pushWarning(msg)
+        else:
+            logger.warning(msg)
+    elif level == &#34;error&#34;:
+        if feedback:
+            feedback.reportError(msg)
+        else:
+            logger.error(msg)</code></pre>
 </details>
 </section>
 <section>
@@ -143,6 +179,64 @@ def getOGRdrivers():
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fire2a-lib.src.fire2a.utils.fprint"><code class="name flex">
+<span>def <span class="ident">fprint</span></span>(<span>*args, sep=' ', end='', level='warning', feedback: qgis._core.QgsProcessingFeedback = None, **kwargs) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>replacement for print into logger and QgsProcessingFeedback</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>*args</code></strong></dt>
+<dd>positional arguments</dd>
+<dt><strong><code>sep</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>separator between args. Defaults to " ".</dd>
+<dt><strong><code>end</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>end of line. Defaults to "".</dd>
+<dt><strong><code>level</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>logging level: debug, info, warning(default), error.</dd>
+<dt><strong><code>feedback</code></strong> :&ensp;<code>QgsProcessingFeedback</code>, optional</dt>
+<dd>QgsProcessingFeedback object. Defaults to None.</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>keyword arguments</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fprint(*args, sep=&#34; &#34;, end=&#34;&#34;, level=&#34;warning&#34;, feedback: QgsProcessingFeedback = None, **kwargs) -&gt; None:
+    &#34;&#34;&#34;replacement for print into logger and QgsProcessingFeedback
+    Args:
+        *args: positional arguments
+        sep (str, optional): separator between args. Defaults to &#34; &#34;.
+        end (str, optional): end of line. Defaults to &#34;&#34;.
+        level (str, optional): logging level: debug, info, warning(default), error.
+        feedback (QgsProcessingFeedback, optional): QgsProcessingFeedback object. Defaults to None.
+        **kwargs: keyword arguments
+    &#34;&#34;&#34;
+    msg = sep.join(map(str, args)) + sep
+    msg += sep.join([f&#34;{k}={v}&#34; for k, v in kwargs.items()]) + end
+    if level == &#34;debug&#34;:
+        if feedback:
+            feedback.pushDebugInfo(msg)
+        else:
+            logger.debug(msg)
+    elif level == &#34;info&#34;:
+        if feedback:
+            feedback.pushInfo(msg)
+        else:
+            logger.info(msg)
+    elif level == &#34;warning&#34;:
+        if feedback:
+            feedback.pushWarning(msg)
+        else:
+            logger.warning(msg)
+    elif level == &#34;error&#34;:
+        if feedback:
+            feedback.reportError(msg)
+        else:
+            logger.error(msg)</code></pre>
+</details>
+</dd>
 <dt id="fire2a-lib.src.fire2a.utils.getGDALdrivers"><code class="name flex">
 <span>def <span class="ident">getGDALdrivers</span></span>(<span>)</span>
 </code></dt>
@@ -186,7 +280,7 @@ def getOGRdrivers():
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.utils.loadtxt_nodata"><code class="name flex">
-<span>def <span class="ident">loadtxt_nodata</span></span>(<span>fname, no_data=-9999, dtype=numpy.float32, **kwargs)</span>
+<span>def <span class="ident">loadtxt_nodata</span></span>(<span>fname, no_data=-9999, dtype=numpy.float32, **kwargs) ‑> numpy.ndarray</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
@@ -223,7 +317,7 @@ numpy: loadtxt, load, fromstring, fromregex</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def loadtxt_nodata(fname, no_data=-9999, dtype=float32, **kwargs):
+<pre><code class="python">def loadtxt_nodata(fname, no_data=-9999, dtype=np.float32, **kwargs) -&gt; np.ndarray:
     &#34;&#34;&#34;Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=&#39;,&#39; for example)
 
@@ -248,6 +342,7 @@ numpy: loadtxt, load, fromstring, fromregex</p></div>
     See Also:
         numpy: loadtxt, load, fromstring, fromregex
     &#34;&#34;&#34;
+    from functools import partial
 
     def conv(no_data, dtype, val):
         try:
@@ -256,7 +351,7 @@ numpy: loadtxt, load, fromstring, fromregex</p></div>
             return no_data
 
     conv = partial(conv, no_data, dtype)
-    return loadtxt(fname, converters=conv, dtype=dtype, **kwargs)</code></pre>
+    return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)</code></pre>
 </details>
 </dd>
 <dt id="fire2a-lib.src.fire2a.utils.qgis2numpy_dtype"><code class="name flex">
@@ -339,6 +434,7 @@ the same as QImage.Format_ARGB32_Premultiplied</li>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.utils.fprint" href="#fire2a-lib.src.fire2a.utils.fprint">fprint</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.utils.getGDALdrivers" href="#fire2a-lib.src.fire2a.utils.getGDALdrivers">getGDALdrivers</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.utils.getOGRdrivers" href="#fire2a-lib.src.fire2a.utils.getOGRdrivers">getOGRdrivers</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.utils.loadtxt_nodata" href="#fire2a-lib.src.fire2a.utils.loadtxt_nodata">loadtxt_nodata</a></code></li>

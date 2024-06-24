@@ -26,6 +26,13 @@ This is Forest Fire Analytics 🌲🔥🧠 …" />
 <section id="section-intro">
 <p>Hello World 👋🌎
 This is Forest Fire Analytics 🌲🔥🧠</p>
+<p>When developing fire2a, AVOID writing code like this: </p>
+<pre><code>from fire2a.module import function
+</code></pre>
+<p>Use this instead:</p>
+<pre><code>from .module import function
+</code></pre>
+<p>UNTIL WE CAN DISTRIBUTE ON PYPI!!</p>
 <p>This is fire2a-lib distribution, fire2a package docstring
 More info on:</p>
 <pre><code>fire2a.github.io/fire2a-lib  
@@ -39,6 +46,16 @@ www.fire2a.com
 <pre><code class="python">#!python3
 &#34;&#34;&#34;Hello World 👋🌎
 This is Forest Fire Analytics 🌲🔥🧠
+
+When developing fire2a, AVOID writing code like this: 
+    
+    from fire2a.module import function 
+
+Use this instead:
+
+    from .module import function
+
+UNTIL WE CAN DISTRIBUTE ON PYPI!!
  
 This is fire2a-lib distribution, fire2a package docstring
 More info on:
@@ -51,9 +68,8 @@ __author__ = &#34;Fernando Badilla&#34;
 __revision__ = &#34;$Format:%H$&#34;
 
 import logging
-from pathlib import Path
-
 from importlib.metadata import PackageNotFoundError, distribution
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -139,7 +155,12 @@ This is the raster module docstring</p></div>
 </dd>
 <dt><code class="name"><a title="fire2a-lib.src.fire2a.cell2fire" href="cell2fire.html">fire2a-lib.src.fire2a.cell2fire</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Classes and methods to auxiliary to using Cell2Fire and its QGIS integration</p>
+<h2 id="currently">Currently</h2>
+<ul>
+<li>raster_layer_to_firebreak_csv</li>
+<li>get_scars_files (all …</li>
+</ul></div>
 </dd>
 <dt><code class="name"><a title="fire2a-lib.src.fire2a.clustering" href="clustering.html">fire2a-lib.src.fire2a.clustering</a></code></dt>
 <dd>
@@ -158,6 +179,10 @@ This is the raster module docstring</p></div>
 <dd>
 <div class="desc"><p>👋🌎
 Some functions related to kitral weather scenario creation.</p></div>
+</dd>
+<dt><code class="name"><a title="fire2a-lib.src.fire2a.processing_utils" href="processing_utils.html">fire2a-lib.src.fire2a.processing_utils</a></code></dt>
+<dd>
+<div class="desc"><p>This module is related to qgis processing algorithms, needing a special initialization</p></div>
 </dd>
 <dt><code class="name"><a title="fire2a-lib.src.fire2a.raster" href="raster.html">fire2a-lib.src.fire2a.raster</a></code></dt>
 <dd>
@@ -296,6 +321,7 @@ print("Normal program output, not logged")</p></div>
 <li><code><a title="fire2a-lib.src.fire2a.downstream_protection_value" href="downstream_protection_value.html">fire2a-lib.src.fire2a.downstream_protection_value</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.managedata" href="managedata.html">fire2a-lib.src.fire2a.managedata</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.meteo" href="meteo.html">fire2a-lib.src.fire2a.meteo</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.processing_utils" href="processing_utils.html">fire2a-lib.src.fire2a.processing_utils</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.raster" href="raster.html">fire2a-lib.src.fire2a.raster</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.treatmentpreproccessing" href="treatmentpreproccessing.html">fire2a-lib.src.fire2a.treatmentpreproccessing</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.utils" href="utils.html">fire2a-lib.src.fire2a.utils</a></code></li>

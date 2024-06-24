@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>fire2a-lib.src.fire2a.cell2fire API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="Classes and methods to auxiliary to using Cell2Fire and its QGIS integration
+Currently:
+- raster_layer_to_firebreak_csv
+- get_scars_files (all …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -23,57 +26,41 @@
 <h1 class="title">Module <code>fire2a-lib.src.fire2a.cell2fire</code></h1>
 </header>
 <section id="section-intro">
+<p>Classes and methods to auxiliary to using Cell2Fire and its QGIS integration</p>
+<h2 id="currently">Currently</h2>
+<ul>
+<li>raster_layer_to_firebreak_csv</li>
+<li>get_scars_files (all together but a bit slowen than the next two methods)</li>
+<li>get_scars_indexed (part 1/2)</li>
+<li>group_scars (part 2/2)</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">#!python
-__author__ = &#34;Fernando Badilla&#34;
-__revision__ = &#34;$Format:%H$&#34;
 # fmt: off
 &#34;&#34;&#34;
-To graphically define firebreaks, use QGIS to draw firebreaks on a raster layer then export it using this module.
-
-Cell2Fire-W simulator features placing firebreaks (that internally are represented as unburnable cells); making it easier than to manually create a new fuels raster for every firebreak experiment/simulation.
-
-This is done by appending a `.csv` file to the simulation command. For example: `--FirebreakCells fbv.csv`, containing:
-
-        Year,Ncell
-        1,1,81,161,162
-
-Values represents an &#34;L&#34; shaped firebreak: topleft cell is 1, the one below 81, below 161, to the right 162. (in a 80 pixels width raster)
-
-Headers are: Year, Ncell.  
-The first column always is Year, 1 (as CFW-W only supports one fire before resetting the landscape).  
-Unburnable values are placed as a row of cells id (starting from 1)
-
-Requires:  
- - QGIS  
- - Serval QGIS plugin, check the manual here: https://github.com/lutraconsulting/serval/blob/master/Serval/docs/user_manual.md  
- - A raster layer loaded in QGIS  
-
-Steps:  
-1. User Serval to draw firebreaks on the raster layer, you can create a new layer for the firebreaks or set a peculiar value on the raster  
-2. Run this script in the QGIS Python console, identifying the layer and the value used for the firebreaks  
-3. The script will create a csv file with the firebreaks  
-4. Run C2F-W with the firebreaks csv file:  
-
-    $ cd /path/to/instance
-    $ rm -f Data.csv
-    $ rm -fr result_wFirebreaks
-    $ mkdir result_wFirebreaks
-    $ /path/to/Cell2Fire.Linux.x86_64 --final-grid --sim K --input-instance-folder . --output-folder result_wFirebreaks --FirebreakCells fbv.csv | tee result_wFirebreaks/LogFile.txt
-
-Or append the fullpath to the `fbv.csv` file to the Advanced Parameters in the GUI as: `--FirebreakCells /full/path/fbv.csv`
+Classes and methods to auxiliary to using Cell2Fire and its QGIS integration
+Currently:
+    - raster_layer_to_firebreak_csv
+    - get_scars_files (all together but a bit slowen than the next two methods)
+    - get_scars_indexed (part 1/2)
+    - group_scars (part 2/2)
 &#34;&#34;&#34;
 # fmt: on
+__author__ = &#34;Fernando Badilla&#34;
+__revision__ = &#34;$Format:%H$&#34;
 
+import logging
+import sys
 from pathlib import Path
 
-from numpy import array, where
 from qgis.core import QgsRasterLayer
 
-from .raster import get_rlayer_data, xy2id
+from .utils import fprint, loadtxt_nodata
+
+logger = logging.getLogger(__name__)
 
 
 def raster_layer_to_firebreak_csv(
@@ -98,23 +85,443 @@ def raster_layer_to_firebreak_csv(
     QGIS Console Example:  
     ```
         layer = iface.activeLayer()  
-        from fire2a.firebreaks import raster_layer_to_firebreak_csv
+        from  fire2a.firebreaks import raster_layer_to_firebreak_csv
         raster_layer_to_firebreak_csv(layer)
         import processing
         processing.run(&#34;fire2a:cell2firesimulator&#34;, ...
     ```
+    See also: https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html
     &#34;&#34;&#34; # fmt: skip
+    from numpy import array as np_array
+    from numpy import where as np_where
+
+    from .raster import get_rlayer_data, xy2id
+
     width = layer.width()
     data = get_rlayer_data(layer)
 
     # numpy is hh,ww indexing
-    yy, xx = where(data == firebreak_val)
-    ids = array([xy2id(x, y, width) for x, y in zip(xx, yy)])
+    yy, xx = np_where(data == firebreak_val)
+    ids = np_array([xy2id(x, y, width) for x, y in zip(xx, yy)])
     ids += 1
 
     with open(output_file, &#34;w&#34;) as f:
         f.write(&#34;Year,Ncell\n&#34;)
-        f.write(f&#34;1,{&#39;,&#39;.join(map(str,ids))}\n&#34;)</code></pre>
+        f.write(f&#34;1,{&#39;,&#39;.join(map(str,ids))}\n&#34;)
+
+
+def get_scars_files(sample_file):
+    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    Args:
+        sample_file (Path): A sample file to extract the name and extension, parent and root directories
+    Returns:
+        bool: True if successful, False otherwise
+        str: Error message if any
+        root (Path): all other paths are relative to this and must be used as root/parent or root/child
+        parents (list[Path]): sorted list of parent directories
+        parents_ids (list[int]): corresponding simulation ids of these parents
+        children (list[list[Path]]): sorted list of lists of children files
+        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
+    Sample Usage:
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+        if ret_val:
+            final_scars = [ root / chl[-1] for chl in children ]
+            ignitions_scars = [ root / chl[0] for chl in children ]
+            length_of_each_simulation = [ len(chl) for chl in children ]
+        else:
+            print(msg)
+    &#34;&#34;&#34;
+    from re import search as re_search
+
+    ext = sample_file.suffix
+    if match := re_search(&#34;(\d+)$&#34;, sample_file.stem):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file: {sample_file} does not contain a number at the end&#34;
+        return False, msg, None, None, None, None, None
+    file_name_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search(&#34;(\d+)$&#34;, parent.name):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file:{sample_file} parent:{parent} does not contain a number at the end&#34;
+        return False, msg, root, None, None, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+    parent_dirs = []
+    parent_ids = []
+    for par in root.glob(parent_wo_num + &#34;[0-9]*&#34;):
+        if par.is_dir():
+            par = par.relative_to(root)
+            parent_ids += [int(re_search(&#34;(\d+)$&#34;, par.name).group(0))]
+            parent_dirs += [par]
+    adict = dict(zip(parent_dirs, parent_ids))
+    parent_dirs.sort(key=lambda x: adict[x])
+    parent_ids.sort()
+
+    children = []
+    children_ids = []
+    for par in parent_dirs:
+        chl_files = []
+        chl_ids = []
+        for afile in (root / par).glob(file_name_wo_num + &#34;[0-9]*&#34; + ext):
+            if afile.is_file() and afile.stat().st_size &gt; 0:
+                afile = afile.relative_to(root)
+                chl_ids += [int(re_search(&#34;(\d+)$&#34;, afile.stem).group(0))]
+                chl_files += [afile]
+        adict = dict(zip(chl_files, chl_ids))
+        chl_files.sort(key=lambda x: adict[x])
+        chl_ids.sort()
+        children += [chl_files]
+        children_ids += [chl_ids]
+
+    # msg = f&#34;Got {len(parent_dirs)} parent directories with {sum([len(chl) for chl in children])} children files&#34;
+    msg = &#34;&#34;
+    return True, msg, root, parent_dirs, parent_ids, children, children_ids
+
+
+def get_scars_indexed(sample_file):
+    &#34;&#34;&#34;Get a sorted list of files with the same pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;.
+    Args:
+        sample_file (Path): A sample file to extract the extension, children name (wo ending number),  parent (wo ending number) and root directory
+    Returns:
+        return_value (bool): True if successful, False otherwise
+        return_message (str): Debug/Error message if any
+        root (Path): all paths are relative to this and must be used as root/file
+        parent_wo_num (str): parent name without the ending number
+        child_wo_num (str): children name without the ending number
+        extension (str): file extension
+        files (list[Path]): sorted list of (relative paths) files
+        indexes (list[Tuple[int,int]]]): list of tuples of simulation and period ids
+
+    Sample:
+        retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    &#34;&#34;&#34;
+    from os import sep
+    from re import findall as re_findall
+    from re import search as re_search
+
+    from numpy import array as np_array
+    from numpy import fromiter as np_fromiter
+
+    ext = sample_file.suffix
+    if match := re_search(&#34;(\d+)$&#34;, sample_file.stem):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file: {sample_file} does not contain a number at the end&#34;
+        return False, msg, None, None, None, ext, None, None
+    child_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search(&#34;(\d+)$&#34;, parent.name):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file:{sample_file} parent:{parent} does not contain a number at the end&#34;
+        return False, msg, root, None, child_wo_num, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+
+    files = np_array(
+        [
+            afile.relative_to(root)
+            for afile in root.glob(parent_wo_num + &#34;[0-9]*&#34; + sep + child_wo_num + &#34;[0-9]*&#34; + ext)
+            if afile.is_file() and afile.stat().st_size &gt; 0
+        ]
+    )
+
+    indexes = np_fromiter(
+        # re_findall(parent_wo_num + &#34;(\d+)&#34; + sep + child_wo_num + &#34;(\d+)&#34; + ext, &#34; &#34;.join(map(str, files))),
+        re_findall(&#34;(\d+)&#34; + sep + child_wo_num + &#34;(\d+)&#34;, &#34; &#34;.join(map(str, files))),
+        dtype=[(&#34;sim&#34;, int), (&#34;per&#34;, int)],
+        count=len(files),
+    )
+
+    files = files[indexes.argsort(order=(&#34;sim&#34;, &#34;per&#34;))]
+    indexes.sort()
+
+    msg = &#34;&#34;
+    # msg = f&#34;Got {len(files)} files\n&#34;
+    # msg += f&#34;{len(np_unique(indexes[&#39;sim&#39;]))} simulations\n&#34;
+    # msg += f&#34;{len(np_unique(indexes[&#39;per&#39;]))} different periods&#34;
+
+    return True, msg, root, parent_wo_num, child_wo_num, ext, files, indexes
+
+
+def group_scars(root, parent_wo_num, child_wo_num, ext, files, indexes):
+    &#34;&#34;&#34;Group scars files by simulation and period
+    Args:
+        files (list[Path]): list of files
+        indexes (list[Tuple[int,int]]): list of tuples of simulation and period ids
+    Returns:
+        parent_ids (list[int]): list of simulation ids
+        parent_dirs (list[Path]): list of parent directories
+        children_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        children_files (list[Path]): list of children files
+        final_scars_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        final_scars_files (list[Path]): list of final scars files
+    Sample:
+        parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(files, indexes)
+    &#34;&#34;&#34;
+    from numpy import unique as np_unique
+    from numpy import where as np_where
+
+    parent_ids = [sim_id for sim_id in np_unique(indexes[&#34;sim&#34;])]
+    children_ids = [[(sim_id, per_id) for per_id in indexes[&#34;per&#34;][indexes[&#34;sim&#34;] == sim_id]] for sim_id in parent_ids]
+    children_files = [[afile for afile in files[np_where(indexes[&#34;sim&#34;] == pid)[0]]] for pid in parent_ids]
+
+    final_idx = [np_where(indexes[&#34;sim&#34;] == pid)[0][-1] for pid in parent_ids]
+
+    parent_dirs = [afile.parent for afile in files[final_idx]]
+
+    final_scars_files = files[final_idx]
+    final_scars_ids = indexes[final_idx]
+
+    return parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files
+
+
+def build_scars(
+    scar_raster: str,
+    scar_poly: str,
+    burn_prob: str,
+    sample_file: Path,
+    W: int,
+    H: int,
+    geotransform: tuple,
+    authid: str,
+    callback=None,
+    feedback=None,
+):
+    &#34;&#34;&#34;Build the final scars raster, evolution scars polygons and burn probability raster files
+    Assummes (scar_raster or scar_poly or burn_prob) == True
+    &#34;&#34;&#34;
+    from numpy import any as np_any
+    from numpy import float32 as np_float32
+    from numpy import int8 as np_int8
+    from numpy import loadtxt as np_loadtxt
+    from numpy import zeros as np_zeros
+    from osgeo import gdal, ogr, osr
+
+    from .processing_utils import (get_output_raster_format,
+                                   get_vector_driver_from_filename)
+
+    gdal.UseExceptions()
+
+    retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    if not retval:
+        fprint(retmsg, level=&#34;error&#34;, feedback=feedback)
+        return 1
+    parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(
+        root, parent_wo_num, child_wo_num, ext, files, indexes
+    )
+
+    if burn_prob:
+        burn_prob_arr = np_zeros((H, W), dtype=np_float32)
+    else:
+        burn_prob_arr = None
+
+    if scar_raster:
+        driver_name = get_output_raster_format(scar_raster, feedback=feedback)
+        scar_raster_ds = gdal.GetDriverByName(driver_name).Create(
+            scar_raster, W, H, len(final_scars_ids), gdal.GDT_Byte
+        )
+        scar_raster_ds.SetGeoTransform(geotransform)
+        scar_raster_ds.SetProjection(authid)
+    else:
+        scar_raster_ds = None
+
+    def final_scar_step(i, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=None):
+        if scar_raster:
+            band = scar_raster_ds.GetRasterBand(i)
+            band.SetUnitType(&#34;burned&#34;)
+            if 0 != band.SetNoDataValue(0):
+                fprint(f&#34;Set NoData failed for Final Scar {i}: {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            if 0 != band.WriteArray(data):
+                fprint(f&#34;WriteArray failed for Final Scar {i}: {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            scar_raster_ds.FlushCache()
+        if burn_prob:
+            burn_prob_arr += data
+
+    if scar_poly:
+        # raster for each grid
+        src_ds = gdal.GetDriverByName(&#34;MEM&#34;).Create(&#34;&#34;, W, H, len(files), gdal.GDT_Byte)
+        src_ds.SetGeoTransform(geotransform)
+        src_ds.SetProjection(authid)  # export coords to file
+        # datasource for shadow geometry vector layer (polygonize output)
+        ogr_ds = ogr.GetDriverByName(&#34;Memory&#34;).CreateDataSource(&#34;&#34;)
+        # srs
+        sp_ref = osr.SpatialReference()
+        sp_ref.SetFromUserInput(authid)
+        # otro
+        # if scar_poly[-5:] != &#34;.gpkg&#34;:
+        #     scar_poly = scar_poly + &#34;.gpkg&#34;
+        if scar_poly.startswith(&#34;memory&#34;):
+            driver_name = &#34;GPKG&#34;
+        else:
+            driver_name = get_vector_driver_from_filename(scar_poly)
+        otrods = ogr.GetDriverByName(&#34;GPKG&#34;).CreateDataSource(scar_poly)
+        otrolyr = otrods.CreateLayer(&#34;propagation_scars&#34;, srs=sp_ref, geom_type=ogr.wkbPolygon)
+        otrolyr.CreateField(ogr.FieldDefn(&#34;simulation&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;time&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;area&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;perimeter&#34;, ogr.OFTInteger))
+        # full loop
+        count_evo = 0
+        count_fin = 0
+        for sim_id, ids, files in zip(parent_ids, children_ids, children_files):
+            count_fin += 1
+            for (_, per_id), afile in zip(ids, files):
+                count_evo += 1
+
+                # read data
+                try:
+                    data = np_loadtxt(root / afile, delimiter=&#34;,&#34;, dtype=np_int8)
+                except:
+                    fprint(f&#34;Error reading {afile}, retrying with nodata = 0&#34;, level=&#34;error&#34;, feedback=feedback)
+                    data = loadtxt_nodata(root / afile, delimiter=&#34;,&#34;, dtype=np_int8, no_data=0)
+                if not np_any(data == 1):
+                    fprint(f&#34;no fire in {afile}, skipping propagation polygon&#34;, level=&#34;warning&#34;, feedback=feedback)
+                else:
+                    # SCARS POLY
+                    # raster polygonize
+                    src_band = src_ds.GetRasterBand(count_evo)
+                    src_band.SetNoDataValue(0)
+                    src_band.WriteArray(data)
+                    ogr_layer = ogr_ds.CreateLayer(&#34;&#34;, srs=sp_ref)
+                    gdal.Polygonize(src_band, src_band, ogr_layer, -1, [&#34;8CONNECTED=8&#34;])
+                    # assumes only one feature : 8 neighbors provides that
+                    feat = ogr_layer.GetNextFeature()
+                    geom = feat.GetGeometryRef()
+                    # create the feature and set values
+                    featureDefn = otrolyr.GetLayerDefn()
+                    feature = ogr.Feature(featureDefn)
+                    feature.SetGeometry(geom)
+                    feature.SetField(&#34;simulation&#34;, int(sim_id))
+                    feature.SetField(&#34;time&#34;, int(per_id))
+                    feature.SetField(&#34;area&#34;, int(geom.GetArea()))
+                    feature.SetField(&#34;perimeter&#34;, int(geom.Boundary().Length()))
+                    otrolyr.CreateFeature(feature)
+                    otrods.FlushCache()
+
+                if callback:
+                    callback(count_evo / len(files) * 100, f&#34;Processed Propagation-Scar {count_evo}/{len(indexes)}&#34;)
+                else:
+                    fprint(f&#34;Processed Propagation-Scar {count_evo}/{len(indexes)}&#34;, level=&#34;info&#34;, feedback=feedback)
+
+            if scar_raster or burn_prob:
+                final_scar_step(
+                    count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+                )
+                if callback:
+                    callback(None, f&#34;Processed +Final-Scar {count_evo}/{len(indexes)}&#34;)
+                else:
+                    fprint(f&#34;Processed Final-Scar {count_fin}/{len(files)}&#34;, level=&#34;info&#34;, feedback=feedback)
+        # clean up
+        if scar_raster:
+            scar_raster_ds.FlushCache()
+            scar_raster_ds = None
+        otrods.FlushCache()
+        otrods = None
+        # otrolyr.SyncToDisk() CRASHES QGIS
+        # otrolyr = None
+        src_ds.FlushCache()
+        src_ds = None
+    else:
+        # final scar loop
+        count_fin = 0
+        for (sim_id, per_id), afile in zip(final_scars_ids, final_scars_files):
+            count_fin += 1
+            data = loadtxt(root / afile, delimiter=&#34;,&#34;, dtype=np_int8)
+            if not np_any(data == 1):
+                fprint(f&#34;no fire in Final-Scar {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            final_scar_step(
+                count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+            )
+            if callback and (scar_raster or burn_prob):
+                callback(count_fin / len(final_scars_files) * 100, f&#34;Processed Final-Scar {count_fin}/{len(files)}&#34;)
+
+    if burn_prob:
+        driver_name = get_output_raster_format(burn_prob, feedback=feedback)
+        burn_prob_ds = gdal.GetDriverByName(driver_name).Create(burn_prob, W, H, 1, gdal.GDT_Float32)
+        burn_prob_ds.SetGeoTransform(geotransform)
+        burn_prob_ds.SetProjection(authid)
+        band = burn_prob_ds.GetRasterBand(1)
+        band.SetUnitType(&#34;probability&#34;)
+        if 0 != band.SetNoDataValue(0):
+            fprint(f&#34;Set NoData failed for Burn Probability {burn_prob}&#34;, level=&#34;warning&#34;, feedback=feedback)
+        if 0 != band.WriteArray(burn_prob_arr / len(final_scars_files)):
+            fprint(f&#34;WriteArray failed for Burn Probability {burn_prob}&#34;, level=&#34;warning&#34;, feedback=feedback)
+        burn_prob_ds.FlushCache()
+        burn_prob_ds = None
+
+    return 0
+
+
+def arg_parser(argv):
+    import argparse
+
+    parser = argparse.ArgumentParser(description=&#34;Fire2a-Cell2FireW Related algorithms CLI&#34;)
+    parser.add_argument(&#34;--verbose&#34;, &#34;-v&#34;, action=&#34;count&#34;, default=0, help=&#34;WARNING:v, INFO:vv, DEBUG:vvv&#34;)
+
+    scars = parser.add_argument_group(&#34;Scars&#34;)
+    scars.add_argument(&#34;--base-raster&#34;, required=True, help=&#34;Raster to base the geotransform, width, heigth and authid&#34;)
+    scars.add_argument(&#34;--authid&#34;, required=False, help=&#34;Auth id to override (or missing on the base raster)&#34;)
+    scars.add_argument(
+        &#34;--sample-file&#34;,
+        required=True,
+        help=&#34;Matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;,i.e., results/Grids/Grids*/ForestGrid*.csv&#34;,
+    )
+    scars.add_argument(&#34;--scar-raster&#34;, default=&#34;&#34;, help=&#34;The output file for the final scars raster&#34;)
+    scars.add_argument(&#34;--scar-poly&#34;, default=&#34;&#34;, help=&#34;The output file for the evolution scars polygons&#34;)
+    scars.add_argument(&#34;--burn-prob&#34;, default=&#34;&#34;, help=&#34;The output file for the burn probability raster&#34;)
+
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    &#34;&#34;&#34;
+    args = arg_parser([&#39;-vvv&#39;])
+    &#34;&#34;&#34;
+    if argv is sys.argv:
+        argv = sys.argv[1:]
+    args = arg_parser(argv)
+
+    if args.verbose != 0:
+        from . import setup_logger
+
+        global logger
+        NAME = &#34;fire2a&#34;
+        logger = setup_logger(NAME, verbosity=args.verbose, logfile=NAME + &#34;.log&#34;)
+
+    logger.info(&#34;args %s&#34;, args)
+
+    if args.sample_file and args.base_raster:
+        logger.info(&#34;building scars&#34;)
+        from .raster import read_raster
+
+        _, raster_props = read_raster(args.base_raster, data=False, info=True)
+        if not (authid := raster_props[&#34;Projection&#34;]):
+            if not (authid := args.authid):
+                logger.error(&#34;No authid found on the base raster or provided&#34;)
+                return 1
+        retval = build_scars(
+            args.scar_raster,
+            args.scar_poly,
+            args.burn_prob,
+            Path(args.sample_file),
+            raster_props[&#34;RasterXSize&#34;],
+            raster_props[&#34;RasterYSize&#34;],
+            raster_props[&#34;Transform&#34;],
+            authid,
+        )
+        logger.info(&#34;built scars return value: %s&#34;, retval)
+    return 0
+
+
+if __name__ == &#34;__main__&#34;:
+    sys.exit(main(sys.argv))</code></pre>
 </details>
 </section>
 <section>
@@ -124,6 +531,529 @@ def raster_layer_to_firebreak_csv(
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="fire2a-lib.src.fire2a.cell2fire.arg_parser"><code class="name flex">
+<span>def <span class="ident">arg_parser</span></span>(<span>argv)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def arg_parser(argv):
+    import argparse
+
+    parser = argparse.ArgumentParser(description=&#34;Fire2a-Cell2FireW Related algorithms CLI&#34;)
+    parser.add_argument(&#34;--verbose&#34;, &#34;-v&#34;, action=&#34;count&#34;, default=0, help=&#34;WARNING:v, INFO:vv, DEBUG:vvv&#34;)
+
+    scars = parser.add_argument_group(&#34;Scars&#34;)
+    scars.add_argument(&#34;--base-raster&#34;, required=True, help=&#34;Raster to base the geotransform, width, heigth and authid&#34;)
+    scars.add_argument(&#34;--authid&#34;, required=False, help=&#34;Auth id to override (or missing on the base raster)&#34;)
+    scars.add_argument(
+        &#34;--sample-file&#34;,
+        required=True,
+        help=&#34;Matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;,i.e., results/Grids/Grids*/ForestGrid*.csv&#34;,
+    )
+    scars.add_argument(&#34;--scar-raster&#34;, default=&#34;&#34;, help=&#34;The output file for the final scars raster&#34;)
+    scars.add_argument(&#34;--scar-poly&#34;, default=&#34;&#34;, help=&#34;The output file for the evolution scars polygons&#34;)
+    scars.add_argument(&#34;--burn-prob&#34;, default=&#34;&#34;, help=&#34;The output file for the burn probability raster&#34;)
+
+    return parser.parse_args(argv)</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.cell2fire.build_scars"><code class="name flex">
+<span>def <span class="ident">build_scars</span></span>(<span>scar_raster: str, scar_poly: str, burn_prob: str, sample_file: pathlib.Path, W: int, H: int, geotransform: tuple, authid: str, callback=None, feedback=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Build the final scars raster, evolution scars polygons and burn probability raster files
+Assummes (scar_raster or scar_poly or burn_prob) == True</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_scars(
+    scar_raster: str,
+    scar_poly: str,
+    burn_prob: str,
+    sample_file: Path,
+    W: int,
+    H: int,
+    geotransform: tuple,
+    authid: str,
+    callback=None,
+    feedback=None,
+):
+    &#34;&#34;&#34;Build the final scars raster, evolution scars polygons and burn probability raster files
+    Assummes (scar_raster or scar_poly or burn_prob) == True
+    &#34;&#34;&#34;
+    from numpy import any as np_any
+    from numpy import float32 as np_float32
+    from numpy import int8 as np_int8
+    from numpy import loadtxt as np_loadtxt
+    from numpy import zeros as np_zeros
+    from osgeo import gdal, ogr, osr
+
+    from .processing_utils import (get_output_raster_format,
+                                   get_vector_driver_from_filename)
+
+    gdal.UseExceptions()
+
+    retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    if not retval:
+        fprint(retmsg, level=&#34;error&#34;, feedback=feedback)
+        return 1
+    parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(
+        root, parent_wo_num, child_wo_num, ext, files, indexes
+    )
+
+    if burn_prob:
+        burn_prob_arr = np_zeros((H, W), dtype=np_float32)
+    else:
+        burn_prob_arr = None
+
+    if scar_raster:
+        driver_name = get_output_raster_format(scar_raster, feedback=feedback)
+        scar_raster_ds = gdal.GetDriverByName(driver_name).Create(
+            scar_raster, W, H, len(final_scars_ids), gdal.GDT_Byte
+        )
+        scar_raster_ds.SetGeoTransform(geotransform)
+        scar_raster_ds.SetProjection(authid)
+    else:
+        scar_raster_ds = None
+
+    def final_scar_step(i, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=None):
+        if scar_raster:
+            band = scar_raster_ds.GetRasterBand(i)
+            band.SetUnitType(&#34;burned&#34;)
+            if 0 != band.SetNoDataValue(0):
+                fprint(f&#34;Set NoData failed for Final Scar {i}: {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            if 0 != band.WriteArray(data):
+                fprint(f&#34;WriteArray failed for Final Scar {i}: {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            scar_raster_ds.FlushCache()
+        if burn_prob:
+            burn_prob_arr += data
+
+    if scar_poly:
+        # raster for each grid
+        src_ds = gdal.GetDriverByName(&#34;MEM&#34;).Create(&#34;&#34;, W, H, len(files), gdal.GDT_Byte)
+        src_ds.SetGeoTransform(geotransform)
+        src_ds.SetProjection(authid)  # export coords to file
+        # datasource for shadow geometry vector layer (polygonize output)
+        ogr_ds = ogr.GetDriverByName(&#34;Memory&#34;).CreateDataSource(&#34;&#34;)
+        # srs
+        sp_ref = osr.SpatialReference()
+        sp_ref.SetFromUserInput(authid)
+        # otro
+        # if scar_poly[-5:] != &#34;.gpkg&#34;:
+        #     scar_poly = scar_poly + &#34;.gpkg&#34;
+        if scar_poly.startswith(&#34;memory&#34;):
+            driver_name = &#34;GPKG&#34;
+        else:
+            driver_name = get_vector_driver_from_filename(scar_poly)
+        otrods = ogr.GetDriverByName(&#34;GPKG&#34;).CreateDataSource(scar_poly)
+        otrolyr = otrods.CreateLayer(&#34;propagation_scars&#34;, srs=sp_ref, geom_type=ogr.wkbPolygon)
+        otrolyr.CreateField(ogr.FieldDefn(&#34;simulation&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;time&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;area&#34;, ogr.OFTInteger))
+        otrolyr.CreateField(ogr.FieldDefn(&#34;perimeter&#34;, ogr.OFTInteger))
+        # full loop
+        count_evo = 0
+        count_fin = 0
+        for sim_id, ids, files in zip(parent_ids, children_ids, children_files):
+            count_fin += 1
+            for (_, per_id), afile in zip(ids, files):
+                count_evo += 1
+
+                # read data
+                try:
+                    data = np_loadtxt(root / afile, delimiter=&#34;,&#34;, dtype=np_int8)
+                except:
+                    fprint(f&#34;Error reading {afile}, retrying with nodata = 0&#34;, level=&#34;error&#34;, feedback=feedback)
+                    data = loadtxt_nodata(root / afile, delimiter=&#34;,&#34;, dtype=np_int8, no_data=0)
+                if not np_any(data == 1):
+                    fprint(f&#34;no fire in {afile}, skipping propagation polygon&#34;, level=&#34;warning&#34;, feedback=feedback)
+                else:
+                    # SCARS POLY
+                    # raster polygonize
+                    src_band = src_ds.GetRasterBand(count_evo)
+                    src_band.SetNoDataValue(0)
+                    src_band.WriteArray(data)
+                    ogr_layer = ogr_ds.CreateLayer(&#34;&#34;, srs=sp_ref)
+                    gdal.Polygonize(src_band, src_band, ogr_layer, -1, [&#34;8CONNECTED=8&#34;])
+                    # assumes only one feature : 8 neighbors provides that
+                    feat = ogr_layer.GetNextFeature()
+                    geom = feat.GetGeometryRef()
+                    # create the feature and set values
+                    featureDefn = otrolyr.GetLayerDefn()
+                    feature = ogr.Feature(featureDefn)
+                    feature.SetGeometry(geom)
+                    feature.SetField(&#34;simulation&#34;, int(sim_id))
+                    feature.SetField(&#34;time&#34;, int(per_id))
+                    feature.SetField(&#34;area&#34;, int(geom.GetArea()))
+                    feature.SetField(&#34;perimeter&#34;, int(geom.Boundary().Length()))
+                    otrolyr.CreateFeature(feature)
+                    otrods.FlushCache()
+
+                if callback:
+                    callback(count_evo / len(files) * 100, f&#34;Processed Propagation-Scar {count_evo}/{len(indexes)}&#34;)
+                else:
+                    fprint(f&#34;Processed Propagation-Scar {count_evo}/{len(indexes)}&#34;, level=&#34;info&#34;, feedback=feedback)
+
+            if scar_raster or burn_prob:
+                final_scar_step(
+                    count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+                )
+                if callback:
+                    callback(None, f&#34;Processed +Final-Scar {count_evo}/{len(indexes)}&#34;)
+                else:
+                    fprint(f&#34;Processed Final-Scar {count_fin}/{len(files)}&#34;, level=&#34;info&#34;, feedback=feedback)
+        # clean up
+        if scar_raster:
+            scar_raster_ds.FlushCache()
+            scar_raster_ds = None
+        otrods.FlushCache()
+        otrods = None
+        # otrolyr.SyncToDisk() CRASHES QGIS
+        # otrolyr = None
+        src_ds.FlushCache()
+        src_ds = None
+    else:
+        # final scar loop
+        count_fin = 0
+        for (sim_id, per_id), afile in zip(final_scars_ids, final_scars_files):
+            count_fin += 1
+            data = loadtxt(root / afile, delimiter=&#34;,&#34;, dtype=np_int8)
+            if not np_any(data == 1):
+                fprint(f&#34;no fire in Final-Scar {afile}&#34;, level=&#34;warning&#34;, feedback=feedback)
+            final_scar_step(
+                count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
+            )
+            if callback and (scar_raster or burn_prob):
+                callback(count_fin / len(final_scars_files) * 100, f&#34;Processed Final-Scar {count_fin}/{len(files)}&#34;)
+
+    if burn_prob:
+        driver_name = get_output_raster_format(burn_prob, feedback=feedback)
+        burn_prob_ds = gdal.GetDriverByName(driver_name).Create(burn_prob, W, H, 1, gdal.GDT_Float32)
+        burn_prob_ds.SetGeoTransform(geotransform)
+        burn_prob_ds.SetProjection(authid)
+        band = burn_prob_ds.GetRasterBand(1)
+        band.SetUnitType(&#34;probability&#34;)
+        if 0 != band.SetNoDataValue(0):
+            fprint(f&#34;Set NoData failed for Burn Probability {burn_prob}&#34;, level=&#34;warning&#34;, feedback=feedback)
+        if 0 != band.WriteArray(burn_prob_arr / len(final_scars_files)):
+            fprint(f&#34;WriteArray failed for Burn Probability {burn_prob}&#34;, level=&#34;warning&#34;, feedback=feedback)
+        burn_prob_ds.FlushCache()
+        burn_prob_ds = None
+
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.cell2fire.get_scars_files"><code class="name flex">
+<span>def <span class="ident">get_scars_files</span></span>(<span>sample_file)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get sorted lists of (non-empty) files matching the pattern 'root/parent(+any digit)/children(+any digit).(any extension)'. Normally used to read Cell2FireW scars results/Grids/Grids<em>/ForestGrid</em>.csv</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sample_file</code></strong> :&ensp;<code>Path</code></dt>
+<dd>A sample file to extract the name and extension, parent and root directories</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>True if successful, False otherwise</dd>
+<dt><code>str</code></dt>
+<dd>Error message if any</dd>
+</dl>
+<p>root (Path): all other paths are relative to this and must be used as root/parent or root/child
+parents (list[Path]): sorted list of parent directories
+parents_ids (list[int]): corresponding simulation ids of these parents
+children (list[list[Path]]): sorted list of lists of children files
+children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
+Sample Usage:
+ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+if ret_val:
+final_scars = [ root / chl[-1] for chl in children ]
+ignitions_scars = [ root / chl[0] for chl in children ]
+length_of_each_simulation = [ len(chl) for chl in children ]
+else:
+print(msg)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_scars_files(sample_file):
+    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    Args:
+        sample_file (Path): A sample file to extract the name and extension, parent and root directories
+    Returns:
+        bool: True if successful, False otherwise
+        str: Error message if any
+        root (Path): all other paths are relative to this and must be used as root/parent or root/child
+        parents (list[Path]): sorted list of parent directories
+        parents_ids (list[int]): corresponding simulation ids of these parents
+        children (list[list[Path]]): sorted list of lists of children files
+        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
+    Sample Usage:
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+        if ret_val:
+            final_scars = [ root / chl[-1] for chl in children ]
+            ignitions_scars = [ root / chl[0] for chl in children ]
+            length_of_each_simulation = [ len(chl) for chl in children ]
+        else:
+            print(msg)
+    &#34;&#34;&#34;
+    from re import search as re_search
+
+    ext = sample_file.suffix
+    if match := re_search(&#34;(\d+)$&#34;, sample_file.stem):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file: {sample_file} does not contain a number at the end&#34;
+        return False, msg, None, None, None, None, None
+    file_name_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search(&#34;(\d+)$&#34;, parent.name):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file:{sample_file} parent:{parent} does not contain a number at the end&#34;
+        return False, msg, root, None, None, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+    parent_dirs = []
+    parent_ids = []
+    for par in root.glob(parent_wo_num + &#34;[0-9]*&#34;):
+        if par.is_dir():
+            par = par.relative_to(root)
+            parent_ids += [int(re_search(&#34;(\d+)$&#34;, par.name).group(0))]
+            parent_dirs += [par]
+    adict = dict(zip(parent_dirs, parent_ids))
+    parent_dirs.sort(key=lambda x: adict[x])
+    parent_ids.sort()
+
+    children = []
+    children_ids = []
+    for par in parent_dirs:
+        chl_files = []
+        chl_ids = []
+        for afile in (root / par).glob(file_name_wo_num + &#34;[0-9]*&#34; + ext):
+            if afile.is_file() and afile.stat().st_size &gt; 0:
+                afile = afile.relative_to(root)
+                chl_ids += [int(re_search(&#34;(\d+)$&#34;, afile.stem).group(0))]
+                chl_files += [afile]
+        adict = dict(zip(chl_files, chl_ids))
+        chl_files.sort(key=lambda x: adict[x])
+        chl_ids.sort()
+        children += [chl_files]
+        children_ids += [chl_ids]
+
+    # msg = f&#34;Got {len(parent_dirs)} parent directories with {sum([len(chl) for chl in children])} children files&#34;
+    msg = &#34;&#34;
+    return True, msg, root, parent_dirs, parent_ids, children, children_ids</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.cell2fire.get_scars_indexed"><code class="name flex">
+<span>def <span class="ident">get_scars_indexed</span></span>(<span>sample_file)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get a sorted list of files with the same pattern 'root/parent(+any digit)/children(+any digit).(any extension)'.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>sample_file</code></strong> :&ensp;<code>Path</code></dt>
+<dd>A sample file to extract the extension, children name (wo ending number),
+parent (wo ending number) and root directory</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>return_value (bool): True if successful, False otherwise
+return_message (str): Debug/Error message if any
+root (Path): all paths are relative to this and must be used as root/file
+parent_wo_num (str): parent name without the ending number
+child_wo_num (str): children name without the ending number
+extension (str): file extension
+files (list[Path]): sorted list of (relative paths) files
+indexes (list[Tuple[int,int]]]): list of tuples of simulation and period ids</p>
+<h2 id="sample">Sample</h2>
+<p>retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_scars_indexed(sample_file):
+    &#34;&#34;&#34;Get a sorted list of files with the same pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;.
+    Args:
+        sample_file (Path): A sample file to extract the extension, children name (wo ending number),  parent (wo ending number) and root directory
+    Returns:
+        return_value (bool): True if successful, False otherwise
+        return_message (str): Debug/Error message if any
+        root (Path): all paths are relative to this and must be used as root/file
+        parent_wo_num (str): parent name without the ending number
+        child_wo_num (str): children name without the ending number
+        extension (str): file extension
+        files (list[Path]): sorted list of (relative paths) files
+        indexes (list[Tuple[int,int]]]): list of tuples of simulation and period ids
+
+    Sample:
+        retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
+    &#34;&#34;&#34;
+    from os import sep
+    from re import findall as re_findall
+    from re import search as re_search
+
+    from numpy import array as np_array
+    from numpy import fromiter as np_fromiter
+
+    ext = sample_file.suffix
+    if match := re_search(&#34;(\d+)$&#34;, sample_file.stem):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file: {sample_file} does not contain a number at the end&#34;
+        return False, msg, None, None, None, ext, None, None
+    child_wo_num = sample_file.stem[: -len(num)]
+    parent = sample_file.absolute().parent
+    root = sample_file.absolute().parent.parent
+    parent = parent.relative_to(root)
+    if match := re_search(&#34;(\d+)$&#34;, parent.name):
+        num = match.group()
+    else:
+        msg = f&#34;sample_file:{sample_file} parent:{parent} does not contain a number at the end&#34;
+        return False, msg, root, None, child_wo_num, None, None
+
+    parent_wo_num = parent.name[: -len(num)]
+
+    files = np_array(
+        [
+            afile.relative_to(root)
+            for afile in root.glob(parent_wo_num + &#34;[0-9]*&#34; + sep + child_wo_num + &#34;[0-9]*&#34; + ext)
+            if afile.is_file() and afile.stat().st_size &gt; 0
+        ]
+    )
+
+    indexes = np_fromiter(
+        # re_findall(parent_wo_num + &#34;(\d+)&#34; + sep + child_wo_num + &#34;(\d+)&#34; + ext, &#34; &#34;.join(map(str, files))),
+        re_findall(&#34;(\d+)&#34; + sep + child_wo_num + &#34;(\d+)&#34;, &#34; &#34;.join(map(str, files))),
+        dtype=[(&#34;sim&#34;, int), (&#34;per&#34;, int)],
+        count=len(files),
+    )
+
+    files = files[indexes.argsort(order=(&#34;sim&#34;, &#34;per&#34;))]
+    indexes.sort()
+
+    msg = &#34;&#34;
+    # msg = f&#34;Got {len(files)} files\n&#34;
+    # msg += f&#34;{len(np_unique(indexes[&#39;sim&#39;]))} simulations\n&#34;
+    # msg += f&#34;{len(np_unique(indexes[&#39;per&#39;]))} different periods&#34;
+
+    return True, msg, root, parent_wo_num, child_wo_num, ext, files, indexes</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.cell2fire.group_scars"><code class="name flex">
+<span>def <span class="ident">group_scars</span></span>(<span>root, parent_wo_num, child_wo_num, ext, files, indexes)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Group scars files by simulation and period</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>files</code></strong> :&ensp;<code>list[Path]</code></dt>
+<dd>list of files</dd>
+<dt><strong><code>indexes</code></strong> :&ensp;<code>list[Tuple[int,int]]</code></dt>
+<dd>list of tuples of simulation and period ids</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>parent_ids (list[int]): list of simulation ids
+parent_dirs (list[Path]): list of parent directories
+children_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+children_files (list[Path]): list of children files
+final_scars_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+final_scars_files (list[Path]): list of final scars files</p>
+<h2 id="sample">Sample</h2>
+<p>parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(files, indexes)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def group_scars(root, parent_wo_num, child_wo_num, ext, files, indexes):
+    &#34;&#34;&#34;Group scars files by simulation and period
+    Args:
+        files (list[Path]): list of files
+        indexes (list[Tuple[int,int]]): list of tuples of simulation and period ids
+    Returns:
+        parent_ids (list[int]): list of simulation ids
+        parent_dirs (list[Path]): list of parent directories
+        children_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        children_files (list[Path]): list of children files
+        final_scars_ids (list[Tuple[int,int]]): list of tuples of simulation and period ids
+        final_scars_files (list[Path]): list of final scars files
+    Sample:
+        parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(files, indexes)
+    &#34;&#34;&#34;
+    from numpy import unique as np_unique
+    from numpy import where as np_where
+
+    parent_ids = [sim_id for sim_id in np_unique(indexes[&#34;sim&#34;])]
+    children_ids = [[(sim_id, per_id) for per_id in indexes[&#34;per&#34;][indexes[&#34;sim&#34;] == sim_id]] for sim_id in parent_ids]
+    children_files = [[afile for afile in files[np_where(indexes[&#34;sim&#34;] == pid)[0]]] for pid in parent_ids]
+
+    final_idx = [np_where(indexes[&#34;sim&#34;] == pid)[0][-1] for pid in parent_ids]
+
+    parent_dirs = [afile.parent for afile in files[final_idx]]
+
+    final_scars_files = files[final_idx]
+    final_scars_ids = indexes[final_idx]
+
+    return parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files</code></pre>
+</details>
+</dd>
+<dt id="fire2a-lib.src.fire2a.cell2fire.main"><code class="name flex">
+<span>def <span class="ident">main</span></span>(<span>argv=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>args = arg_parser(['-vvv'])</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def main(argv=None):
+    &#34;&#34;&#34;
+    args = arg_parser([&#39;-vvv&#39;])
+    &#34;&#34;&#34;
+    if argv is sys.argv:
+        argv = sys.argv[1:]
+    args = arg_parser(argv)
+
+    if args.verbose != 0:
+        from . import setup_logger
+
+        global logger
+        NAME = &#34;fire2a&#34;
+        logger = setup_logger(NAME, verbosity=args.verbose, logfile=NAME + &#34;.log&#34;)
+
+    logger.info(&#34;args %s&#34;, args)
+
+    if args.sample_file and args.base_raster:
+        logger.info(&#34;building scars&#34;)
+        from .raster import read_raster
+
+        _, raster_props = read_raster(args.base_raster, data=False, info=True)
+        if not (authid := raster_props[&#34;Projection&#34;]):
+            if not (authid := args.authid):
+                logger.error(&#34;No authid found on the base raster or provided&#34;)
+                return 1
+        retval = build_scars(
+            args.scar_raster,
+            args.scar_poly,
+            args.burn_prob,
+            Path(args.sample_file),
+            raster_props[&#34;RasterXSize&#34;],
+            raster_props[&#34;RasterYSize&#34;],
+            raster_props[&#34;Transform&#34;],
+            authid,
+        )
+        logger.info(&#34;built scars return value: %s&#34;, retval)
+    return 0</code></pre>
+</details>
+</dd>
 <dt id="fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv"><code class="name flex">
 <span>def <span class="ident">raster_layer_to_firebreak_csv</span></span>(<span>layer: qgis._core.QgsRasterLayer, firebreak_val: int = 666, output_file: str | pathlib.Path = 'firebreaks.csv')</span>
 </code></dt>
@@ -149,11 +1079,12 @@ Reload or save as to see changes</p>
 <p>QGIS Console Example:
 </p>
 <pre><code>    layer = iface.activeLayer()  
-    from fire2a.firebreaks import raster_layer_to_firebreak_csv
+    from  fire2a.firebreaks import raster_layer_to_firebreak_csv
     raster_layer_to_firebreak_csv(layer)
     import processing
     processing.run(&quot;fire2a:cell2firesimulator&quot;, ...
-</code></pre></div>
+</code></pre>
+<p>See also: <a href="https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html">https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html</a></p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -180,18 +1111,24 @@ Reload or save as to see changes</p>
     QGIS Console Example:  
     ```
         layer = iface.activeLayer()  
-        from fire2a.firebreaks import raster_layer_to_firebreak_csv
+        from  fire2a.firebreaks import raster_layer_to_firebreak_csv
         raster_layer_to_firebreak_csv(layer)
         import processing
         processing.run(&#34;fire2a:cell2firesimulator&#34;, ...
     ```
+    See also: https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html
     &#34;&#34;&#34; # fmt: skip
+    from numpy import array as np_array
+    from numpy import where as np_where
+
+    from .raster import get_rlayer_data, xy2id
+
     width = layer.width()
     data = get_rlayer_data(layer)
 
     # numpy is hh,ww indexing
-    yy, xx = where(data == firebreak_val)
-    ids = array([xy2id(x, y, width) for x, y in zip(xx, yy)])
+    yy, xx = np_where(data == firebreak_val)
+    ids = np_array([xy2id(x, y, width) for x, y in zip(xx, yy)])
     ids += 1
 
     with open(output_file, &#34;w&#34;) as f:
@@ -217,6 +1154,12 @@ Reload or save as to see changes</p>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.arg_parser" href="#fire2a-lib.src.fire2a.cell2fire.arg_parser">arg_parser</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.build_scars" href="#fire2a-lib.src.fire2a.cell2fire.build_scars">build_scars</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.get_scars_files" href="#fire2a-lib.src.fire2a.cell2fire.get_scars_files">get_scars_files</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.get_scars_indexed" href="#fire2a-lib.src.fire2a.cell2fire.get_scars_indexed">get_scars_indexed</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.group_scars" href="#fire2a-lib.src.fire2a.cell2fire.group_scars">group_scars</a></code></li>
+<li><code><a title="fire2a-lib.src.fire2a.cell2fire.main" href="#fire2a-lib.src.fire2a.cell2fire.main">main</a></code></li>
 <li><code><a title="fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv" href="#fire2a-lib.src.fire2a.cell2fire.raster_layer_to_firebreak_csv">raster_layer_to_firebreak_csv</a></code></li>
 </ul>
 </li>
