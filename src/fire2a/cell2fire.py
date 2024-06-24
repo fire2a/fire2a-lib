@@ -71,26 +71,37 @@ def raster_layer_to_firebreak_csv(
 
 
 def get_scars_files(sample_file):
-    """Get sorted lists of (non-empty) files matching the pattern 'root/parent(+any digit)/children(+any digit).(any extension)'. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    """Get sorted lists of (non-empty) files matching the pattern:
+
+        root/parent(+any digit)/children(+any digit).(any extension)
+    Normally used to read Cell2FireW scars 
+
+        results/Grids/Grids*/ForestGrid*.csv
+
     Args:
         sample_file (Path): A sample file to extract the name and extension, parent and root directories
+
     Returns:
-        bool: True if successful, False otherwise
-        str: Error message if any
-        root (Path): all other paths are relative to this and must be used as root/parent or root/child
-        parents (list[Path]): sorted list of parent directories
-        parents_ids (list[int]): corresponding simulation ids of these parents
-        children (list[list[Path]]): sorted list of lists of children files
-        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
-    Sample Usage:
-        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+
+        * bool: True if successful, False otherwise.  
+        * str: Error message, if any.  
+        * Path: `root` - all other paths are relative to this and must be used as root/parent or root/child.  
+        * list[Path]: `parents` - sorted list of parent directories.  
+        * list[int]: `parents_ids` - corresponding simulation ids of these parents.  
+        * list[list[Path]]: `children` - sorted list of lists of children files (grouped by simulation)\n
+        * list[list[int]]: `children_ids` - list of lists of corresponding period ids of each simulation\n 
+
+    ## Sample Usage:
+    ```
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(Path(sample_file))
         if ret_val:
             final_scars = [ root / chl[-1] for chl in children ]
             ignitions_scars = [ root / chl[0] for chl in children ]
             length_of_each_simulation = [ len(chl) for chl in children ]
         else:
             print(msg)
-    """
+    ```
+    """ # fmt: skip
     from re import search as re_search
 
     ext = sample_file.suffix
@@ -317,11 +328,11 @@ def build_scars(
         # otro
         # if scar_poly[-5:] != ".gpkg":
         #     scar_poly = scar_poly + ".gpkg"
-        if scar_poly.startswith("memory"):
+        if scar_poly.startswith("memory:"):
             driver_name = "GPKG"
         else:
             driver_name = get_vector_driver_from_filename(scar_poly)
-        otrods = ogr.GetDriverByName("GPKG").CreateDataSource(scar_poly)
+        otrods = ogr.GetDriverByName(driver_name).CreateDataSource(scar_poly)
         otrolyr = otrods.CreateLayer("propagation_scars", srs=sp_ref, geom_type=ogr.wkbPolygon)
         otrolyr.CreateField(ogr.FieldDefn("simulation", ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn("time", ogr.OFTInteger))
