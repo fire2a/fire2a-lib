@@ -177,6 +177,7 @@ def get_scars_indexed(sample_file):
     from numpy import array as np_array
     from numpy import fromiter as np_fromiter
 
+
     ext = sample_file.suffix
     if match := re_search("(\d+)$", sample_file.stem):
         num = match.group()
@@ -203,6 +204,8 @@ def get_scars_indexed(sample_file):
         ]
     )
 
+    if sep=="\\":
+        sep = "\\\\"
     indexes = np_fromiter(
         # re_findall(parent_wo_num + "(\d+)" + sep + child_wo_num + "(\d+)" + ext, " ".join(map(str, files))),
         re_findall("(\d+)" + sep + child_wo_num + "(\d+)", " ".join(map(str, files))),
