@@ -111,26 +111,37 @@ def raster_layer_to_firebreak_csv(
 
 
 def get_scars_files(sample_file):
-    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern:
+
+        root/parent(+any digit)/children(+any digit).(any extension)
+    Normally used to read Cell2FireW scars 
+
+        results/Grids/Grids*/ForestGrid*.csv
+
     Args:
         sample_file (Path): A sample file to extract the name and extension, parent and root directories
+
     Returns:
-        bool: True if successful, False otherwise
-        str: Error message if any
-        root (Path): all other paths are relative to this and must be used as root/parent or root/child
-        parents (list[Path]): sorted list of parent directories
-        parents_ids (list[int]): corresponding simulation ids of these parents
-        children (list[list[Path]]): sorted list of lists of children files
-        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
-    Sample Usage:
-        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+
+        * bool: True if successful, False otherwise.  
+        * str: Error message, if any.  
+        * Path: `root` - all other paths are relative to this and must be used as root/parent or root/child.  
+        * list[Path]: `parents` - sorted list of parent directories.  
+        * list[int]: `parents_ids` - corresponding simulation ids of these parents.  
+        * list[list[Path]]: `children` - sorted list of lists of children files (grouped by simulation)\n
+        * list[list[int]]: `children_ids` - list of lists of corresponding period ids of each simulation\n 
+
+    ## Sample Usage:
+    ```
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(Path(sample_file))
         if ret_val:
             final_scars = [ root / chl[-1] for chl in children ]
             ignitions_scars = [ root / chl[0] for chl in children ]
             length_of_each_simulation = [ len(chl) for chl in children ]
         else:
             print(msg)
-    &#34;&#34;&#34;
+    ```
+    &#34;&#34;&#34; # fmt: skip
     from re import search as re_search
 
     ext = sample_file.suffix
@@ -357,11 +368,11 @@ def build_scars(
         # otro
         # if scar_poly[-5:] != &#34;.gpkg&#34;:
         #     scar_poly = scar_poly + &#34;.gpkg&#34;
-        if scar_poly.startswith(&#34;memory&#34;):
+        if scar_poly.startswith(&#34;memory:&#34;):
             driver_name = &#34;GPKG&#34;
         else:
             driver_name = get_vector_driver_from_filename(scar_poly)
-        otrods = ogr.GetDriverByName(&#34;GPKG&#34;).CreateDataSource(scar_poly)
+        otrods = ogr.GetDriverByName(driver_name).CreateDataSource(scar_poly)
         otrolyr = otrods.CreateLayer(&#34;propagation_scars&#34;, srs=sp_ref, geom_type=ogr.wkbPolygon)
         otrolyr.CreateField(ogr.FieldDefn(&#34;simulation&#34;, ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn(&#34;time&#34;, ogr.OFTInteger))
@@ -646,11 +657,11 @@ Assummes (scar_raster or scar_poly or burn_prob) == True</p></div>
         # otro
         # if scar_poly[-5:] != &#34;.gpkg&#34;:
         #     scar_poly = scar_poly + &#34;.gpkg&#34;
-        if scar_poly.startswith(&#34;memory&#34;):
+        if scar_poly.startswith(&#34;memory:&#34;):
             driver_name = &#34;GPKG&#34;
         else:
             driver_name = get_vector_driver_from_filename(scar_poly)
-        otrods = ogr.GetDriverByName(&#34;GPKG&#34;).CreateDataSource(scar_poly)
+        otrods = ogr.GetDriverByName(driver_name).CreateDataSource(scar_poly)
         otrolyr = otrods.CreateLayer(&#34;propagation_scars&#34;, srs=sp_ref, geom_type=ogr.wkbPolygon)
         otrolyr.CreateField(ogr.FieldDefn(&#34;simulation&#34;, ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn(&#34;time&#34;, ogr.OFTInteger))
@@ -752,57 +763,81 @@ Assummes (scar_raster or scar_poly or burn_prob) == True</p></div>
 <span>def <span class="ident">get_scars_files</span></span>(<span>sample_file)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Get sorted lists of (non-empty) files matching the pattern 'root/parent(+any digit)/children(+any digit).(any extension)'. Normally used to read Cell2FireW scars results/Grids/Grids<em>/ForestGrid</em>.csv</p>
+<div class="desc"><p>Get sorted lists of (non-empty) files matching the pattern:</p>
+<pre><code>root/parent(+any digit)/children(+any digit).(any extension)
+</code></pre>
+<p>Normally used to read Cell2FireW scars </p>
+<pre><code>results/Grids/Grids*/ForestGrid*.csv
+</code></pre>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>sample_file</code></strong> :&ensp;<code>Path</code></dt>
 <dd>A sample file to extract the name and extension, parent and root directories</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<dl>
-<dt><code>bool</code></dt>
-<dd>True if successful, False otherwise</dd>
-<dt><code>str</code></dt>
-<dd>Error message if any</dd>
-</dl>
-<p>root (Path): all other paths are relative to this and must be used as root/parent or root/child
-parents (list[Path]): sorted list of parent directories
-parents_ids (list[int]): corresponding simulation ids of these parents
-children (list[list[Path]]): sorted list of lists of children files
-children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
-Sample Usage:
-ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
-if ret_val:
-final_scars = [ root / chl[-1] for chl in children ]
-ignitions_scars = [ root / chl[0] for chl in children ]
-length_of_each_simulation = [ len(chl) for chl in children ]
-else:
-print(msg)</p></div>
+<ul>
+<li>bool: True if successful, False otherwise.
+</li>
+<li>str: Error message, if any.
+</li>
+<li>Path: <code>root</code> - all other paths are relative to this and must be used as root/parent or root/child.
+</li>
+<li>list[Path]: <code>parents</code> - sorted list of parent directories.
+</li>
+<li>list[int]: <code>parents_ids</code> - corresponding simulation ids of these parents.
+</li>
+<li>
+<p>list[list[Path]]: <code>children</code> - sorted list of lists of children files (grouped by simulation)</p>
+</li>
+<li>
+<p>list[list[int]]: <code>children_ids</code> - list of lists of corresponding period ids of each simulation</p>
+</li>
+</ul>
+<h2 id="sample-usage">Sample Usage:</h2>
+<pre><code>    ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(Path(sample_file))
+    if ret_val:
+        final_scars = [ root / chl[-1] for chl in children ]
+        ignitions_scars = [ root / chl[0] for chl in children ]
+        length_of_each_simulation = [ len(chl) for chl in children ]
+    else:
+        print(msg)
+</code></pre></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def get_scars_files(sample_file):
-    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern &#39;root/parent(+any digit)/children(+any digit).(any extension)&#39;. Normally used to read Cell2FireW scars results/Grids/Grids*/ForestGrid*.csv
+    &#34;&#34;&#34;Get sorted lists of (non-empty) files matching the pattern:
+
+        root/parent(+any digit)/children(+any digit).(any extension)
+    Normally used to read Cell2FireW scars 
+
+        results/Grids/Grids*/ForestGrid*.csv
+
     Args:
         sample_file (Path): A sample file to extract the name and extension, parent and root directories
+
     Returns:
-        bool: True if successful, False otherwise
-        str: Error message if any
-        root (Path): all other paths are relative to this and must be used as root/parent or root/child
-        parents (list[Path]): sorted list of parent directories
-        parents_ids (list[int]): corresponding simulation ids of these parents
-        children (list[list[Path]]): sorted list of lists of children files
-        children_ids (list[list[int]]): list of lists of corresponding period ids of each simulation
-    Sample Usage:
-        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(sample_file)
+
+        * bool: True if successful, False otherwise.  
+        * str: Error message, if any.  
+        * Path: `root` - all other paths are relative to this and must be used as root/parent or root/child.  
+        * list[Path]: `parents` - sorted list of parent directories.  
+        * list[int]: `parents_ids` - corresponding simulation ids of these parents.  
+        * list[list[Path]]: `children` - sorted list of lists of children files (grouped by simulation)\n
+        * list[list[int]]: `children_ids` - list of lists of corresponding period ids of each simulation\n 
+
+    ## Sample Usage:
+    ```
+        ret_val, msg, root, parent_dirs, parent_ids, children, children_ids = get_scars_files(Path(sample_file))
         if ret_val:
             final_scars = [ root / chl[-1] for chl in children ]
             ignitions_scars = [ root / chl[0] for chl in children ]
             length_of_each_simulation = [ len(chl) for chl in children ]
         else:
             print(msg)
-    &#34;&#34;&#34;
+    ```
+    &#34;&#34;&#34; # fmt: skip
     from re import search as re_search
 
     ext = sample_file.suffix
