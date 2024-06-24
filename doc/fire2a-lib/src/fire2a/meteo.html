@@ -102,7 +102,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
             tmpfile = outdir / file_name(i, numsims)
             filelist += [tmpfile.name]
             df.to_csv(tmpfile, header=True, index=False)
-        return 0, {&#34;filelist&#34;: filelist}
+        return 0, {&#34;filelist&#34;: filelist, &#34;test&#34;:True}
     except Exception as e:
         return 1, {&#34;filelist&#34;: filelist, &#34;exception&#34;: e}
 
@@ -215,7 +215,7 @@ outdict (dict): output dictionary at least 'filelist': list of filenames created
             tmpfile = outdir / file_name(i, numsims)
             filelist += [tmpfile.name]
             df.to_csv(tmpfile, header=True, index=False)
-        return 0, {&#34;filelist&#34;: filelist}
+        return 0, {&#34;filelist&#34;: filelist, &#34;test&#34;:True}
     except Exception as e:
         return 1, {&#34;filelist&#34;: filelist, &#34;exception&#34;: e}</code></pre>
 </details>
