@@ -33,8 +33,8 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
     Args:
         x (float): x-coordinate of the weather station, EPSG 4326
         y (float): y-coordinate of the weather station, EPSG 4326
-        starttime (starttime): start datetime of the weather scenario
-        rowres (int): time resolution in minutes (No es necesaria)
+        starttime (starttime): start datetime of the weather scenario label
+        rowres (int): time resolution in minutes (not implemented yet)
         numrows (int): number of rows in the weather scenario
         numsims (int): number of weather scenarios
         outdir (Path): output directory
