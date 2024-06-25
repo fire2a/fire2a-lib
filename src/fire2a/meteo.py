@@ -6,12 +6,26 @@ __author__ = "Caro"
 __revision__ = "$Format:%H$"
 
 from datetime import timedelta
+from datetime import datetime
 
 import numpy as np
-from numpy.random import default_rng
-from pandas import DataFrame
+import math
+#from numpy.random import default_rng
 
-rng = default_rng()
+from pandas import DataFrame
+from pandas import read_csv
+from random import randint
+
+from pathlib import Path
+
+aqui = Path(__file__).parent
+
+# Ruta a la lista de estaciones
+ruta_stn= aqui / "./DB_DMC/Estaciones.csv"
+#Ruta a los datos de estaciones
+ruta_data=aqui / "./DB_DMC/"
+
+#rng = default_rng()
 
 
 def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
@@ -20,7 +34,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         x (float): x-coordinate of the weather station, EPSG 4326
         y (float): y-coordinate of the weather station, EPSG 4326
         starttime (starttime): start datetime of the weather scenario
-        rowres (int): time resolution in minutes
+        rowres (int): time resolution in minutes (No es necesaria)
         numrows (int): number of rows in the weather scenario
         numsims (int): number of weather scenarios
         outdir (Path): output directory
@@ -28,65 +42,99 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         retval (int): 0 if successful, 1 otherwise, 2...
         outdict (dict): output dictionary at least 'filelist': list of filenames created
     """
-    try:
-        print("hola munndo")
-        if not outdir.is_dir():
-            outdir.mkdir()
-
-        # numrows_width = len(str(numrows))
-        numsims_width = len(str(numsims))
-
-        def file_name(i, numsims):
-            if numsims > 1:
-                return f"Weather{i}.csv"
-            return "Weather.csv"
-
-        def scenario_name(i, numsims):
-            if numsims > 1:
-                return f"{outdir.name}_s{str(i).zfill(numsims_width)}"
-            return outdir.name
-
-        filelist = []
-        for i in range(numsims):
-            scenario = [scenario_name(i, numsims) for j in range(numrows)]
-            dt = [(start_datetime + timedelta(hours=j)).isoformat(timespec="minutes") for j in range(numrows)]
-            # moving average with drift
-            ws = [33.33]
-            wd = [33.33]
-            tmp = [33.33]
-            rh = [33.33]
-            for j in range(1, numrows):
-                ws += [ws[-1] * 0.61 + 0.39 * rng.normal(wd[-1], 4.20)]
-                wd += [wd[-1] * 0.61 + 0.39 * rng.normal(wd[-1], 22.5)]
-                tmp += [tmp[-1] * 0.61 + 0.39 * rng.normal(tmp[-1], 1.665)]
-                rh += [rh[-1] * 0.61 + 0.39 * rng.normal(rh[-1], 1.665)]
-            WS = np.array(ws).round(2)
-            WD = np.array(wd).round(2) % 360
-            TMP = np.array(tmp).round(2)
-            RH = np.array(rh).round(2)
-            df = DataFrame(
-                np.vstack((scenario, dt, WS, WD, TMP, RH)).T,
-                columns=["Scenario", "datetime", "WS", "WD", "TMP", "RH"],
-            )
-            tmpfile = outdir / file_name(i, numsims)
-            filelist += [tmpfile.name]
-            df.to_csv(tmpfile, header=True, index=False)
-        return 0, {"filelist": filelist}
-    except Exception as e:
-        return 1, {"filelist": filelist, "exception": e}
+    # try:
+    #print(datetime.now())
+    
+    if not outdir.is_dir():
+        outdir.mkdir()
+    
+    # numrows_width = len(str(numrows))
+    numsims_width = len(str(numsims))
+    
+    def file_name(i, numsims):
+        if numsims > 1:
+            return f"Weather{i+1}.csv"
+        return "Weather.csv"
+    
+    def scenario_name(i, numsims):
+        if numsims > 1:
+            return f"DMC {i+1}"
+        return "DMC"
+    
+    def distancia(fila, y_i, x_i):
+        if y_i == fila["lat"] and x_i == fila["lon"]:
+            return 0
+        return math.sqrt((fila["lat"] - x_i) ** 2 + (fila["lon"] - y_i) ** 2)
+    
+    def meteo_to_c2f(alfa):
+        if alfa >= 0 and alfa < 180:
+            return alfa + 180
+        elif alfa >= 180 and alfa <= 360:
+            return alfa - 180
+        return math.nan
+    
+    dn=3
+    def select(ruta1, y_, x_):
+        list_stn = read_csv(ruta1)
+        list_stn["Distancia"] = list_stn.apply(distancia, args=(y_, x_), axis=1)  # calculo distancia
+        return list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
+    
+    stn=select(ruta_stn, y, x)
+    meteo=[]
+    for i in range(len(stn)):
+        station = stn[i] + ".csv"
+        data = read_csv(ruta_data / station, sep=',')  # , index_col=0, parse_dates=True)
+        meteo.append(data)
+    
+    
+    # >>> datetime.now().replace(hour=0, minute=0)
+    st_time= datetime(int(datetime.now().year),int(datetime.now().month),int(datetime.now().day),12,0,0)
+    filelist = []
+    for i in range(numsims):
+        scenario = [scenario_name(i, numsims) for k in range(numrows)]
+        dt = [st_time + timedelta(hours=k) for k in range(numrows)]
+    
+        j = randint(0, dn - 1)
+        m = randint(0, len(meteo[j]["TMP"]) - numrows)
+    
+        wd = []
+        for x in meteo[j]["WD"].iloc[m:m + numrows].tolist():
+            wd.append(meteo_to_c2f(x))
+    
+        ws = meteo[j]["WS"].iloc[m:m + numrows].tolist()
+        tmp = meteo[j]["TMP"].iloc[m:m + numrows].tolist()
+        rh = meteo[j]["RH"].iloc[m:m + numrows].tolist()
+    
+        WS = np.array(ws).round(2)
+        WD = np.array(wd).round(2) % 360
+        TMP = np.array(tmp).round(2)
+        RH = np.array(rh).round(2)
+        print(i)
+    
+        df = DataFrame(
+        np.vstack((scenario, dt, WS, WD, TMP, RH)).T,
+            columns=["Scenario", "datetime", "WS", "WD", "TMP", "RH"],
+        )
+        tmpfile = outdir / file_name(i, numsims)
+        filelist += [tmpfile.name]
+        df.to_csv(tmpfile, header=True, index=False)
+    return 0, {"filelist": filelist}
+    #     return 0, {"filelist": filelist}
+    # except Exception as e:
+    #     return 1, {"filelist": filelist, "exception": e}
 
 
 if __name__ == "__main__":
     #
     # TEMPORARY TESTS
     #
-    from datetime import datetime
+    #from datetime import datetime
 
     date = datetime.now()
     rowres = 60
-    numrows = 12
-    numsims = 1
+    numrows = 20
+    numsims = 7
     from pathlib import Path
 
-    outdir = Path(".")
-    generate(0, 0, date, rowres, numrows, numsims, outdir)
+    outdir = Path("./weather")
+    generate(-36, -73, date, rowres, numrows, numsims, outdir)
