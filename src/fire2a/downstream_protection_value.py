@@ -38,9 +38,9 @@ from networkx import DiGraph
 from numpy import ndarray
 from osgeo import gdal
 
-from fire2a import setup_logger
-from fire2a.raster import id2xy as r_id2xy
-from fire2a.raster import read_raster
+from . import setup_logger
+from .raster import id2xy as r_id2xy
+from .raster import read_raster
 
 logger = logging.getLogger(__name__)
 

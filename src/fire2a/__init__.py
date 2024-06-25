@@ -1,6 +1,16 @@
 #!python3
 """Hello World 👋🌎
 This is Forest Fire Analytics 🌲🔥🧠
+
+When developing fire2a, AVOID writing code like this: 
+    
+    from fire2a.module import function 
+
+Use this instead:
+
+    from .module import function
+
+UNTIL WE CAN DISTRIBUTE ON PYPI!!
  
 This is fire2a-lib distribution, fire2a package docstring
 More info on:
@@ -13,9 +23,8 @@ __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
 
 import logging
-from pathlib import Path
-
 from importlib.metadata import PackageNotFoundError, distribution
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
