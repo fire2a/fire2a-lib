@@ -1,0 +1,47 @@
+name: publishing on pypi
+
+on: 
+  push:
+    branches:
+      - publish
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  qgis-job:
+    runs-on: ubuntu-latest
+    container: qgis/qgis:latest
+
+    steps:
+    - name: Run QGIS commands
+      run: |
+        # Your QGIS commands here
+        qgis --version
+
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+          # - name: Set up Python
+          #   uses: actions/setup-python@v4
+          #   with:
+          #     python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -V
+        python -m pip install --upgrade pip wheel setuptools
+        pip install build twine
+
+    - name: Build package
+      run: |
+        python -m build
+
+    - name: Publish package to PyPI
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        twine upload dist/*
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
