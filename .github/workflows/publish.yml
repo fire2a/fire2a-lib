@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: Inspect container
       run: |
-        docker inspect
+        /urs/bin/docker inspect
         qgis --version
         python3 -V
         echo $SHELL
