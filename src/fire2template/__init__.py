@@ -13,15 +13,14 @@ __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
 
 import logging
+from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
-
-from importlib_metadata import PackageNotFoundError, distribution
 
 logger = logging.getLogger(__name__)
 
 try:
     __version__ = distribution("fire2a").version
-    version_from = "importlib_metadata"
+    version_from = "importlib"
 except PackageNotFoundError:
     if (Path(__file__).parent / "_version.py").exists():
         from ._version import __version__
@@ -34,14 +33,16 @@ except PackageNotFoundError:
 logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
 
 
-def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
-    """Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
+def setup_logger(name: str = None, verbosity: str | int = "INFO", logfile: Path | None = None):
+    """ Users or developers not implementing their own logger should use this function to get enhanced program execution information.
+    Capture the logger, setup its __name__ or root logger, verbosity, stream handler & rotating logfile.
+
     Args:
-        name (str, optional): Name of the logger. Defaults to \__name __. Don't change unless you know what you are doing!
-        verbosity (int, optional): Verbosity level. Defaults to 0 (warning). 1 info, >=2 debug
-        logfile (Path | None, optional): Logfile path. Defaults to None.
+        name (str, optional): Name of the logger. Defaults to \__name __ 
+        verbosity (str | int): Verbosity level, implemented, WARNING:1, INFO:2 (default), or DEBUG:3
+        logfile (Path, optional): Create a -rotated- logfile (5 files, 25MB each).
     Returns:
-        logger (modified Logger object)  
+        logger (Logger):  All code in this pkg uses logger.info("..."), logger.debug, etc.
 
     ## Developers implementing their own logger
         * All fire2a modules uses `logger = logging.getLogger(__name__)`
@@ -54,28 +55,43 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None)
     logging.debug("Details of the planned thing that happened")  
     print("Normal program output, not logged")
     """  # fmt: skip
+    # Capture the logger
+    if name:
+        # specific logger
+        logger = logging.getLogger(name)
+    else:
+        # root logger
+        logger = logging.getLogger()
+
+    # Create a stream handler
     import sys
 
-    # Capture the logger
-    logger = logging.getLogger(name)
-    # Create a stream handler
     stream_handler = logging.StreamHandler(sys.stdout)
+
     # Create a rotating file handler
     if logfile:
         from logging.handlers import RotatingFileHandler
 
         rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
-    # Set the log level
-    if verbosity == 0:
+
+    # Set the logs level
+    if verbosity in ["CRITICAL", "FATAL"] or verbosity == -1:
+        level = logging.CRITICAL
+    elif verbosity == "ERROR" or verbosity == 0:
         level = logging.WARNING
-    elif verbosity == 1:
+    elif verbosity == "WARNING" or verbosity == 1:
+        level = logging.WARNING
+    elif verbosity == "INFO" or verbosity == 2:
         level = logging.INFO
-    elif verbosity >= 2:
+    elif verbosity == "DEBUG" or verbosity == 3:
+        level = logging.DEBUG
+    else:
         level = logging.DEBUG
     logger.setLevel(level)
     stream_handler.setLevel(level)
     if logfile:
         rf_handler.setLevel(level)
+
     # formatter
     formatter = logging.Formatter(
         "%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
@@ -83,9 +99,38 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None)
     stream_handler.setFormatter(formatter)
     if logfile:
         rf_handler.setFormatter(formatter)
+
     # Add the handlers to the logger
     logger.addHandler(stream_handler)
     if logfile:
         logger.addHandler(rf_handler)
-    logger.warning("Logger initialized @level %s", logging.getLevelName(level))
+    logger.debug("Logger initialized @level %s", logging.getLevelName(level))
+
     return logger
+
+
+def setup_file(name="unknown", filepath=Path().cwd()):
+    """Setups the NAME and FILEPATH variables for modules
+    Tries getting them from __main__.__file__ and __main__.__package__
+    If it's the __main__ entry point, tries to use the package name
+    Args:
+        main: __main__ from the calling script
+        name: if fails, returns name (default "unknown")
+        here: if fails, returns here Path (default "cwd")
+    """
+    import __main__
+
+    if filestr := getattr(__main__, "__file__", None):
+        file = Path(filestr)
+        NAME = file.stem
+        if NAME == "__main__":
+            if package := getattr(__main__, "__package__", None):
+                NAME = package + "_main"
+            else:
+                NAME = name
+        FILEPATH = file.parent
+    else:
+        NAME = name
+        FILEPATH = filepath
+    logger.warning("setup_file(%s, %s) __main__:%s", NAME, FILEPATH, __main__)
+    return NAME, FILEPATH
