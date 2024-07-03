@@ -21,7 +21,7 @@ jobs:
         qgis --version
         python3 -V
         echo $SHELL
-        
+
     - uses: actions/checkout@v4
       with:
         sparse-checkout: |
