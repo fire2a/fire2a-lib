@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  qgis-job:
+  publishing-job:
     runs-on: ubuntu-latest
     container: qgis/qgis:latest
 

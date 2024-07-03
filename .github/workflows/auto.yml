@@ -1,42 +1,55 @@
 name: build and publish doc
 
-# build the documentation whenever there are new commits on main
 on:
-  # push:
-  #   branches:
-  #     - main
-    # Alternative: only build for tags.
-    # tags:
-    #   - '*'
+  push:
+    branches:
+      - publish
+      - docs
+    tags:
+      - 'v*'
   workflow_dispatch:
 
-# security: restrict permissions for CI jobs.
-permissions:
-  contents: read
-
 jobs:
-  # Build the documentation and upload the static HTML files as an artifact.
-  build:
+  documentation-job:
     runs-on: ubuntu-latest
+    container: qgis/qgis:latest
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Inspect container
+      run: |
+        qgis --version
+        python3 -V
+        echo $SHELL
+        
+    - uses: actions/checkout@v4
+      with:
+        sparse-checkout: |
+          src
+          tests
 
-      - run: |
-          pip install -r requirements.doc.txt
-          rm -rf doc/fire2a-lib
-          pdoc --html --force --output-dir doc --config latex_math=True .
+    - name: Install dependencies
+    - run: |
+        python3 -m venv --system-site-package .venv
+        source .venv/bin/activate
+        python -m pip install --upgrade pip wheel setuptools setuptools_scm
+        pip install -r requirements.doc.txt
+      shell: bash
 
-      - uses: actions/upload-pages-artifact@v2
-        with:
-          path: 'doc/fire2a-lib'
+    - name: Build package
+      run: |
+        ls
+        source .venv/bin/activate
+        mkdir -p doc
+        pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+        ls doc
+      shell: bash
 
-  # Deploy the artifact to GitHub pages.
-  # This is a separate job so that only actions/deploy-pages has the necessary permissions.
-  deploy:
-    needs: build
+     - uses: actions/upload-pages-artifact@v3
+       with:
+         path: 'doc/fire2a-lib'
+
+  deploy-job:
+    needs: documentation-job
     runs-on: ubuntu-latest
     permissions:
       pages: write
@@ -46,4 +59,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
