@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  documentation-job:
+  qgis-job:
     runs-on: ubuntu-latest
     container: qgis/qgis:latest
 
@@ -50,7 +50,7 @@ jobs:
          path: 'doc/fire2a-lib'
 
   deploy-job:
-    needs: documentation-job
+    needs: qgis-job
     runs-on: ubuntu-latest
     permissions:
       pages: write
