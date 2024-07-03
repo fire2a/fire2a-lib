@@ -31,7 +31,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        git clean -dfX -n
+        ls
+        git status
         python3 -m venv .venv --system-site-packages
         source .venv/bin/activate
         python -m pip install --upgrade pip wheel setuptools setuptools_scm
