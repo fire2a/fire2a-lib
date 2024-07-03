@@ -1,3 +1,4 @@
+# workflow for building and publishing documentation
 name: build and publish doc
 
 on:

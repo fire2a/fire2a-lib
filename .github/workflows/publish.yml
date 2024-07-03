@@ -1,3 +1,4 @@
+# builds the package and publishes it to PyPI.
 name: publishing on pypi
 
 on: 
