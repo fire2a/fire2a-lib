@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  qgis-job:
+  build-job:
     runs-on: ubuntu-latest
     container: qgis/qgis:latest
 
@@ -35,6 +35,7 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools setuptools_scm
           pip install -r requirements.doc.txt
           pip install -r requirements.txt
+          pip install -e .
         shell: bash
 
       - name: Build package
@@ -51,7 +52,7 @@ jobs:
           path: 'doc/fire2a-lib'
 
   deploy-job:
-    needs: qgis-job
+    needs: build-job
     runs-on: ubuntu-latest
     permissions:
       pages: write
