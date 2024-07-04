@@ -29,8 +29,12 @@ __Linux__ users: just launch QGIS from a venv activated terminal.
 
 3. Install
 ```bash
+# choose one of the following:
+# a. latest version
 (qgis_python_venv) $ pip install git+https://github.com/fire2a/fire2a-lib.git
+# b. stable release
 (qgis_python_venv) $ pip install -r requirements.txt
+(qgis_python_venv) $ pip install fire2a-lib
 ```
 
 4. Use
@@ -66,13 +70,14 @@ chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
 ## activate QGIS python environment (check next paragraph)
 #
-pip install -r requirements.dev.txt
+pip install -r requirements.code.txt
+pip install -r requirements.txt
 pip install --editable .
 
-# using pdoc_template/config.mako
-pdoc --html --http : --template-dir pdoc_template fire2a
-# cli config
-pdoc --html --http : -c show_source_code=True -c latex_math=True fire2a
+# live serve the docs
+pdoc --math fire2a
+pdoc --math fire2a fire2template
+pdoc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 Watch out! GDAL is not listed on requirements! The easiest way is to install QGIS, then:  
 __Linux__ users should make a venv with the `--system-site-packages` flag  
@@ -90,7 +95,7 @@ Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and ter
 ```bash
 pip install --requirement requirements.doc.txt
 pip install --editable .
-pdoc --html --http : --config latex_math=True <fire2 package name>
+pdoc --math --show-source fire2a
 ```
 Packages are directories under `src` with at least a `__init__.py` file inside
 
@@ -99,7 +104,7 @@ if directory exists remove, then build
 ```bash
 rm -rf doc/*
 touch doc/.gitkeep
-pdoc --html --force --output-dir doc --filter=src,tests --template-dir pdoc_template .
+pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 
 ### Build and versioning

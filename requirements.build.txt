@@ -1,0 +1,6 @@
+wheel
+setuptools
+setuptools_scm
+build
+pdoc
+

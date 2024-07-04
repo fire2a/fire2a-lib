@@ -39,23 +39,22 @@ jobs:
         run: |
           python3 -m venv --system-site-packages .venv
           source .venv/bin/activate
-          python -m pip install --upgrade pip wheel setuptools setuptools_scm doc-search
-          pip install -r requirements.doc.txt
-          pip install -r requirements.txt
+          python -m pip install --upgrade -r pip
+          pip install --upgrade -r requirements.build.txt
           pip install -e .
         shell: bash
 
       - name: Build package
         run: |
           source .venv/bin/activate
-          mkdir -p doc
-          pdoc -c show_source_code=True -c latex_math=True --html --force --output-dir doc --filter=src,tests .
+          rm -rf doc/*
+          pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
           ls doc
         shell: bash
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: 'doc/fire2a-lib'
+          path: 'doc'
 
   deploy-job:
     needs: build-job
