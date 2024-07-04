@@ -41,13 +41,12 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         outdict (dict): output dictionary at least 'filelist': list of filenames created
     """
     # try:
-    #print(datetime.now())
-    
+
     if not outdir.is_dir():
         outdir.mkdir()
     
     # numrows_width = len(str(numrows))
-    numsims_width = len(str(numsims))
+    #numsims_width = len(str(numsims))
     
     def file_name(i, numsims):
         if numsims > 1:
@@ -80,10 +79,9 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
     meteo=[]
     for i in range(len(stn)):
         station = stn[i] + ".csv"
-        data = read_csv(ruta_data / station, sep=',')  # , index_col=0, parse_dates=True)
+        data = read_csv(ruta_data / station, sep=',')
         meteo.append(data)
-    
-    
+
     st_time= datetime(datetime.now().year,datetime.now().month,datetime.now().day,12,0,0)
     filelist = []
     for i in range(numsims):
@@ -119,6 +117,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
     #     return 1, {"filelist": filelist, "exception": e}
 
 
+
 if __name__ == "__main__":
     #
     # TEMPORARY TESTS
@@ -133,3 +132,4 @@ if __name__ == "__main__":
 
     outdir = Path("./weather")
     generate(-36, -73, date, rowres, numrows, numsims, outdir)
+
