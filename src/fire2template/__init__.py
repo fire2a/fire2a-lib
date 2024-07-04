@@ -19,7 +19,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 try:
-    __version__ = distribution("fire2a").version
+    __version__ = distribution("fire2a-lib").version
     version_from = "importlib"
 except PackageNotFoundError:
     if (Path(__file__).parent / "_version.py").exists():

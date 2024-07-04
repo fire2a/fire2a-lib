@@ -18,10 +18,14 @@ from pathlib import Path
 
 from qgis.core import QgsRasterLayer
 
-from .utils import fprint, loadtxt_nodata
+from fire2a import setup_file
+from fire2a.utils import fprint, loadtxt_nodata
 
 logger = logging.getLogger(__name__)
+"""captures the local logger"""
 
+NAME, FILEPATH = setup_file(name="cell2fire", filepath=Path("/home/fdo/source/fire2a-lib/src/fire2a"))
+"""setups the file name and path for logger (set path manually when pasting into ipython or jupyter session)"""
 
 def raster_layer_to_firebreak_csv(
     layer: QgsRasterLayer, firebreak_val: int = 666, output_file: str | Path = "firebreaks.csv"
@@ -55,7 +59,7 @@ def raster_layer_to_firebreak_csv(
     from numpy import array as np_array
     from numpy import where as np_where
 
-    from .raster import get_rlayer_data, xy2id
+    from fire2a.raster import get_rlayer_data, xy2id
 
     width = layer.width()
     data = get_rlayer_data(layer)
@@ -278,8 +282,7 @@ def build_scars(
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
 
-    from .processing_utils import (get_output_raster_format,
-                                   get_vector_driver_from_filename)
+    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
 
     gdal.UseExceptions()
 
@@ -501,8 +504,8 @@ def build_stats(
     from numpy import loadtxt as np_loadtxt
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
-    from .processing_utils import (get_output_raster_format,
-                                   get_vector_driver_from_filename)
+
+    from .processing_utils import get_output_raster_format, get_vector_driver_from_filename
 
     gdal.UseExceptions()
 
