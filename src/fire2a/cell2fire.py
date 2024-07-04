@@ -528,7 +528,7 @@ def build_stats(
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
 
-    from .processing_utils import get_output_raster_format, get_vector_driver_from_filename
+    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
 
     gdal.UseExceptions()
 
