@@ -1,4 +1,5 @@
-numpy
-scikit-learn
+numpy <2.0.0 # keep until pyomo release
 pandas
+scikit-learn
 pyomo
+networkx >=2.7
