@@ -1,12 +1,13 @@
-![manual workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/manual.yml/badge.svg)
-![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
+![publish pypi](https://github.com/fire2a/fire2a-lib/actions/workflows/publish-pypi.yml/badge.svg)
+![auto docs](https://github.com/fire2a/fire2a-lib/actions/workflows/auto-docs.yml/badge.svg)
+![manual docs](https://github.com/fire2a/fire2a-lib/actions/workflows/publish-docs.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
 Welcome to Fire2a research group algorithms and tools python package.
 
 Novel Algorithms to calculate metrics, clustering, placing firebreaks, measuring forest fire impacts, etc.
 
-Tools related to GIS, graphs, optimization, etc.
+Tools related to (Q)GIS, graphs, optimization, etc.
 
 ## Documentation
 
@@ -28,8 +29,11 @@ __Linux__ users: just launch QGIS from a venv activated terminal.
 
 3. Install
 ```bash
+# choose one of the following:
+# a. latest version
 (qgis_python_venv) $ pip install git+https://github.com/fire2a/fire2a-lib.git
-(qgis_python_venv) $ pip install -r requirements.txt
+# b. stable release
+(qgis_python_venv) $ pip install fire2a-lib
 ```
 
 4. Use
@@ -58,15 +62,21 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
+
 # choose your hook [if any, very optional]
 cp hooks/* .git/hooks/.
 chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
 ## activate QGIS python environment (check next paragraph)
 #
-pip install -r requirements.dev.txt
+pip install -r requirements.code.txt
+pip install -r requirements.txt
 pip install --editable .
-pdoc --html --http : --config latex_math=True fire2a  
+
+# live serve the docs
+pdoc --math fire2a
+pdoc --math fire2a fire2template
+pdoc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 Watch out! GDAL is not listed on requirements! The easiest way is to install QGIS, then:  
 __Linux__ users should make a venv with the `--system-site-packages` flag  
@@ -82,19 +92,22 @@ Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and ter
 
 ### Live view a single installed package
 ```bash
-pip install --requirement requirements.doc.txt
+pip install pdoc
 pip install --editable .
-pdoc --html --http : --config latex_math=True <fire2 package name>
+pdoc --math --show-source fire2a
 ```
 Packages are directories under `src` with at least a `__init__.py` file inside
 
 ### Build the full static webpage
 if directory exists remove, then build
 ```bash
-if [ -d doc/fire2a-lib ]; then
-    rm -r doc/fire2a-lib
-fi
-pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+rm -rf doc/*
+touch doc/.gitkeep
+pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a fire2template
+```bash
+Then check the generated webpage
+```bash
+firefox doc/index.html
 ```
 
 ### Build and versioning

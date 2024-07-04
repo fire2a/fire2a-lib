@@ -23,7 +23,6 @@ a_method((1, 'a'), 'b', 'c', an_optional_argument=2, d='e', f='g')
 👋🌎
 """  # fmt: skip
 __author__ = "Fernando Badilla"
-__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"
 
 MODULE_VARIABLE = "very important and global variable"
@@ -36,6 +35,16 @@ import sys
 import numpy as _np
 
 logger = logging.getLogger(__name__)
+
+
+def latex_how_to():
+    r"""raw docstring with $\frac{x}{y}$.
+
+    By prefixing r to the string (see python raw strings) you can use latex math expressions witout escaping \ twice
+
+    See more https://github.com/pdoc3/pdoc/issues/410
+    """
+    pass
 
 
 def a_method(

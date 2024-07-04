@@ -1,7 +1,6 @@
-# builds the package and publishes it to PyPI.
 name: publishing on pypi
 
-on: 
+on:
   push:
     branches:
       - publish
@@ -10,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  publishing-job:
+  qgis-job:
     runs-on: ubuntu-latest
     container: qgis/qgis:latest
 

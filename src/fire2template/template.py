@@ -35,8 +35,10 @@ from pathlib import Path
 from fire2template import setup_file
 
 logger = logging.getLogger(__name__)
+"""capture the logger"""
 # adjust harcoded values for ipython (or jupyter)
 NAME, FILEPATH = setup_file(name="template", filepath=Path("/home/fdo/source/fire2a-lib/src/fire2template"))
+""" global variables available in python and ipython(setup manually)"""
 # REPO = FILEPATH.parent.parent
 # DEPOT = FILEPATH / "depot"
 
