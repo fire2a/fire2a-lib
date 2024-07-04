@@ -33,7 +33,6 @@ __Linux__ users: just launch QGIS from a venv activated terminal.
 # a. latest version
 (qgis_python_venv) $ pip install git+https://github.com/fire2a/fire2a-lib.git
 # b. stable release
-(qgis_python_venv) $ pip install -r requirements.txt
 (qgis_python_venv) $ pip install fire2a-lib
 ```
 
