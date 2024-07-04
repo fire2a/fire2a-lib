@@ -1,12 +1,13 @@
-![manual workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/manual.yml/badge.svg)
-![auto workflow](https://github.com/fire2a/fire2a-lib/actions/workflows/auto.yml/badge.svg)
+![publish pypi](https://github.com/fire2a/fire2a-lib/actions/workflows/publish-pypi.yml/badge.svg)
+![auto docs](https://github.com/fire2a/fire2a-lib/actions/workflows/auto-docs.yml/badge.svg)
+![manual docs](https://github.com/fire2a/fire2a-lib/actions/workflows/publish-docs.yml/badge.svg)
 <a href=https://github.com/psf/black>![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)</a>
 
 Welcome to Fire2a research group algorithms and tools python package.
 
 Novel Algorithms to calculate metrics, clustering, placing firebreaks, measuring forest fire impacts, etc.
 
-Tools related to GIS, graphs, optimization, etc.
+Tools related to (Q)GIS, graphs, optimization, etc.
 
 ## Documentation
 
