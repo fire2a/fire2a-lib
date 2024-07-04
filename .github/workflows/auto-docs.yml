@@ -47,10 +47,9 @@ jobs:
 
       - name: Build package
         run: |
-          ls
           source .venv/bin/activate
           mkdir -p doc
-          pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+          pdoc -c show_source_code=True -c latex_math=True --html --force --output-dir doc --filter=src,tests .
           ls doc
         shell: bash
 
