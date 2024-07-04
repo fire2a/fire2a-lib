@@ -309,66 +309,69 @@ def build_scars(
     def final_scar_step(i, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=None):
         if scar_raster:
             band = scar_raster_ds.GetRasterBand(i)
-            band.SetUnitType("burned")
+            #band.SetUnitType("burned")
             if 0 != band.SetNoDataValue(0):
                 fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
             if 0 != band.WriteArray(data):
                 fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
-            scar_raster_ds.FlushCache()
+            if i%100:
+                scar_raster_ds.FlushCache()
         if burn_prob:
             burn_prob_arr += data
+    
 
     if scar_poly:
         # raster for each grid
-        src_ds = gdal.GetDriverByName("MEM").Create("", W, H, len(files), gdal.GDT_Byte)
+        src_ds = gdal.GetDriverByName("MEM").Create("", W, H, 1, gdal.GDT_Byte)
         src_ds.SetGeoTransform(geotransform)
         src_ds.SetProjection(authid)  # export coords to file
+        
         # datasource for shadow geometry vector layer (polygonize output)
         ogr_ds = ogr.GetDriverByName("Memory").CreateDataSource("")
-        # srs
+        
+        # spatial reference
         sp_ref = osr.SpatialReference()
         sp_ref.SetFromUserInput(authid)
-        # otro
-        # if scar_poly[-5:] != ".gpkg":
-        #     scar_poly = scar_poly + ".gpkg"
+        
         if scar_poly.startswith("memory:"):
             driver_name = "GPKG"
         else:
             driver_name = get_vector_driver_from_filename(scar_poly)
+            
         otrods = ogr.GetDriverByName(driver_name).CreateDataSource(scar_poly)
         otrolyr = otrods.CreateLayer("propagation_scars", srs=sp_ref, geom_type=ogr.wkbPolygon)
         otrolyr.CreateField(ogr.FieldDefn("simulation", ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn("time", ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
-        # full loop
+        
         count_evo = 0
         count_fin = 0
+        total_files = sum(len(files) for files in children_files)
+
         for sim_id, ids, files in zip(parent_ids, children_ids, children_files):
             count_fin += 1
             for (_, per_id), afile in zip(ids, files):
                 count_evo += 1
 
-                # read data
                 try:
                     data = np_loadtxt(root / afile, delimiter=",", dtype=np_int8)
                 except:
                     fprint(f"Error reading {afile}, retrying with nodata = 0", level="error", feedback=feedback)
                     data = loadtxt_nodata(root / afile, delimiter=",", dtype=np_int8, no_data=0)
+
                 if not np_any(data == 1):
                     fprint(f"no fire in {afile}, skipping propagation polygon", level="warning", feedback=feedback)
                 else:
-                    # SCARS POLY
-                    # raster polygonize
-                    src_band = src_ds.GetRasterBand(count_evo)
+                    src_band = src_ds.GetRasterBand(1)
                     src_band.SetNoDataValue(0)
                     src_band.WriteArray(data)
+
                     ogr_layer = ogr_ds.CreateLayer("", srs=sp_ref)
                     gdal.Polygonize(src_band, src_band, ogr_layer, -1, ["8CONNECTED=8"])
-                    # assumes only one feature : 8 neighbors provides that
+
                     feat = ogr_layer.GetNextFeature()
                     geom = feat.GetGeometryRef()
-                    # create the feature and set values
                     featureDefn = otrolyr.GetLayerDefn()
                     feature = ogr.Feature(featureDefn)
                     feature.SetGeometry(geom)
@@ -383,7 +386,7 @@ def build_scars(
                     callback(count_evo / len(files) * 100, f"Processed Propagation-Scar {count_evo}/{len(indexes)}")
                 else:
                     fprint(f"Processed Propagation-Scar {count_evo}/{len(indexes)}", level="info", feedback=feedback)
-
+                
             if scar_raster or burn_prob:
                 final_scar_step(
                     count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
@@ -402,6 +405,7 @@ def build_scars(
         # otrolyr = None
         src_ds.FlushCache()
         src_ds = None
+
     else:
         # final scar loop
         count_fin = 0
@@ -417,8 +421,11 @@ def build_scars(
             final_scar_step(
                 count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
             )
-            if callback and (scar_raster or burn_prob):
-                callback(count_fin / len(final_scars_files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
+            if callback:
+                callback(count_fin / len(final_scars_files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")   
+            else:
+                fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback)
+                
 
     if burn_prob:
         driver_name = get_output_raster_format(burn_prob, feedback=feedback)
@@ -426,7 +433,7 @@ def build_scars(
         burn_prob_ds.SetGeoTransform(geotransform)
         burn_prob_ds.SetProjection(authid)
         band = burn_prob_ds.GetRasterBand(1)
-        band.SetUnitType("probability")
+        #band.SetUnitType("probability")
         if 0 != band.SetNoDataValue(0):
             fprint(f"Set NoData failed for Burn Probability {burn_prob}", level="warning", feedback=feedback)
         if 0 != band.WriteArray(burn_prob_arr / len(final_scars_files)):
@@ -454,8 +461,104 @@ def arg_parser(argv):
     scars.add_argument("--scar-raster", default="", help="The output file for the final scars raster")
     scars.add_argument("--scar-poly", default="", help="The output file for the evolution scars polygons")
     scars.add_argument("--burn-prob", default="", help="The output file for the burn probability raster")
+    scars.add_argument("--intensity-raster", default="", help="The output file for the burn probability raster")
+
+    #stats
 
     return parser.parse_args(argv)
+
+def get_files(sample_file: Path) -> tuple[list[Path], Path, str, str]:
+    from re import search
+    """Get a list of files with the same name (+ any digit) and extension and the directory and name of the sample file"""
+    ext = sample_file.suffix
+    if match := search("(\\d+)$", sample_file.stem):
+        num = match.group()
+    else:
+        raise ValueError(f"sample_file: {sample_file} does not contain a number at the end")
+    aname = sample_file.stem[: -len(num)]
+    adir = sample_file.absolute().parent
+    files = []
+    for afile in sorted(adir.glob(aname + "[0-9]*" + ext)):
+        if afile.is_file() and afile.stat().st_size > 0:
+            files += [afile]
+    # QgsMessageLog.logMessage(f"files: {files}, adir: {adir}, aname: {aname}, ext: {ext}", "fire2a", Qgis.Info)
+    return files, adir, aname, ext
+
+def build_stats(
+    intensity_raster: str,
+    sample_file: Path,
+    W: int,
+    H: int,
+    geotransform: tuple,
+    authid: str,
+    callback=None,
+    feedback=None,
+):
+    import gc
+    from numpy import any as np_any
+    from numpy import float32 as np_float32
+    from numpy import int8 as np_int8
+    from numpy import loadtxt as np_loadtxt
+    from numpy import zeros as np_zeros
+    from osgeo import gdal, ogr, osr
+    from .processing_utils import (get_output_raster_format,
+                                   get_vector_driver_from_filename)
+
+    gdal.UseExceptions()
+
+    files, root, aname, ext = get_files(sample_file)
+
+    if intensity_raster:
+        driver_name = get_output_raster_format(intensity_raster, feedback=feedback)
+        intensity_raster_ds = gdal.GetDriverByName(driver_name).Create(
+            intensity_raster, W, H, len(files), gdal.GDT_Float32
+        )
+        intensity_raster_ds.SetGeoTransform(geotransform)
+        intensity_raster_ds.SetProjection(authid)
+    else:
+        intensity_raster_ds = None
+
+    def intensity_step(i, data, afile, intensity_raster_ds, feedback=None):
+        if intensity_raster_ds:
+            band = intensity_raster_ds.GetRasterBand(i)
+            if 0 != band.SetNoDataValue(0):
+                fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+            if 0 != band.WriteArray(data):
+                fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+
+    if intensity_raster_ds:
+        count_fin = 0
+        for afile in files:
+            count_fin += 1
+            try:
+                # Read header to determine number of lines to skip
+                with open(root / afile, 'r') as f:
+                    header_lines = 0
+                    for line in f:
+                        if line.startswith(('ncols', 'nrows', 'xllcorner', 'yllcorner', 'cellsize', 'NODATA_value')):
+                            header_lines += 1
+                        else:
+                            break
+
+                # Load data, skipping header lines
+                data = np_loadtxt(root / afile, delimiter=" ", dtype=np_float32, skiprows=header_lines)
+
+            except Exception as e:
+                fprint(f"Error reading {afile}, retrying with nodata = 0: {e}", level="error", feedback=feedback)
+                data = np_loadtxt(root / afile, delimiter=",", dtype=np_float32, skiprows=header_lines)
+
+            intensity_step(
+                count_fin, data, afile, intensity_raster_ds, feedback=feedback
+            )
+            if callback:
+                callback(count_fin / len(files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
+            else:
+                fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback)
+
+            del data
+            gc.collect()
+
+    return 0
 
 
 def main(argv=None):
@@ -484,17 +587,27 @@ def main(argv=None):
             if not (authid := args.authid):
                 logger.error("No authid found on the base raster or provided")
                 return 1
-        retval = build_scars(
-            args.scar_raster,
-            args.scar_poly,
-            args.burn_prob,
+        
+        if args.scar_poly:
+            retval = build_scars(
+                args.scar_raster,
+                args.scar_poly,
+                args.burn_prob,
+                Path(args.sample_file),
+                raster_props["RasterXSize"],
+                raster_props["RasterYSize"],
+                raster_props["Transform"],
+                authid,
+            )
+        retval2 = build_stats(
+            args.intensity_raster,
             Path(args.sample_file),
             raster_props["RasterXSize"],
             raster_props["RasterYSize"],
             raster_props["Transform"],
             authid,
         )
-        logger.info("built scars return value: %s", retval)
+        logger.info("built scars return value: %s", retval2)
     return 0
 
 
