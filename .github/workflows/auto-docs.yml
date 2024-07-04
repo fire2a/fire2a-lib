@@ -39,7 +39,7 @@ jobs:
         run: |
           python3 -m venv --system-site-packages .venv
           source .venv/bin/activate
-          python -m pip install --upgrade pip wheel setuptools setuptools_scm
+          python -m pip install --upgrade pip wheel setuptools setuptools_scm doc-search
           pip install -r requirements.doc.txt
           pip install -r requirements.txt
           pip install -e .

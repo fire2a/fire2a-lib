@@ -59,6 +59,7 @@ __Fork it before cloning to contribute!__
 git clone git@github.com:fire2a/fire2a-lib.git
 cd fire2a-lib
 git checkout -b my_branch
+
 # choose your hook [if any, very optional]
 cp hooks/* .git/hooks/.
 chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
@@ -67,7 +68,11 @@ chmod u+x .git/hooks/pre-commit .git/hooks/pre-push
 #
 pip install -r requirements.dev.txt
 pip install --editable .
-pdoc --html --http : --config latex_math=True fire2a  
+
+# using pdoc_template/config.mako
+pdoc --html --http : --template-dir pdoc_template fire2a
+# cli config
+pdoc --html --http : -c show_source_code=True -c latex_math=True fire2a
 ```
 Watch out! GDAL is not listed on requirements! The easiest way is to install QGIS, then:  
 __Linux__ users should make a venv with the `--system-site-packages` flag  
@@ -92,10 +97,9 @@ Packages are directories under `src` with at least a `__init__.py` file inside
 ### Build the full static webpage
 if directory exists remove, then build
 ```bash
-if [ -d doc/fire2a-lib ]; then
-    rm -r doc/fire2a-lib
-fi
-pdoc --html --force --output-dir doc --filter=src,tests --config latex_math=True .
+rm -rf doc/*
+touch doc/.gitkeep
+pdoc --html --force --output-dir doc --filter=src,tests --template-dir pdoc_template .
 ```
 
 ### Build and versioning
