@@ -9,8 +9,6 @@ from datetime import timedelta
 from datetime import datetime
 
 import numpy as np
-import math
-#from numpy.random import default_rng
 
 from pandas import DataFrame
 from pandas import read_csv
@@ -64,22 +62,21 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
     def distancia(fila, y_i, x_i):
         if y_i == fila["lat"] and x_i == fila["lon"]:
             return 0
-        return math.sqrt((fila["lat"] - x_i) ** 2 + (fila["lon"] - y_i) ** 2)
+        return np.sqrt((fila["lat"] - x_i) ** 2 + (fila["lon"] - y_i) ** 2)
     
     def meteo_to_c2f(alfa):
         if alfa >= 0 and alfa < 180:
             return alfa + 180
         elif alfa >= 180 and alfa <= 360:
             return alfa - 180
-        return math.nan
-    
+        return np.nan
+
+
     dn=3
-    def select(ruta1, y_, x_):
-        list_stn = read_csv(ruta1)
-        list_stn["Distancia"] = list_stn.apply(distancia, args=(y_, x_), axis=1)  # calculo distancia
-        return list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
+    list_stn = read_csv(ruta_stn)
+    list_stn["Distancia"] = list_stn.apply(distancia, args=(y, x), axis=1)  # calculo distancia
+    stn= list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
     
-    stn=select(ruta_stn, y, x)
     meteo=[]
     for i in range(len(stn)):
         station = stn[i] + ".csv"
@@ -87,8 +84,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         meteo.append(data)
     
     
-    # >>> datetime.now().replace(hour=0, minute=0)
-    st_time= datetime(int(datetime.now().year),int(datetime.now().month),int(datetime.now().day),12,0,0)
+    st_time= datetime(datetime.now().year,datetime.now().month,datetime.now().day,12,0,0)
     filelist = []
     for i in range(numsims):
         scenario = [scenario_name(i, numsims) for k in range(numrows)]
@@ -109,8 +105,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         WD = np.array(wd).round(2) % 360
         TMP = np.array(tmp).round(2)
         RH = np.array(rh).round(2)
-        print(i)
-    
+
         df = DataFrame(
         np.vstack((scenario, dt, WS, WD, TMP, RH)).T,
             columns=["Scenario", "datetime", "WS", "WD", "TMP", "RH"],
@@ -133,7 +128,7 @@ if __name__ == "__main__":
     date = datetime.now()
     rowres = 60
     numrows = 20
-    numsims = 7
+    numsims = 15
     from pathlib import Path
 
     outdir = Path("./weather")
