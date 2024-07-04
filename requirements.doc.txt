@@ -1,3 +1,0 @@
-pdoc
-qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git
-

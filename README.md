@@ -93,7 +93,7 @@ Then select, send with 'Shift+Enter', then Ctrl+` to switch between code and ter
 
 ### Live view a single installed package
 ```bash
-pip install --requirement requirements.doc.txt
+pip install pdoc
 pip install --editable .
 pdoc --math --show-source fire2a
 ```
