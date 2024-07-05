@@ -14,6 +14,12 @@ Auxiliary:
 * get_scars_files (all together but a bit slower than the next two methods)
 * get_scars_indexed (part 1/2)
 * group_scars (part 2/2)
+
+Sample Usage:
+```bash
+python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 --scar-sample Grids/Grids2/F
+orestGrid01.csv --scar-raster scar_raster.tif --scar-poly scar_poly.shp --burn-prob burn_prob.tif --stat-sample RateOfSpread/ROSFile11.asc --stat-raster ros.tif --stat-summary ros_stats.tif
+```
 """
 # fmt: on
 __author__ = "Fernando Badilla"
