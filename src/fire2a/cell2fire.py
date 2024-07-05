@@ -520,12 +520,9 @@ def build_stats(
     callback=None,
     feedback=None,
 ):
-    import gc
-
-    from numpy import any as np_any
     from numpy import float32 as np_float32
-    from numpy import int8 as np_int8
     from numpy import loadtxt as np_loadtxt
+    from numpy import sqrt as np_sqrt
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
 
@@ -534,7 +531,7 @@ def build_stats(
     gdal.UseExceptions()
 
     files, root, aname, ext = get_stat_files(sample_file)
-    header_count = count_header_lines(files[0], sep=" ", feedback=feedback)
+    num_headers = count_header_lines(files[0], sep=" ", feedback=feedback)
 
     if stat_raster:
         driver_name = get_output_raster_format(stat_raster, feedback=feedback)
@@ -545,37 +542,53 @@ def build_stats(
         stat_raster_ds = None
 
     if stat_summary:
-        summary_arr = np_zeros((H, W), dtype=np_float32)
+        summed = np_zeros((H, W), dtype=np_float32)
+        sumsquared = np_zeros((H, W), dtype=np_float32)
     else:
-        summary_arr = None
+        summed = None
+        sumsquared = None
 
     count = 0
     for afile in files:
         count += 1
         try:
-            data = np_loadtxt(root / afile, delimiter=" ", dtype=np_float32, skiprows=header_lines)
+            data = np_loadtxt(root / afile, delimiter=" ", dtype=np_float32, skiprows=num_headers)
         except Exception as e:
-            fprint(f"Error reading {afile}, retrying with nodata = -9999: {e}", level="error", feedback=feedback)
-            data = np_loadtxt_nodata(
-                root / afile, delimiter=" ", dtype=np_float32, skiprows=header_count, no_data=-9999
+            fprint(
+                f"Error reading {afile}, retrying with nodata = -9999: {e}",
+                level="error",
+                feedback=feedback,
+                logger=logger,
             )
+            data = loadtxt_nodata(root / afile, delimiter=" ", dtype=np_float32, skiprows=num_headers, no_data=-9999)
 
         if stat_raster_ds:
             band = stat_raster_ds.GetRasterBand(count)
             if 0 != band.SetNoDataValue(-9999):
-                fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+                fprint(
+                    f"Set NoData failed for Statistic {count}: {afile}",
+                    level="warning",
+                    feedback=feedback,
+                    logger=logger,
+                )
             if 0 != band.WriteArray(data):
-                fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+                fprint(
+                    f"WriteArray failed for Statistic {count}: {afile}",
+                    level="warning",
+                    feedback=feedback,
+                    logger=logger,
+                )
             if count % 100:
                 stat_raster_ds.FlushCache()
 
         if stat_summary:
-            summary_arr += data[data != -9999]
+            summed[data != -9999] += data[data != -9999]
+            sumsquared[data != -9999] += data[data != -9999] ** 2
 
         if callback:
             callback(count / len(files) * 100, f"Processed Statistic {count}/{len(files)}")
         else:
-            fprint(f"Processed Statistic {count}/{len(files)}", level="info", feedback=feedback)
+            fprint(f"Processed Statistic {count}/{len(files)}", level="info", feedback=feedback, logger=logger)
 
     if stat_raster_ds:
         stat_raster_ds.FlushCache()
@@ -587,17 +600,28 @@ def build_stats(
         stat_summary_ds.SetGeoTransform(geotransform)
         stat_summary_ds.SetProjection(authid)
         # mean
-        band = stat_raster_ds.GetRasterBand(1)
+        N = len(files)
+        mean = summed / N
+        band = stat_summary_ds.GetRasterBand(1)
         if 0 != band.SetNoDataValue(-9999):
-            fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
-        if 0 != band.WriteArray(stat_summary_arr.mean()):
-            fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+            fprint(
+                f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
+            )
+        if 0 != band.WriteArray(mean):
+            fprint(
+                f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
+            )
         # std
-        band = stat_raster_ds.GetRasterBand(2)
+        stddev = np_sqrt(sumsquared / N - mean**2)
+        band = stat_summary_ds.GetRasterBand(2)
         if 0 != band.SetNoDataValue(-9999):
-            fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
-        if 0 != band.WriteArray(stat_summary_arr.std()):
-            fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+            fprint(
+                f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
+            )
+        if 0 != band.WriteArray(stddev):
+            fprint(
+                f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
+            )
         stat_summary_ds.FlushCache()
         stat_summary_ds = None
 
