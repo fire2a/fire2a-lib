@@ -712,8 +712,9 @@ def main(argv=None):
             return 1
     logger.info("Read base raster, using authid: %s", authid)
 
+    retval = {}
     if args.scar_sample and (args.scar_poly or args.scar_raster or args.burn_prob):
-        retval = build_scars(
+        retval["scar"] = build_scars(
             args.scar_raster,
             args.scar_poly,
             args.burn_prob,
@@ -723,10 +724,10 @@ def main(argv=None):
             raster_props["Transform"],
             authid,
         )
-        logger.info("built scars return value: %s (0 means sucess)", retval)
+        logger.info("built scars return value: %s (0 means sucess)", retval["scar"])
 
     if args.stat_sample and args.stat_raster:
-        retval2 = build_stats(
+        retval["stat"] = build_stats(
             args.stat_raster,
             args.stat_summary,
             Path(args.stat_sample),
@@ -735,9 +736,10 @@ def main(argv=None):
             raster_props["Transform"],
             authid,
         )
-        logger.info("built scars return value: %s (0 means success)", retval2)
+        logger.info("built statistic return value: %s (0 means success)", retval["stat"])
 
-    return retval + retval2
+    print(retval)
+    return sum(retval.values())
 
 
 if __name__ == "__main__":
