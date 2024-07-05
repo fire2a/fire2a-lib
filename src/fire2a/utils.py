@@ -138,3 +138,54 @@ def fprint(*args, sep=" ", end="", level="warning", feedback: QgsProcessingFeedb
             feedback.reportError(msg)
         else:
             logger.error(msg)
+
+
+def count_header_lines(file, sep=" ", feedback=None):
+    r"""Count header lines (e.g., in ASCII-Grid .asc files). The first line with a number is considered the end of the header section. Each line is split by the separator; empty lines are are skipped, staring with the separator is allowed (e.g., starting with a space).
+
+    When a number is found, the loop is broken and the number is returned. If no number is found, the loop continues until the end and returned
+
+    Common problem: Replace commas for periods in the file (if the file locale and python locale are different).
+    Unix:
+    ```bash
+    sed -i 's/,/./g' file.asc
+    ```
+    Windows-Powershell:
+    ```powershell
+    (Get-Content file.asc) -replace ',', '.' | Set-Content file.asc
+    ```
+
+    Args:
+    - file: str, path to the file
+    - sep: str, separator to split the line
+
+    Returns:
+    - header_count: int, number of header lines
+
+    Not Raises:
+    - ValueError: because the function expects to fail parsing to float
+    """
+    header_count = 0
+    found = None
+    with open(file, "r") as afile:
+        for line in afile:
+            split = line.split(sep, maxsplit=2)
+            if split == [""]:
+                continue
+            try:
+                if split[0] != "":
+                    found = float(split[0])
+                else:
+                    found = float(split[1])
+                break
+            except ValueError:
+                header_count += 1
+    if header_count == 0 or header_count > 6:
+        fprint(
+            "Weird header count: %s found! (%s) Check %s file. Maybe replace commas, for periods.?".format(),
+            level="warning",
+            feedback=feedback,
+        )
+    fprint("First number found: %s".format(), level="debug", feedback=feedback)
+    fprint("Number headers lines: %s, in file %s".format(), level="info", feedback=feedback)
+    return header_count

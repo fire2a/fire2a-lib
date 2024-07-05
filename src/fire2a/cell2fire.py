@@ -26,7 +26,7 @@ from pathlib import Path
 from qgis.core import QgsRasterLayer
 
 from fire2a import setup_file
-from fire2a.utils import fprint, loadtxt_nodata
+from fire2a.utils import count_header_lines, fprint, loadtxt_nodata
 
 logger = logging.getLogger(__name__)
 """captures the local logger"""
@@ -511,6 +511,7 @@ def get_stat_files(sample_file: Path) -> tuple[list[Path], Path, str, str]:
 
 def build_stats(
     stat_raster: str,
+    stat_summary: str,
     sample_file: Path,
     W: int,
     H: int,
@@ -533,6 +534,7 @@ def build_stats(
     gdal.UseExceptions()
 
     files, root, aname, ext = get_stat_files(sample_file)
+    header_count = count_header_lines(files[0], sep=" ", feedback=feedback)
 
     if stat_raster:
         driver_name = get_output_raster_format(stat_raster, feedback=feedback)
@@ -542,43 +544,62 @@ def build_stats(
     else:
         stat_raster_ds = None
 
-    def stat_step(i, data, afile, stat_raster_ds, feedback=None):
+    if stat_summary:
+        summary_arr = np_zeros((H, W), dtype=np_float32)
+    else:
+        summary_arr = None
+
+    count = 0
+    for afile in files:
+        count += 1
+        try:
+            data = np_loadtxt(root / afile, delimiter=" ", dtype=np_float32, skiprows=header_lines)
+        except Exception as e:
+            fprint(f"Error reading {afile}, retrying with nodata = -9999: {e}", level="error", feedback=feedback)
+            data = np_loadtxt_nodata(
+                root / afile, delimiter=" ", dtype=np_float32, skiprows=header_count, no_data=-9999
+            )
+
         if stat_raster_ds:
-            band = stat_raster_ds.GetRasterBand(i)
-            if 0 != band.SetNoDataValue(0):
-                fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+            band = stat_raster_ds.GetRasterBand(count)
+            if 0 != band.SetNoDataValue(-9999):
+                fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
             if 0 != band.WriteArray(data):
-                fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+                fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+            if count % 100:
+                stat_raster_ds.FlushCache()
+
+        if stat_summary:
+            summary_arr += data[data != -9999]
+
+        if callback:
+            callback(count / len(files) * 100, f"Processed Statistic {count}/{len(files)}")
+        else:
+            fprint(f"Processed Statistic {count}/{len(files)}", level="info", feedback=feedback)
 
     if stat_raster_ds:
-        count_fin = 0
-        for afile in files:
-            count_fin += 1
-            try:
-                # Read header to determine number of lines to skip
-                with open(root / afile, "r") as f:
-                    header_lines = 0
-                    for line in f:
-                        if line.startswith(("ncols", "nrows", "xllcorner", "yllcorner", "cellsize", "NODATA_value")):
-                            header_lines += 1
-                        else:
-                            break
+        stat_raster_ds.FlushCache()
+        stat_raster_ds = None
 
-                # Load data, skipping header lines
-                data = np_loadtxt(root / afile, delimiter=" ", dtype=np_float32, skiprows=header_lines)
-
-            except Exception as e:
-                fprint(f"Error reading {afile}, retrying with nodata = 0: {e}", level="error", feedback=feedback)
-                data = np_loadtxt(root / afile, delimiter=",", dtype=np_float32, skiprows=header_lines)
-
-            stat_step(count_fin, data, afile, stat_raster_ds, feedback=feedback)
-            if callback:
-                callback(count_fin / len(files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
-            else:
-                fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback)
-
-            del data
-            gc.collect()
+    if stat_summary:
+        driver_name = get_output_raster_format(stat_summary, feedback=feedback)
+        stat_summary_ds = gdal.GetDriverByName(driver_name).Create(stat_summary, W, H, 2, gdal.GDT_Float32)
+        stat_summary_ds.SetGeoTransform(geotransform)
+        stat_summary_ds.SetProjection(authid)
+        # mean
+        band = stat_raster_ds.GetRasterBand(1)
+        if 0 != band.SetNoDataValue(-9999):
+            fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+        if 0 != band.WriteArray(stat_summary_arr.mean()):
+            fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+        # std
+        band = stat_raster_ds.GetRasterBand(2)
+        if 0 != band.SetNoDataValue(-9999):
+            fprint(f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+        if 0 != band.WriteArray(stat_summary_arr.std()):
+            fprint(f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback)
+        stat_summary_ds.FlushCache()
+        stat_summary_ds = None
 
     return 0
 
@@ -596,33 +617,43 @@ def arg_parser(argv):
     import argparse
 
     parser = argparse.ArgumentParser(
-        description=r"Fire2a-Cell2FireW Related algorithms CLI. Implemented here: Processes Cell2FireW plain file outputs into rasters and polygons.",
+        description=r"Fire2a-Cell2FireW Related algorithms CLI. Implemented here: Cell2FireW plain scars and statistic outputs into rasters and polygons.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument(
-        "--base-raster", required=True, help="Raster to base the geotransform, width, heigth and authid"
-    )
-    parser.add_argument(
-        "--authid", required=False, help="Auth id to override (or missing on the base raster (e.g., using .asc raster)"
-    )
 
-    scars = parser.add_argument_group("Scars: Transform plain csv files into rasters and polygons")
+    scars = parser.add_argument_group(
+        "Scars: Transform C2FW scar outputs into rasters and polygons, i.e.: results/Grids/Grids*/ForestGrid*.csv"
+    )
     scars.add_argument(
         "--scar-sample",
         required=True,
-        help="Matching the pattern 'root/parent(+any digit)/children(+any digit).(any csv extension)', i.e., results/Grids/Grids*/ForestGrid*.csv",
+        help="Matching the pattern 'root/parent(+any digit)/children(+any digit).(any csv extension)' ",
     )
-    scars.add_argument("--scar-raster", default="", help="The output file name for the final scars raster")
-    scars.add_argument("--scar-poly", default="", help="The output file name for the evolution scars polygons")
-    scars.add_argument("--burn-prob", default="", help="The output file name for the burn probability raster")
+    scars.add_argument(
+        "--scar-raster", default="", help="Output file name for the final scars raster, each band a simulation"
+    )
+    scars.add_argument(
+        "--scar-poly",
+        default="",
+        help="Output file name for the evolution scars polygons, multiple features with simulation and period attributes",
+    )
+    scars.add_argument("--burn-prob", default="", help="Output file name for the burn probability raster, one band")
 
-    stats = parser.add_argument_group("Stats: Transform plain asc files into rasters")
+    stats = parser.add_argument_group(
+        "Stats: Transform C2FW outputs into rasters, .e.g.: results/Intensity/Intensity1.asc, RateOfSpread/ROSFile2.asc, FlameLength/FL.asc, CrownFractionBurn/Cfb.asc, etc."
+    )
     stats.add_argument(
         "--stat-sample",
         required=True,
-        help="Matching the pattern 'statistic_name(+any digit).asc',i.e., results/Intensity/Intensity1.asc, RateOfSpread/ROSFile2.asc, FlameLength/FL.asc, CrownFractionBurn/Cfb.asc, etc.",
+        help="Matching the pattern 'statistic_name(+any digit).asc' ",
     )
-    stats.add_argument("--stat-raster", default="", help="The output file name for the raster")
+    stats.add_argument(
+        "--stat-raster", default="", help="Output file name for the statistic raster, each band a simulation"
+    )
+    stats.add_argument(
+        "--stat-summary", default="", help="Output file name for the raster, two bands: mean and std-deviation"
+    )
+
     parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
     parser.add_argument(
         "--logfile",
@@ -630,6 +661,12 @@ def arg_parser(argv):
         action="store_true",
         help="enable 5 log files named " + NAME + ".log (verbose must be enabled)",
         default=None,
+    )
+    parser.add_argument(
+        "--base-raster", required=True, help="Raster to base the geotransform, width, heigth and authid"
+    )
+    parser.add_argument(
+        "--authid", required=False, help="Auth id to override (or missing on the base raster (e.g., using .asc raster)"
     )
     args = parser.parse_args(argv)
     if args.logfile:
@@ -691,6 +728,7 @@ def main(argv=None):
     if args.stat_sample and args.stat_raster:
         retval2 = build_stats(
             args.stat_raster,
+            args.stat_summary,
             Path(args.stat_sample),
             raster_props["RasterXSize"],
             raster_props["RasterYSize"],
