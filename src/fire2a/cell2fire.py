@@ -328,7 +328,7 @@ def build_scars(
 
     retval, retmsg, root, parent_wo_num, child_wo_num, ext, files, indexes = get_scars_indexed(sample_file)
     if not retval:
-        fprint(retmsg, level="error", feedback=feedback)
+        fprint(retmsg, level="error", feedback=feedback, logger=logger)
         return 1
     parent_ids, parent_dirs, children_ids, children_files, final_scars_ids, final_scars_files = group_scars(
         root, parent_wo_num, child_wo_num, ext, files, indexes
@@ -354,9 +354,13 @@ def build_scars(
             band = scar_raster_ds.GetRasterBand(i)
             # band.SetUnitType("burned")
             if 0 != band.SetNoDataValue(0):
-                fprint(f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+                fprint(
+                    f"Set NoData failed for Final Scar {i}: {afile}", level="warning", feedback=feedback, logger=logger
+                )
             if 0 != band.WriteArray(data):
-                fprint(f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback)
+                fprint(
+                    f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback, logger=logger
+                )
             if i % 100:
                 scar_raster_ds.FlushCache()
         if burn_prob:
@@ -399,11 +403,21 @@ def build_scars(
                 try:
                     data = np_loadtxt(root / afile, delimiter=",", dtype=np_int8)
                 except:
-                    fprint(f"Error reading {afile}, retrying with nodata = 0", level="error", feedback=feedback)
+                    fprint(
+                        f"Error reading {afile}, retrying with nodata = 0",
+                        level="error",
+                        feedback=feedback,
+                        logger=logger,
+                    )
                     data = loadtxt_nodata(root / afile, delimiter=",", dtype=np_int8, no_data=0)
 
                 if not np_any(data == 1):
-                    fprint(f"no fire in {afile}, skipping propagation polygon", level="warning", feedback=feedback)
+                    fprint(
+                        f"no fire in {afile}, skipping propagation polygon",
+                        level="warning",
+                        feedback=feedback,
+                        logger=logger,
+                    )
                 else:
                     src_band = src_ds.GetRasterBand(1)
                     src_band.SetNoDataValue(0)
@@ -427,7 +441,12 @@ def build_scars(
                 if callback:
                     callback(count_evo / len(files) * 100, f"Processed Propagation-Scar {count_evo}/{len(indexes)}")
                 else:
-                    fprint(f"Processed Propagation-Scar {count_evo}/{len(indexes)}", level="info", feedback=feedback)
+                    fprint(
+                        f"Processed Propagation-Scar {count_evo}/{len(indexes)}",
+                        level="info",
+                        feedback=feedback,
+                        logger=logger,
+                    )
 
             if scar_raster or burn_prob:
                 final_scar_step(
@@ -436,7 +455,9 @@ def build_scars(
                 if callback:
                     callback(None, f"Processed +Final-Scar {count_evo}/{len(indexes)}")
                 else:
-                    fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback)
+                    fprint(
+                        f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback, logger=logger
+                    )
         # clean up
         if scar_raster:
             scar_raster_ds.FlushCache()
@@ -456,17 +477,19 @@ def build_scars(
             try:
                 data = np_loadtxt(root / afile, delimiter=",", dtype=np_int8)
             except:
-                fprint(f"Error reading {afile}, retrying with nodata = 0", level="error", feedback=feedback)
+                fprint(
+                    f"Error reading {afile}, retrying with nodata = 0", level="error", feedback=feedback, logger=logger
+                )
                 data = loadtxt_nodata(root / afile, delimiter=",", dtype=np_int8, no_data=0)
             if not np_any(data == 1):
-                fprint(f"no fire in Final-Scar {afile}", level="warning", feedback=feedback)
+                fprint(f"no fire in Final-Scar {afile}", level="warning", feedback=feedback, logger=logger)
             final_scar_step(
                 count_fin, data, afile, scar_raster, scar_raster_ds, burn_prob, burn_prob_arr, feedback=feedback
             )
             if callback:
                 callback(count_fin / len(final_scars_files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
             else:
-                fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback)
+                fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback, logger=logger)
 
     if burn_prob:
         driver_name = get_output_raster_format(burn_prob, feedback=feedback)
@@ -476,9 +499,13 @@ def build_scars(
         band = burn_prob_ds.GetRasterBand(1)
         # band.SetUnitType("probability")
         if 0 != band.SetNoDataValue(0):
-            fprint(f"Set NoData failed for Burn Probability {burn_prob}", level="warning", feedback=feedback)
+            fprint(
+                f"Set NoData failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger
+            )
         if 0 != band.WriteArray(burn_prob_arr / len(final_scars_files)):  # type: ignore
-            fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback)
+            fprint(
+                f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger
+            )
         burn_prob_ds.FlushCache()
         burn_prob_ds = None
 

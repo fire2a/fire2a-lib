@@ -106,7 +106,9 @@ def getOGRdrivers():
     return ret
 
 
-def fprint(*args, sep=" ", end="", level="warning", feedback: QgsProcessingFeedback = None, **kwargs) -> None:
+def fprint(
+    *args, sep=" ", end="", level="warning", feedback: QgsProcessingFeedback = None, logger=None, **kwargs
+) -> None:
     """replacement for print into logger and QgsProcessingFeedback
     Args:
         *args: positional arguments
@@ -116,6 +118,8 @@ def fprint(*args, sep=" ", end="", level="warning", feedback: QgsProcessingFeedb
         feedback (QgsProcessingFeedback, optional): QgsProcessingFeedback object. Defaults to None.
         **kwargs: keyword arguments
     """
+    if not logger:
+        logger = logging.getLogger(__name__)
     msg = sep.join(map(str, args)) + sep
     msg += sep.join([f"{k}={v}" for k, v in kwargs.items()]) + end
     if level == "debug":
@@ -185,7 +189,8 @@ def count_header_lines(file, sep=" ", feedback=None):
             "Weird header count: %s found! (%s) Check %s file. Maybe replace commas, for periods.?".format(),
             level="warning",
             feedback=feedback,
+            logger=logger,
         )
-    fprint("First number found: %s".format(), level="debug", feedback=feedback)
-    fprint("Number headers lines: %s, in file %s".format(), level="info", feedback=feedback)
+    fprint("First number found: %s".format(), level="debug", feedback=feedback, logger=logger)
+    fprint("Number headers lines: %s, in file %s".format(), level="info", feedback=feedback, logger=logger)
     return header_count

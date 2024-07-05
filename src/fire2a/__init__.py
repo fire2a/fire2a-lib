@@ -103,8 +103,10 @@ def setup_logger(name: str = None, verbosity: str | int = "INFO", logfile: Path 
         rf_handler.setLevel(level)
 
     # formatter
+    # "%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
     formatter = logging.Formatter(
-        "%(asctime)s %(levelname)s %(name)s %(filename)s:%(lineno)d %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        "%(asctime)s %(levelname)s %(name)s %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
     )
     stream_handler.setFormatter(formatter)
     if logfile:
