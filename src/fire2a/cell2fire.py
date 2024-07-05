@@ -626,7 +626,6 @@ def arg_parser(argv):
     )
     scars.add_argument(
         "--scar-sample",
-        required=True,
         help="Matching the pattern 'root/parent(+any digit)/children(+any digit).(any csv extension)' ",
     )
     scars.add_argument(
