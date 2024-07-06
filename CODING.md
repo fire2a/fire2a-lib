@@ -50,13 +50,8 @@ pytest tests/test_<new-feat>.py
 ### 8. Prettify your documentation 
 #### live @ localhost:8080
 ```bash
+pip install pdoc
 pdoc --math fire2template fire2a
-```
-#### generate to directory
-```bash
-rm -rf doc/*
-mkdir doc/.gitkeep
-pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 
 # Some coding principles

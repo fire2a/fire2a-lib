@@ -31,9 +31,11 @@ digraph = digraph_from_messages('messages01.csv')
 ```
 ### Command line usage
 1. Install QGIS
+- Docker users check [qgis](https://hub.docker.com/r/qgis/qgis) container
+- Linux developers could skip QGIS by `apt install python3-gdal gdal-bin`
 2. Use python from the terminal
-- Windows: Open OsGeo4W Shell app
-- MacOs: Open terminal app and type `alias pythonqgis=/Applications/QGIS.app/Contents/MacOS/bin/python`, use that python in all subsequent commands
+- Windows: Open OsGeo4W Shell app, `python` is available
+- MacOS: Open terminal app, use this `/Applications/QGIS.app/Contents/MacOS/bin/python` (see creating an alias below)
 - Linux: Do a system site packages aware python virtual environment `python3 -m venv --system-site-packages qgis_venv`
 3. Install
 ```bash
@@ -44,46 +46,37 @@ python -m pip install fire2a-lib
 python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 --scar-sample Grids/Grids2/F
 orestGrid03.csv --scar-poly propagation_scars.shp --burn-prob burn_probability.tif
 ```
-### Scripting
-1. Check [standalone scripting](https://github.com/fire2a/fire-analytics-qgis-processing-toolbox-plugin/blob/main/script_samples/standalone.py) for more info on initializing a headless QGIS environment
-2. Boring [template examples](https://github.com/fire2a/fire2a-lib/tree/main/usage_samples)
-- Windows users check this VSCode [integration](https://fire2a.github.io/docs/docs/qgis-cookbook/README.html#making-a-python-environment-launcher-for-developers)
-- macOS users consider adding the alias to your default terminal session by appending to `~/.zsh`
-3. Interactive debug:
+### Scripting tips
+- Check [standalone scripting](https://github.com/fire2a/fire-analytics-qgis-processing-toolbox-plugin/blob/main/script_samples/standalone.py) for more info on initializing a headless QGIS environment
+- Usage [examples](https://github.com/fire2a/fire2a-lib/tree/main/usage_samples)
+- Microsoft users check this VSCode [integration](https://fire2a.github.io/docs/docs/qgis-cookbook/README.html#making-a-python-environment-launcher-for-developers)
+- macOS users add a permanent alias, on the terminal app
+```zsh
+echo "alias pythonq='/Applications/QGIS.app/Contents/MacOS/bin/python'" >> ~/.zshrc
+```
+#### Interactive 
+- debbuging:
 ```
 breakpoint()
 from IPython import embed
 embed()
 ```
-
-### Interactive
-IPython, qtconsole or jupyter compatible
+- sessions, with: IPython, qtconsole, jupyter-lab, or IPyConsole (QGIS plugin) compatible
 ```bash
 # Interactive explore from IPython
-In [1]: from fire2a.<press-tab-to-continue>
+In [1]: from fire2a.<press-tab>
 
-# Copy a whole module except for the last main and if __name__ == __main__ part
-In [1]: %paste
-# Then execute tha main method step by step
+# Select and Copy a whole module from line 1 up -but not included- to 'def main def main(argv=None):' line 
+In [2]: %paste
 
-```
+# Choose your args 
+In [3]: args = arg_parser.parse_args(['-vvv', '--base-raster', ...
+# Skip:
+    if argv is sys.argv:
+        argv = sys.argv[1:]
+    args = arg_parser(argv)
 
-## Render documentation
-```bash
-pip install pdoc
-pip install --editable .
-pdoc --math --show-source fire2a
-```
-### Build the full static webpage
-if directory exists remove, then build
-```bash
-rm -rf doc/*
-touch doc/.gitkeep
-pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a fire2template
-```
-Then check the generated webpage
-```bash
-firefox doc/index.html
+# Ready
 ```
 
 # [Contributing](./CODING.md)
