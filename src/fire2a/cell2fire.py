@@ -512,7 +512,7 @@ def build_scars(
     return 0
 
 
-def get_stat_files(sample_file: Path) -> tuple[list[Path], Path, str, str]:
+def glob_numbered_files(sample_file: Path) -> tuple[list[Path], Path, str, str]:
     """Get a list of files with the same name (+ any digit) and extension and the directory and name of the sample file
 
     Args:
@@ -563,7 +563,7 @@ def build_stats(
 
     gdal.UseExceptions()
 
-    files, root, aname, ext = get_stat_files(sample_file)
+    files, root, aname, ext = glob_numbered_files(sample_file)
     num_headers = count_header_lines(files[0], sep=" ", feedback=feedback)
 
     if stat_raster:
