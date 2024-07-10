@@ -36,6 +36,7 @@ pip install --editable .
 ```bash
 # use these linters, formatters, fixers:
 pip install -r requirements.code.txt
+mypy --install-types
 # check configurations at [tool.*] in pyproject.toml
 # start with the template
 cp src/fire2template/template.py src/fire2a/<new-feature-module>.py

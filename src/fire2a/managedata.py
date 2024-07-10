@@ -12,10 +12,12 @@ from numpy import full as npfull
 from numpy import max as npmax
 from numpy import nan as npnan
 from numpy import zeros as npzeros
+from numpy import ndarray, dtype
 from pandas import DataFrame
+from typing import Any, Dict, List, Optional, Tuple
 
 
-def Lookupdict(filename: str) -> tuple[dict, dict]:
+def Lookupdict(filename: Optional[Path,str]) -> Tuple[dict, dict]:
     """Reads lookup_table.csv and creates dictionaries for the fuel types and cells' colors
 
     Args:
@@ -56,8 +58,9 @@ def Lookupdict(filename: str) -> tuple[dict, dict]:
 
     return row, colors
 
-
-def ForestGrid(filename: str, Lookupdict: dict) -> tuple[(list, list, int, int, list, list, int)]:
+# Tuple[(list, list, int, int, list, list, int)]
+# Tuple[list[Any], list[Any], int, int, list[Any], list[Any], int]
+def ForestGrid(filename: str, Lookupdict: dict) -> Tuple[list[int], list[str], int, int, list[dict[str, Optional[list[int]]]], ndarray[Any, dtype[Any]], float]:
     """Reads fuels.asc file and returns an array with all the cells, and grid dimension nxm
 
     Args:
@@ -324,8 +327,8 @@ def ForestGrid(filename: str, Lookupdict: dict) -> tuple[(list, list, int, int, 
 
     return gridcell3, gridcell4, len(grid), tcols - 1, AdjCells, CoordCells, cellsize
 
-
-def DataGrids(InFolder: str, NCells: int) -> tuple[(list, list, list, list, list, list, list, list, list)]:
+# Tuple[(list, list, list, list, list, list, list, list, list)]
+def DataGrids(InFolder: str, NCells: int) -> Tuple[ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]:
     """
     Reads *.asc files and returns an array per each ASCII file with the correspondant information per each cell. Currently supports 
     elevation, ascpect, slope, curing, canopy bulk density, crown base height, conifer percent dead fir, probability of ignition and foliar moisture content.

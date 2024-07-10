@@ -8,4 +8,4 @@ python-lsp-black
 pytest
 
 pdoc
-qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git
+# qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git

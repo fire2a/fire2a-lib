@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 from osgeo import gdal, ogr
 from qgis.core import QgsRasterLayer
+from typing import Optional, Tuple, Union, Any, Dict, List
 
 from .utils import qgis2numpy_dtype
 
@@ -73,7 +74,7 @@ def read_raster_band(filename: str, band: int = 1) -> tuple[np.ndarray, int, int
     return dataset.GetRasterBand(band).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[np.ndarray, dict]:
+def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[Union[np.ndarray,None], Union[dict,None]]:
     """Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -238,24 +239,26 @@ def get_rlayer_data(layer: QgsRasterLayer):
             nodata = block.noDataValue()
         np_dtype = qgis2numpy_dtype(provider.dataType(1))
         data = np.frombuffer(block.data(), dtype=np_dtype).reshape(layer.height(), layer.width())
+        # return data, nodata, np_dtype
     else:
         data = []
         nodata = []
-        np_dtype = []
+        np_dtypel = []
         for i in range(layer.bandCount()):
             block = provider.block(i + 1, layer.extent(), layer.width(), layer.height())
             nodata += [None]
             if block.hasNoDataValue():
                 nodata[-1] = block.noDataValue()
-            np_dtype += [qgis2numpy_dtype(provider.dataType(i + 1))]
-            data += [np.frombuffer(block.data(), dtype=np_dtype[-1]).reshape(layer.height(), layer.width())]
+            np_dtypel += [qgis2numpy_dtype(provider.dataType(i + 1))]
+            data += [np.frombuffer(block.data(), dtype=np_dtypel[-1]).reshape(layer.height(), layer.width())]
         # would different data types bug this next line?
         data = np.array(data)
-    # return data, nodata, np_dtype
+        # return data, nodata, np_dtypl
     return data
 
 
 def get_cell_sizeV2(filename: str, band: int = 1) -> tuple[float, float]:
+    # TODO: deprecate this function
     _, info = read_raster(filename, band=band, data=False, info=True)
     return info["RasterXSize"], info["RasterYSize"]
 
@@ -289,7 +292,7 @@ def get_cell_size(raster: gdal.Dataset) -> tuple[float, float]:
     return cell_size
 
 
-def mask_raster(raster_ds: gdal.Dataset, band: int, polygons: list[ogr.Geometry]) -> np.array:
+def mask_raster(raster_ds: gdal.Dataset, band: int, polygons: list[ogr.Geometry]) -> np.ndarray:
     """Mask a raster with polygons using GDAL.
 
     Args:
@@ -313,7 +316,7 @@ def mask_raster(raster_ds: gdal.Dataset, band: int, polygons: list[ogr.Geometry]
     return masked_data
 
 
-def rasterize_polygons(polygons: list[ogr.Geometry], width: int, height: int) -> np.array:
+def rasterize_polygons(polygons: list[ogr.Geometry], width: int, height: int) -> np.ndarray:
     """Rasterize polygons to a boolean array.
 
     Args:
@@ -346,7 +349,7 @@ def rasterize_polygons(polygons: list[ogr.Geometry], width: int, height: int) ->
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: list[ogr.Geometry] = None) -> tuple[np.ndarray, list[str]]:
+def stack_rasters(file_list: list[Path], mask_polygon: Union[list[ogr.Geometry],None] = None) -> tuple[np.ndarray, list[str]]:
     """Stack raster files from a list into a 3D NumPy array.
 
     Args:

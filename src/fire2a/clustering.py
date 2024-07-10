@@ -8,6 +8,7 @@ __revision__ = "$Format:%H$"
 import numpy as np
 from scipy.sparse import dok_matrix, lil_matrix
 from sklearn.cluster import AgglomerativeClustering
+from typing import Union
 
 from .adjacency import adjacent_cells
 
@@ -18,8 +19,8 @@ def raster_clusters(
     min_surface: float,
     max_surface: float,
     distance_threshold: float = 50.0,
-    total_clusters: int = None,
-    connectivity: int = None,
+    total_clusters: Union[int, None] = None,
+    connectivity: Union[int, None] = None,
 ) -> np.ndarray:
     """
     This function receives as arguments:
