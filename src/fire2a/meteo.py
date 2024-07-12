@@ -82,19 +82,19 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         data = read_csv(ruta_data / station, sep=',')
         meteo.append(data)
 
-    st_time= datetime(datetime.now().year,datetime.now().month,datetime.now().day,12,0,0)
+
     filelist = []
     for i in range(numsims):
         scenario = [scenario_name(i, numsims) for k in range(numrows)]
-        dt = [st_time + timedelta(hours=k) for k in range(numrows)]
-    
+
         j = randint(0, dn - 1)
         m = randint(0, len(meteo[j]["TMP"]) - numrows)
-    
+
         wd = []
         for x in meteo[j]["WD"].iloc[m:m + numrows].tolist():
             wd.append(meteo_to_c2f(x))
-    
+
+        dt= meteo[j]["datetime"].iloc[m:m + numrows].tolist()
         ws = meteo[j]["WS"].iloc[m:m + numrows].tolist()
         tmp = meteo[j]["TMP"].iloc[m:m + numrows].tolist()
         rh = meteo[j]["RH"].iloc[m:m + numrows].tolist()
@@ -112,13 +112,11 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         filelist += [tmpfile.name]
         df.to_csv(tmpfile, header=True, index=False)
     return 0, {"filelist": filelist}
-    #     return 0, {"filelist": filelist}
-    # except Exception as e:
-    #     return 1, {"filelist": filelist, "exception": e}
 
 
 
-if __name__ == "__main__":
+
+#if __name__ == "__main__":
     #
     # TEMPORARY TESTS
     #
