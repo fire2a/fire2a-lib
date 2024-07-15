@@ -115,7 +115,7 @@ def get_scars_files(sample_file: Path):
     from re import search as re_search
 
     ext = sample_file.suffix
-    if match := re_search("(\d+)$", sample_file.stem):
+    if match := re_search(r"(\d+)$", sample_file.stem):
         num = match.group()
     else:
         msg = f"sample_file: {sample_file} does not contain a number at the end"
@@ -124,7 +124,7 @@ def get_scars_files(sample_file: Path):
     parent = sample_file.absolute().parent
     root = sample_file.absolute().parent.parent
     parent = parent.relative_to(root)
-    if match := re_search("(\d+)$", parent.name):
+    if match := re_search(r"(\d+)$", parent.name):
         num = match.group()
     else:
         msg = f"sample_file:{sample_file} parent:{parent} does not contain a number at the end"
@@ -136,7 +136,7 @@ def get_scars_files(sample_file: Path):
     for par in root.glob(parent_wo_num + "[0-9]*"):
         if par.is_dir():
             par = par.relative_to(root)
-            parent_ids += [int(re_search("(\d+)$", par.name).group(0))]
+            parent_ids += [int(re_search(r"(\d+)$", par.name).group(0))]
             parent_dirs += [par]
     adict = dict(zip(parent_dirs, parent_ids))
     parent_dirs.sort(key=lambda x: adict[x])
@@ -150,7 +150,7 @@ def get_scars_files(sample_file: Path):
         for afile in (root / par).glob(file_name_wo_num + "[0-9]*" + ext):
             if afile.is_file() and afile.stat().st_size > 0:
                 afile = afile.relative_to(root)
-                chl_ids += [int(re_search("(\d+)$", afile.stem).group(0))]
+                chl_ids += [int(re_search(r"(\d+)$", afile.stem).group(0))]
                 chl_files += [afile]
         adict = dict(zip(chl_files, chl_ids))
         chl_files.sort(key=lambda x: adict[x])
@@ -194,7 +194,7 @@ def get_scars_indexed(sample_file: Path):
     from numpy import fromiter as np_fromiter
 
     ext = sample_file.suffix
-    if match := re_search("(\d+)$", sample_file.stem):
+    if match := re_search(r"(\d+)$", sample_file.stem):
         num = match.group()
     else:
         msg = f"sample_file: {sample_file} does not contain a number at the end"
@@ -203,7 +203,7 @@ def get_scars_indexed(sample_file: Path):
     parent = sample_file.absolute().parent
     root = sample_file.absolute().parent.parent
     parent = parent.relative_to(root)
-    if match := re_search("(\d+)$", parent.name):
+    if match := re_search(r"(\d+)$", parent.name):
         num = match.group()
     else:
         msg = f"sample_file:{sample_file} parent:{parent} does not contain a number at the end"
@@ -222,8 +222,8 @@ def get_scars_indexed(sample_file: Path):
     if sep == "\\":
         sep = "\\\\"
     indexes = np_fromiter(
-        # re_findall(parent_wo_num + "(\d+)" + sep + child_wo_num + "(\d+)" + ext, " ".join(map(str, files))),
-        re_findall("(\d+)" + sep + child_wo_num + "(\d+)", " ".join(map(str, files))),
+        # re_findall(parent_wo_num + r"(\d+)" + sep + child_wo_num + r"(\d+)" + ext, " ".join(map(str, files))),
+        re_findall(r"(\d+)" + sep + child_wo_num + r"(\d+)", " ".join(map(str, files))),
         dtype=[("sim", int), ("per", int)],
         count=len(files),
     )
