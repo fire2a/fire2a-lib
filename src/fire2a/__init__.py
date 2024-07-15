@@ -40,11 +40,11 @@ except PackageNotFoundError:
         __version__ = "0.0.0"
         version_from = "fallback"
 
-logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
+# logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
 
 
 def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
-    """Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
+    r"""Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
     Args:
         name (str, optional): Name of the logger. Defaults to \__name __. Don't change unless you know what you are doing!
         verbosity (int, optional): Verbosity level. Defaults to 0 (warning). 1 info, >=2 debug
