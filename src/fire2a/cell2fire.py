@@ -607,7 +607,7 @@ def build_stats(
 
         if stat_raster_ds:
             band = stat_raster_ds.GetRasterBand(count)
-            if 0 != band.SetNoDataValue(-9999):
+            if 0 != band.SetNoDataValue(0):
                 fprint(
                     f"Set NoData failed for Statistic {count}: {afile}",
                     level="warning",
@@ -646,7 +646,7 @@ def build_stats(
         N = len(files)
         mean = summed / N
         band = stat_summary_ds.GetRasterBand(1)
-        if 0 != band.SetNoDataValue(-9999):
+        if 0 != band.SetNoDataValue(0):
             fprint(
                 f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
@@ -657,7 +657,7 @@ def build_stats(
         # std
         stddev = np_sqrt(sumsquared / N - mean**2)
         band = stat_summary_ds.GetRasterBand(2)
-        if 0 != band.SetNoDataValue(-9999):
+        if 0 != band.SetNoDataValue(0):
             fprint(
                 f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
