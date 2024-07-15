@@ -69,7 +69,7 @@ def raster_layer_to_firebreak_csv(layer: QgsRasterLayer, firebreak_val: int = 1,
     processing.run("fire2a:cell2firesimulator", ...
     ```
     See also: https://fire2a.github.io/docs/docs/qgis-toolbox/c2f_firebreaks.html
-    """ # fmt: skip
+    """  # fmt: skip
     from numpy import array as np_array
     from numpy import where as np_where
 
@@ -111,7 +111,7 @@ def get_scars_files(sample_file: Path):
     if not ret_val:
         logger.error(msg)
     ```
-    """ # fmt: skip
+    """  # fmt: skip
     from re import search as re_search
 
     ext = sample_file.suffix
@@ -322,7 +322,8 @@ def build_scars(
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
 
-    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
+    from fire2a.processing_utils import (get_output_raster_format,
+                                         get_vector_driver_from_filename)
 
     gdal.UseExceptions()
 
@@ -361,7 +362,7 @@ def build_scars(
                 fprint(
                     f"WriteArray failed for Final Scar {i}: {afile}", level="warning", feedback=feedback, logger=logger
                 )
-            if i % 100:
+            if i % 100 == 0:
                 scar_raster_ds.FlushCache()
         if burn_prob:
             burn_prob_arr += data
@@ -381,10 +382,15 @@ def build_scars(
 
         if scar_poly.startswith("memory:"):
             driver_name = "GPKG"
+            fprint(f"Memory layer, using {driver_name} driver", level="info", feedback=feedback, logger=logger)
         else:
             driver_name = get_vector_driver_from_filename(scar_poly)
+            fprint(f"NOT Mem lyr, using {driver_name} driver", level="info", feedback=feedback, logger=logger)
 
-        otrods = ogr.GetDriverByName(driver_name).CreateDataSource(scar_poly)
+        drv = ogr.GetDriverByName(driver_name)
+        if 0 != drv.DeleteDataSource(scar_poly):
+            fprint(f"Failed to delete {scar_poly}", level="error", feedback=feedback, logger=logger)
+        otrods = drv.CreateDataSource(scar_poly)
         otrolyr = otrods.CreateLayer("propagation_scars", srs=sp_ref, geom_type=ogr.wkbPolygon)
         otrolyr.CreateField(ogr.FieldDefn("simulation", ogr.OFTInteger))
         otrolyr.CreateField(ogr.FieldDefn("time", ogr.OFTInteger))
@@ -436,7 +442,8 @@ def build_scars(
                     feature.SetField("area", int(geom.GetArea()))
                     feature.SetField("perimeter", int(geom.Boundary().Length()))
                     otrolyr.CreateFeature(feature)
-                    otrods.FlushCache()
+                    if count_evo % 100 == 0:
+                        otrods.FlushCache()
 
                 if callback:
                     callback(count_evo / len(files) * 100, f"Processed Propagation-Scar {count_evo}/{len(indexes)}")
@@ -465,10 +472,10 @@ def build_scars(
         otrods.FlushCache()
         otrods = None
         # otrolyr.SyncToDisk() CRASHES QGIS
-        # otrolyr = None
+        # otrolyr.FlushCache()
+        otrolyr = None
         src_ds.FlushCache()
         src_ds = None
-
     else:
         # final scar loop
         count_fin = 0
@@ -490,6 +497,9 @@ def build_scars(
                 callback(count_fin / len(final_scars_files) * 100, f"Processed Final-Scar {count_fin}/{len(files)}")
             else:
                 fprint(f"Processed Final-Scar {count_fin}/{len(files)}", level="info", feedback=feedback, logger=logger)
+        if scar_raster:
+            scar_raster_ds.FlushCache()
+            scar_raster_ds = None
 
     if burn_prob:
         driver_name = get_output_raster_format(burn_prob, feedback=feedback)
@@ -557,9 +567,9 @@ def build_stats(
     from numpy import loadtxt as np_loadtxt
     from numpy import sqrt as np_sqrt
     from numpy import zeros as np_zeros
-    from osgeo import gdal, ogr, osr
+    from osgeo import gdal
 
-    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
+    from fire2a.processing_utils import get_output_raster_format
 
     gdal.UseExceptions()
 
@@ -611,7 +621,7 @@ def build_stats(
                     feedback=feedback,
                     logger=logger,
                 )
-            if count % 100:
+            if count % 100 == 0:
                 stat_raster_ds.FlushCache()
 
         if stat_summary:
