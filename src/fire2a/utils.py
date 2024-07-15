@@ -8,11 +8,12 @@ import logging
 
 import numpy as np
 from qgis.core import Qgis, QgsProcessingFeedback
+from typing import Union, Any
 
 logger = logging.getLogger(__name__)
 
 
-def loadtxt_nodata(fname, no_data=-9999, dtype=np.float32, **kwargs) -> np.ndarray:
+def loadtxt_nodata(fname : str, no_data : int = -9999, dtype=np.float32, **kwargs) -> np.ndarray:
     """Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)
 
@@ -49,7 +50,7 @@ def loadtxt_nodata(fname, no_data=-9999, dtype=np.float32, **kwargs) -> np.ndarr
     return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
 
-def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> np.dtype:
+def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> Union[np.dtype[Any], None]:
     """Conver QGIS data type to corresponding numpy data type
     https://raw.githubusercontent.com/PUTvision/qgis-plugin-deepness/fbc99f02f7f065b2f6157da485bef589f611ea60/src/deepness/processing/processing_utils.py
     This is modified and extended copy of GDALDataType.
@@ -80,6 +81,8 @@ def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> np.dtype:
         return np.float32
     if qgis_dtype == Qgis.DataType.Float64 or qgis_dtype == "Float64":
         return np.float64
+    logger.error(f"QGIS data type {qgis_dtype} not matched to numpy data type.")
+    return None
 
 
 def getGDALdrivers():
