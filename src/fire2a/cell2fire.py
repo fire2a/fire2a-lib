@@ -322,8 +322,7 @@ def build_scars(
     from numpy import zeros as np_zeros
     from osgeo import gdal, ogr, osr
 
-    from fire2a.processing_utils import (get_output_raster_format,
-                                         get_vector_driver_from_filename)
+    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
 
     gdal.UseExceptions()
 
@@ -710,7 +709,7 @@ def arg_parser(argv):
     )
     stats.add_argument(
         "--stat-sample",
-        required=True,
+        default="",
         help="Matching the pattern 'statistic_name(+any digit).asc' ",
     )
     stats.add_argument(
