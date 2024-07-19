@@ -189,7 +189,7 @@ def dpv_maskG(G, root, pv, i2n=None):
     return mdpv
 
 
-def recursion2(G: DiGraph, i: np.int32, mdpv: ndarray, i2n: list[int]) -> ndarray:
+def recursion2(G: DiGraph, i: int, mdpv: ndarray, i2n: list[int]) -> ndarray:
     for j in G.successors(i):
         mdpv[i2n.index(i)] += recursion2(G, j, mdpv, i2n)
     return mdpv[i2n.index(i)]
@@ -326,10 +326,10 @@ from re import search
 
 def load_msg(afile: Path):
     try:
-        sim_id = search("\\d+", afile.stem).group(0)
+        sim_id = search(r"\d+", afile.stem).group(0)
     except:
         sim_id = "-1"
-    data = loadtxt(
+    data = np.loadtxt(
         afile, delimiter=",", dtype=[("i", np.int32), ("j", np.int32), ("t", np.int32)], usecols=(0, 1, 2), ndmin=1
     )
     return data, sim_id
@@ -340,7 +340,7 @@ def get_data(files, callback=None):
     for count, afile in enumerate(files):
         sim_id = search("\\d+", afile.stem).group(0)
         data += [
-            loadtxt(
+            np.loadtxt(
                 afile,
                 delimiter=",",
                 dtype=[("i", np.int32), ("j", np.int32), ("t", np.int32)],

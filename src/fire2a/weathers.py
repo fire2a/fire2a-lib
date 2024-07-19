@@ -71,8 +71,8 @@ def cut_weather_scenarios(
     weather_records: DataFrame,
     scenario_lengths: List[int],
     output_folder: Union[Path, str] = None,
-    n_output_files: int = None,
-) -> None:
+    n_output_files: Union[int,None] = None,
+) -> DataFrame:
     """Split weather records into smaller scenarios following specified scenario lengths. The
     number of output weather scenarios can be customized using the 'n_output_files' parameter.
 
@@ -120,7 +120,7 @@ def cut_weather_scenarios(
     if any(length > total_data_length for length in sample):
         raise ValueError("Scenario length cannot be greater than the total length of weather records")
 
-    scenarios = []  # List to store weather scenarios
+    scenarios : DataFrame = []  # List to store weather scenarios
 
     # Generate scenarios based on specified lengths
     for index, length in enumerate(sample, start=1):
@@ -150,7 +150,7 @@ def random_weather_scenario_generator(
     hr_limit: Optional[int] = None,
     lambda_ws: Optional[float] = None,
     lambda_wd: Optional[float] = None,
-    output_folder: Optional[str] = None,
+    output_folder: Optional[Union[Path,str]] = None,
 ):
     """Generates random weather scenarios and saves them as CSV files.
 

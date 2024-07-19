@@ -162,7 +162,8 @@ cython_debug/
 .virtual_documents/
 
 # vim
-*.sw[pon]
+*.sw[a-p]
 *~
+vim.session
 
 src/*/_version.py

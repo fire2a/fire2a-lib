@@ -1,0 +1,75 @@
+# workflow for building and publishing documentation
+name: build and publish doc
+
+on:
+  push:
+    branches:
+      - publish
+      - docs
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-job:
+    runs-on: ubuntu-latest
+    container: qgis/qgis:latest
+
+    steps:
+      - name: Inspect container
+        run: |
+          qgis --version
+          python3 -V
+          echo $SHELL
+
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            tests
+
+      - name: Install dependencies
+        run: |
+          python3 -m venv --system-site-packages .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install --upgrade -r requirements.build.txt
+          pip install -e .
+        shell: bash
+
+      - name: Build package
+        run: |
+          source .venv/bin/activate
+          rm -rf doc/*
+          pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
+          ls doc
+        shell: bash
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'doc'
+
+  deploy-job:
+    needs: build-job
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

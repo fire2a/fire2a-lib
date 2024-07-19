@@ -1,13 +1,11 @@
-setuptools_scm
-pytest
-pdoc3
-build
-
-python-lsp-ruff
 python-lsp-server
+python-lsp-ruff
 pylsp-mypy
 pylsp-rope
 python-lsp-isort
 python-lsp-black
 
+pytest
+
+pdoc
 # qgis-stubs @ git+https://github.com/leonhard-s/qgis-stubs.git

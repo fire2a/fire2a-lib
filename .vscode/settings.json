@@ -7,13 +7,8 @@
           "path": "cmd.exe",
           "args": [
              "/k",
-             "python-qgis-cmd.bat",
+             "activate_qgis_python.bat",
           ]
         }
       },
-      "terminal.integrated.defaultProfile.windows": "Custom Init",
-      "cSpell.words": [
-        "Mahaluf",
-        "Recasens"
-      ]
 }

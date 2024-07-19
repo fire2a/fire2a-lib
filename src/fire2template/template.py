@@ -25,7 +25,6 @@ a_method((1, 'a'), 'b', 'c', an_optional_argument=2, d='e', f='g')
 👋🌎
 """  # fmt: skip
 __author__ = "Fernando Badilla"
-__version__ = 'v0.0.1+0-gf866f08'
 __revision__ = "$Format:%H$"
 
 
@@ -33,82 +32,123 @@ import logging
 import sys
 from pathlib import Path
 
-import numpy as np
-
-from fire2template import setup_logger
+from fire2template import setup_file
 
 logger = logging.getLogger(__name__)
+"""capture the logger"""
+# adjust harcoded values for ipython (or jupyter)
+NAME, FILEPATH = setup_file(name="template", filepath=Path("/home/fdo/source/fire2a-lib/src/fire2template"))
+""" global variables available in python and ipython(setup manually)"""
+# REPO = FILEPATH.parent.parent
+# DEPOT = FILEPATH / "depot"
+
 MODULE_VARIABLE = "very important and global variable"
 """ this docstring describes a global variable has 0 indent """
 
 
 def cast(numbers):
+    """cast a list of strings to a list of floats
+    Args:
+        numbers (list): list of strings
+    Returns:
+        list: list of floats
+    Raises:
+        SystemExit: if a string cannot be casted to a float
+    """
     logger.debug(f"cast: before {numbers=}")
-    resp = list(map(float, numbers))
+    try:
+        resp = list(map(float, numbers))
+    except ValueError as e:
+        logger.fatal("%s", e)
+        sys.exit(1)
     logger.debug(f"cast: after {resp=}")
     return resp
 
 
 def calc(operation, numbers):
-    """mock calculator"""
+    """mock calculator that performs a simple operation on a list of numbers
+    Args:
+        operation (str): operation to perform
+        numbers (list): list of numbers
+    Returns:
+        float: result of the operation
+    """
+    from functools import reduce
+
+    from numpy import prod as np_prod
+    from numpy import sum as np_sum
+
     logger.debug(f"calc: {operation=}, {numbers=}")
     if operation == "+":
         logger.info("attempting summation...")
-        return np.sum(numbers)
+        return np_sum(numbers)
     elif operation == "-":
         logger.info("attempting substraction...")
-        return np.subtract(*numbers)
+        return reduce(lambda x, y: x - y, numbers)
     elif operation == "*":
         logger.info("attempting multiplication...")
-        return np.prod(numbers)
+        return np_prod(numbers)
     elif operation == "/":
-        logger.info("attempting division by the last non zero in the list...")
-        for i, dividend in enumerate(numbers[::-1]):
-            logger.debug(f"try {dividend=}")
-            if dividend == 0:
-                continue
-            break
-        logger.debug(f"got {dividend=}")
-        if dividend == 0:
-            logger.error("Avoiding division by zero")
-            return
-        return np.divide(numbers[:i] + numbers[i + 1 :], dividend)
+        logger.info("attempting division, replacing /0s by 1")
+        return reduce(lambda x, y: x / y if y != 0 else 1, numbers)
 
 
-def argument_parser(argv):
-    """parse arguments
-    - logger: verbosity, logfile
-    - mock calculator: operation and numbers"""
-    # fmt: off
+def arg_parser(argv):
+    """parse arguments: operation, numbers, verbosity, logfile
+    Args:
+        argv (list): list of strings
+    Returns:
+        argparse.Namespace: parsed arguments
+    """
     import argparse
+
     parser = argparse.ArgumentParser(
         description="Simplest module to serve as a template. It's function is to perform a simple operation on a list of numbers",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    # fmt: on
     parser.add_argument(
-        "-v",
-        "--verbosity",
-        help="increase output verbosity (0: warning(default), 1: info, 2>=: debug)",
-        action="count",
-        default=0,
-    )
-    parser.add_argument("-l", "--logfile", help="log file", type=Path)
-    parser.add_argument(
-        "-op", "--operation", help="specify operation to perform", default="+", type=str, choices=["+", "-", "*", "/"]
+        "-op",
+        "--operation",
+        help="specify operation to perform (escape * to work: \*)",
+        default="+",
+        type=str,
+        choices=["+", "-", "*", "/"],
     )
     parser.add_argument(nargs="+", dest="numbers", help="numbers to perform operation on")
-    return parser.parse_args(argv)
+    parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
+    parser.add_argument(
+        "--logfile",
+        "-l",
+        action="store_true",
+        help="enable 5 log files named " + NAME + ".log (verbose must be enabled)",
+        default=None,
+    )
+    args = parser.parse_args(argv)
+    if args.logfile:
+        args.logfile = NAME + ".log"
+    return args
 
 
 def main(argv=None):
-    """this is a function docstring that describes a function"""
-    if argv is None:
+    """main function to be called by the cli
+
+    args = arg_parser(["-vvv"])
+    """
+
+    if argv is sys.argv:
         argv = sys.argv[1:]
-    args = argument_parser(argv)
-    logger = setup_logger(__name__, args.verbosity, args.logfile)
-    logger.info(f"{args=}")
-    logger.debug(f"debugging...")
+    args = arg_parser(argv)
+
+    if args.verbose != 0:
+        global logger
+        from fire2template import setup_logger
+
+        logger = setup_logger(verbosity=args.verbose, logfile=args.logfile)
+        # set other modules logging level
+        logging.getLogger("asyncio").setLevel(logging.INFO)
+
+    logger.info("args %s", args)
+
     if not args.numbers:
         logger.error("No numbers provided")
         return 1
