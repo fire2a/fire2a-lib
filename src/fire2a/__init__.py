@@ -41,13 +41,12 @@ except PackageNotFoundError:
         __version__ = "0.0.0"
         version_from = "fallback"
 
-logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
+# logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
 
 
-def setup_logger(name: Union[str, None] = None, verbosity: Union[str, int] = "INFO", logfile: Union[Path, None] = None):
-    """ Users or developers not implementing their own logger should use this function to get enhanced program execution information.
-    Capture the logger, setup its __name__ or root logger, verbosity, stream handler & rotating logfile.
 
+def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):
+    r"""Capture the logger and setup name, verbosity, stream handler & rotating logfile if provided.
     Args:
         name (str, optional): Name of the logger. Defaults to \__name __ 
         verbosity (str | int): Verbosity level, implemented, WARNING:1, INFO:2 (default), or DEBUG:3
