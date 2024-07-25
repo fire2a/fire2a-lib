@@ -7,7 +7,7 @@ from fire2a.meteo import generate
 
 date = datetime.now()
 rowres = 60
-numrows = 3363
+numrows = 10
 numsims = 15
 x = -36
 y = -72
