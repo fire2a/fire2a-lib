@@ -50,12 +50,11 @@ documentation = "https://fire2a.github.io/fire2a-lib"
 repository = "https://github.com/fire2a/fire2a-lib"
 # changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
-# By default, include-package-data is true in pyproject.toml, so you do
-# [tool.setuptools]
-# include-package-data = true
+[tool.setuptools]
+include-package-data = true
 
-# [tool.setuptools.packages.find]
-# where = ["src"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.setuptools.package-data]
 "fire2a" = ["src/fire2a/DB_DMC/*"]
