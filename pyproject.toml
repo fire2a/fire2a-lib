@@ -44,20 +44,21 @@ pythonpath = [
   "src"
 ]
 
-# [project.urls]
-# homepage = "https://example.com"
-# documentation = "https://readthedocs.org"
-# repository = "https://github.com"
+[project.urls]
+homepage = "https://www.fire2a.com"
+documentation = "https://fire2a.github.io/fire2a-lib"
+repository = "https://github.com/fire2a/fire2a-lib"
 # changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
+# By default, include-package-data is true in pyproject.toml, so you do
 # [tool.setuptools]
-# package-dir = {"" = "src"}
+# include-package-data = true
 
 # [tool.setuptools.packages.find]
 # where = ["src"]
 
-[tool.setuptools.package_data]
-"fire2a" = ["src/fire2a/DB_DMC/*"]
+# [tool.setuptools.package-data]
+# "fire2a" = ["src/fire2a/DB_DMC/*"]
 
 # [project.scripts]
 # my-script = "mypkg.my_module:main"
