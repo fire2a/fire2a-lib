@@ -29,14 +29,14 @@ jobs:
       run: |
         python3 -m venv .venv --system-site-packages
         source .venv/bin/activate
-        sudo -H python -m pip install --upgrade pip wheel setuptools setuptools_scm build twine
-        python -m pip install -r requirements.txt
+        python -m pip install --upgrade pip wheel setuptools setuptools_scm build twine
+        pip install -r requirements.txt
       shell: bash
 
     - name: Build package
       run: |
         source .venv/bin/activate
-        python -m build
+        python -m build --no-isolation
       shell: bash
 
     - name: Create Release
