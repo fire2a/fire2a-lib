@@ -54,14 +54,16 @@ documentation = "https://fire2a.github.io/fire2a-lib"
 repository = "https://github.com/fire2a/fire2a-lib"
 # changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
-[tool.setuptools]
-include-package-data = true
+# true by default
+# [tool.setuptools]
+# include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.package-data]
-"fire2a" = ["src/fire2a/DB_DMC/*.csv"]
+# equivalent to MANIFEST.in
+# [tool.setuptools.package-data]
+# "fire2a" = ["src/fire2a/DB_DMC/*.csv"]
 
 # [project.scripts]
 # my-script = "mypkg.my_module:main"

@@ -37,7 +37,7 @@ jobs:
       run: |
         source .venv/bin/activate
         python -m setuptools_scm ls
-        python -m build --no-isolation
+        python -m build
       shell: bash
 
     - name: Create Release
