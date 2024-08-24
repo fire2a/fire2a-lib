@@ -29,9 +29,8 @@ jobs:
       run: |
         python3 -m venv .venv --system-site-packages
         source .venv/bin/activate
-        python -m pip install --upgrade pip wheel setuptools setuptools_scm
-        pip install build
-        pip install -r requirements.txt
+        sudo -H python -m pip install --upgrade pip wheel setuptools setuptools_scm build twine
+        python -m pip install -r requirements.txt
       shell: bash
 
     - name: Build package
