@@ -1,7 +1,11 @@
 # ... other project metadata fields as specified in:
 #     https://packaging.python.org/en/latest/specifications/declaring-project-metadata/
 [build-system]
-requires = ["setuptools>=64", "setuptools-scm>=8"]
+requires = [
+    "setuptools>=64",
+    "setuptools-scm>=8",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -57,7 +61,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"fire2a" = ["src/fire2a/DB_DMC/*"]
+"fire2a" = ["src/fire2a/DB_DMC/*.csv"]
 
 # [project.scripts]
 # my-script = "mypkg.my_module:main"
