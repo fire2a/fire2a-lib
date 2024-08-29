@@ -47,7 +47,7 @@ def barlo_sota(a):
     return round((a + 180) % 360, 2)
 
 
-def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
+def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
     """dummy generator function
     Args:
         x (float): x-coordinate of the ignition point, EPSG 4326
@@ -56,6 +56,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         rowres (int): time resolution in minutes (not implemented yet)
         numrows (int): number of hours in the weather scenario
         numsims (int): number of weather scenarios
+        percen (float): daily maximum temperature percentile
         outdir (Path): output directory
     Return:
         retval (int): 0 if successful, 1 otherwise, 2...
@@ -74,9 +75,11 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
 
         meteos = pd.DataFrame()
         for st in stn:
-            df = pd.read_csv(ruta_data / f"{st}.csv", sep=",")
+            df = pd.read_csv(ruta_data / f"{st}.csv", sep=",", index_col=0, parse_dates=True)
+            df1 = df["TMP"].resample('D').max()
+            qn_date = df1[df1 >= df1.quantile(percn)].index
             df["station"] = st
-            meteos = pd.concat([meteos, df], ignore_index=True)
+            meteos = pd.concat([meteos, df[df.index.floor('D').isin(qn_date)].reset_index()], ignore_index=True)
         meteos["datetime"] = pd.to_datetime(meteos["datetime"], errors="coerce")
         # available days by stations
         days = meteos.groupby(meteos.datetime.dt.date).first()["station"]
@@ -113,7 +116,8 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
             # scenario name
             chosen_meteo.loc[:, "Scenario"] = scenario_name(i, numsims)
             # datetime format
-            chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
+            #chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
+            chosen_meteo.loc[:, "datetime"] = [chosen_meteo["datetime"].iloc[0] + timedelta(hours=i) for i in range(numrows)]
             # reorder
             chosen_meteo = chosen_meteo[["Scenario", "datetime", "WS", "WD", "TMP", "RH"]]
             # write
@@ -125,3 +129,20 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
 
     except Exception as e:
         return 1, {"filelist": filelist, "exception": e}
+
+
+if __name__ == "__main__":
+    #
+    # TEMPORARY TESTS
+    #
+    #from datetime import datetime
+
+    date = datetime.now()
+    rowres = 60
+    numrows = 12
+    numsims = 10
+    qn=0.5
+    from pathlib import Path
+
+    outdir = Path("./weather")
+    generate(-36, -73, date, rowres, numrows, numsims, qn , outdir)
