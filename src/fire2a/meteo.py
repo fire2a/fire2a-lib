@@ -56,7 +56,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
         rowres (int): time resolution in minutes (not implemented yet)
         numrows (int): number of hours in the weather scenario
         numsims (int): number of weather scenarios
-        percen (float): daily maximum temperature percentile
+        percen (float): daily maximum temperature quantil
         outdir (Path): output directory
     Return:
         retval (int): 0 if successful, 1 otherwise, 2...
@@ -129,20 +129,3 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
 
     except Exception as e:
         return 1, {"filelist": filelist, "exception": e}
-
-
-if __name__ == "__main__":
-    #
-    # TEMPORARY TESTS
-    #
-    #from datetime import datetime
-
-    date = datetime.now()
-    rowres = 60
-    numrows = 12
-    numsims = 10
-    qn=0.5
-    from pathlib import Path
-
-    outdir = Path("./weather")
-    generate(-36, -73, date, rowres, numrows, numsims, qn , outdir)
