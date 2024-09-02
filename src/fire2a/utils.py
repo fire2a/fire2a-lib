@@ -50,7 +50,7 @@ def loadtxt_nodata(fname : str, no_data : int = -9999, dtype=np.float32, **kwarg
     return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
 
-def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> Union[np.dtype[Any], None]:
+def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> Union[np.dtype, None]:
     """Conver QGIS data type to corresponding numpy data type
     https://raw.githubusercontent.com/PUTvision/qgis-plugin-deepness/fbc99f02f7f065b2f6157da485bef589f611ea60/src/deepness/processing/processing_utils.py
     This is modified and extended copy of GDALDataType.
