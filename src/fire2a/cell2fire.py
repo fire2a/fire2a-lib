@@ -364,7 +364,7 @@ def build_scars(
             if i % 100 == 0:
                 scar_raster_ds.FlushCache()
         if burn_prob:
-            if np.any(data == -1):
+            if np_any(data == -1):
                 mask = data != -1
                 burn_prob_arr[ mask ] += data[ mask ]
             else:
