@@ -364,7 +364,11 @@ def build_scars(
             if i % 100 == 0:
                 scar_raster_ds.FlushCache()
         if burn_prob:
-            burn_prob_arr += data
+            if np_any(data == -1):
+                mask = data != -1
+                burn_prob_arr[ mask ] += data[ mask ]
+            else:
+                burn_prob_arr += data
 
     if scar_poly:
         # raster for each grid
