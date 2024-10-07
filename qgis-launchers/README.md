@@ -63,3 +63,5 @@ Project configuration file, write or append to `<MyProject>/.vscode/settings.jso
   }
 }
 ```
+Here the location of the launcher `call qgis-launchers/activate-python-qgis.bat` is relative to the [fire2a-lib](https://github.com/fire2a) repo.  
+Adjust accordingly to where you created it in step 2.
