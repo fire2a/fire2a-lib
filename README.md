@@ -20,7 +20,7 @@ Fire Advanced Analyitics research group scriptable knowledge base
 ### Simplest: Use within QGIS
 1. Install QGIS
 2. Open QGIS Python Console
-3. Type (to install)::
+3. To install, type :
 ```python
 !pip install fire2a-lib
 ```
@@ -31,29 +31,43 @@ digraph = digraph_from_messages('messages01.csv')
 ```
 ### Command line usage
 1. Install QGIS
-- Docker users check [qgis](https://hub.docker.com/r/qgis/qgis) container
-- Linux developers could skip QGIS by `apt install python3-gdal gdal-bin`
-2. Use python from the terminal
-- Windows: Open OsGeo4W Shell app, `python` is available
-- MacOS: Open terminal app, use this `/Applications/QGIS.app/Contents/MacOS/bin/python` (see creating an alias below)
-- Linux: Do a system site packages aware python virtual environment `python3 -m venv --system-site-packages qgis_venv`
+- Docker users check [qgis container](https://hub.docker.com/r/qgis/qgis)
+- _[Optional but] Recommended_ for Windows: Make the bundled python writable by your user :
+   - A. Open cmd administrator terminal, type (adjust path): `>icacls C:\Program Files\QGIS 3.38.3\apps\Python312 /grant %username%:F`
+   - B. Open powershell...
+   - C. Explore till 2ndary click the folder>Properties... 
+
+2. Locate python, prepare environment
+
+- 2.A. Windows
+   - Open `OsGeo4W Shell` application, 
+   - Run `bin\python-qgis.bat` once to configure all environment variables.
+- 2.B. macOS 
+   - Open terminal application, 
+   - Use this python: `/Applications/QGIS.app/Contents/MacOS/bin/python` (see creating an alias below)
+   - TODO: are all environment variables right?
+- 2.C. Linux
+   ```
+   python3 -m venv --system-site-packages qgis_venv
+   source qgis_venv/bin/activate
+   ```
 3. Install
 ```bash
-python -m pip install fire2a-lib
+python -m pip install fire2a-lib ipython ...
 ```
-4. Visit [fire2a-lib documentation](https://fire2a.github.io/fire2a-lib), example:
+4. Visit [fire2a-lib documentation](https://fire2a.github.io/fire2a-lib), example for getting the burn probability from a simulator results directory:
 ```bash
 python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 --scar-sample Grids/Grids2/F
 orestGrid03.csv --scar-poly propagation_scars.shp --burn-prob burn_probability.tif
 ```
-### Scripting tips
+### Scripting/Developing tips
 - Check [standalone scripting](https://github.com/fire2a/fire-analytics-qgis-processing-toolbox-plugin/blob/main/script_samples/standalone.py) for more info on initializing a headless QGIS environment
 - Usage [examples](https://github.com/fire2a/fire2a-lib/tree/main/usage_samples)
-- Microsoft users check this VSCode [integration](https://fire2a.github.io/docs/docs/qgis-cookbook/README.html#making-a-python-environment-launcher-for-developers)
+- Microsoft users check these [integrations](qgis-launchers/README.md)
 - macOS users add a permanent alias, on the terminal app
-```zsh
-echo "alias pythonq='/Applications/QGIS.app/Contents/MacOS/bin/python'" >> ~/.zshrc
-```
+   ```zsh
+   echo "alias pythonq='/Applications/QGIS.app/Contents/MacOS/bin/python'" >> ~/.zshrc
+   ```
 #### Interactive 
 - debbuging:
 ```

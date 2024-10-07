@@ -1,14 +1,13 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "terminal.integrated.profiles.windows": {
-        "Custom Init": {
-          "path": "cmd.exe",
-          "args": [
-             "/k",
-             "activate_qgis_python.bat",
-          ]
-        }
-      },
+  "python.nodefaultInterpreterPath": "C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat",
+  "terminal.integrated.defaultProfile.windows": "QGIS Python CMD",
+  "terminal.integrated.profiles.windows": {
+    "QGIS Python CMD": {
+      "path": "cmd.exe",
+      "args": [
+        "/k",
+        "call .\\qgis-launchers\\activate-python-qgis.bat"
+      ]
+    }
+  }
 }
