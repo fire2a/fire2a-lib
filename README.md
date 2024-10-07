@@ -41,7 +41,9 @@ digraph = digraph_from_messages('messages01.csv')
 
 - 2.A. Windows
    - Open `OsGeo4W Shell` application, 
-   - Run `bin\python-qgis.bat` once to configure all environment variables.
+   - Run `bin\python-qgis.bat` once to configure all environment variables in the current session.
+   - Also you could: `bin\python-qgis.bat your_script.py`
+   - Recommended persistent [integrations](qgis-launchers/README.md) 
 - 2.B. macOS 
    - Open terminal application, 
    - Use this python: `/Applications/QGIS.app/Contents/MacOS/bin/python` (see creating an alias below)
@@ -53,17 +55,15 @@ digraph = digraph_from_messages('messages01.csv')
    ```
 3. Install
 ```bash
-python -m pip install fire2a-lib ipython ...
+python -m pip install fire2a-lib ipython (...)
 ```
 4. Visit [fire2a-lib documentation](https://fire2a.github.io/fire2a-lib), example for getting the burn probability from a simulator results directory:
 ```bash
-python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 --scar-sample Grids/Grids2/F
-orestGrid03.csv --scar-poly propagation_scars.shp --burn-prob burn_probability.tif
+python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 --scar-sample Grids/Grids2/ForestGrid03.csv --scar-poly propagation_scars.shp --burn-prob burn_probability.tif
 ```
 ### Scripting/Developing tips
 - Check [standalone scripting](https://github.com/fire2a/fire-analytics-qgis-processing-toolbox-plugin/blob/main/script_samples/standalone.py) for more info on initializing a headless QGIS environment
 - Usage [examples](https://github.com/fire2a/fire2a-lib/tree/main/usage_samples)
-- Microsoft users check these [integrations](qgis-launchers/README.md)
 - macOS users add a permanent alias, on the terminal app
    ```zsh
    echo "alias pythonq='/Applications/QGIS.app/Contents/MacOS/bin/python'" >> ~/.zshrc
