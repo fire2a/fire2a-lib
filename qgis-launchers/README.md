@@ -12,12 +12,13 @@ You need to get the QGIS install location:
 
 You'll get an output similar to this: `C:\PROGRA~1\QGIS33~1.3`
 
-## 1. Select it as the project's default interpreter
+## 1. (VSCode) Select it as the project's default interpreter 
 Beware that after selecting it, warnings will appear about dev-tools not being installed in this environment, pip install them (see requirements.code.txt).
 
-A. Using the `Command Palette`:  
+A. Using the `Command Palette` (ctrl+shift+p):  
 `> Select Interpreter`  
-`<QGIS install location>/bin/python-qgis.bat`  
+`<QGIS install location>/bin/python-qgis.bat`
+-example: `<C:\PROGRA~1\QGIS33~1.2/bin/python-qgis.bat`
 
 B. Project configuration file, write to `<MyProject>/.vscode/settings.json`
 ```json
@@ -42,7 +43,7 @@ copy bin\python-qgis.bat <your\launcher\path\>activate-python-qgis.bat
 # 4.1. replace "%~dp0" for the install location on line 2:
 call "C:\Program Files\QGIS 3.38.2\bin\o4w_env.bat"
 
-# 4.2. [Optional] replace the last line "python %*" with "cmd.exe /k %*" if you want to double click the icon to open a terminal
+# 4.2. replace the last line "python %*" with "cmd.exe /k %*" if you want to double click the icon to open a terminal
 # Else you should `call activate-python-qgis.bat`
 ```
 
