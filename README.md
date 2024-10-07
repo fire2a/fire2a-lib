@@ -33,7 +33,7 @@ digraph = digraph_from_messages('messages01.csv')
 1. Install QGIS
 - Docker users check [qgis container](https://hub.docker.com/r/qgis/qgis)
 - _[Optional but] Recommended_ for Windows: Make the bundled python writable by your user :
-   - A. Open cmd administrator terminal, type (adjust path): `>icacls C:\Program Files\QGIS 3.38.3\apps\Python312 /grant %username%:F`
+   - A. Open cmd administrator terminal, type (adjust path): `icacls "C:\Program Files\QGIS 3.38.3\apps\Python312" /grant %username%:F`
    - B. Open powershell...
    - C. Explore till 2ndary click the folder>Properties... 
 
