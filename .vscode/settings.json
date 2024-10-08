@@ -1,5 +1,10 @@
 {
-  "python.nodefaultInterpreterPath": "C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat",
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+  },
+  "ruff.nativeServer": "on",
+  "python.defaultInterpreterPath": ".\\qgis-launchers\\python-qgis-path.bat",
   "terminal.integrated.defaultProfile.windows": "QGIS Python CMD",
   "terminal.integrated.profiles.windows": {
     "QGIS Python CMD": {
@@ -7,6 +12,13 @@
       "args": [
         "/k",
         "call .\\qgis-launchers\\activate-python-qgis.bat"
+      ]
+    },
+    "QGIS Python +Path CMD": {
+      "path": "cmd.exe",
+      "args": [
+        "/k",
+        "call .\\qgis-launchers\\activate-python-qgis-path.bat"
       ]
     }
   }

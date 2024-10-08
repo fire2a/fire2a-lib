@@ -26,6 +26,12 @@ B. [alternative] Project configuration file, write or append to `<MyProject>/.vs
   "python.defaultInterpreterPath": "C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat",
 }
 ```
+C. For unwritable bundled python, check the more complicated: 
+```json
+{
+  "python.defaultInterpreterPath": ".\\qgis-launchers\\python-qgis-path.bat",
+}
+```
 
 ## 2. Setup any cmd terminal
 To make a location independent launcher to enable any terminal to run python-qgis, we'll edit copy and edit `python-qgis.bat` to be run anywhere
@@ -48,7 +54,7 @@ call "C:\Program Files\QGIS 3.38.2\bin\o4w_env.bat"
 ```
 
 ## 3. Setup as VSCode project's default terminal
-Project configuration file, write or append to `<MyProject>/.vscode/settings.json`
+A. Project configuration file, write or append to `<MyProject>/.vscode/settings.json`
 ```json
 {
   "terminal.integrated.defaultProfile.windows": "QGIS Python CMD",
@@ -65,3 +71,15 @@ Project configuration file, write or append to `<MyProject>/.vscode/settings.jso
 ```
 Here the location of the launcher `call qgis-launchers/activate-python-qgis.bat` is relative to the [fire2a-lib](https://github.com/fire2a) repo.  
 Adjust accordingly to where you created it in step 2.
+
+B. For unwritable bundled python, check the more complicated:
+```json
+    "QGIS Python +Path CMD": {
+      "path": "cmd.exe",
+      "args": [
+        "/k",
+        "call .\\qgis-launchers\\activate-python-qgis-path.bat"
+      ]
+    }
+  }
+```
