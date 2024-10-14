@@ -174,60 +174,8 @@ def hdbscan_data_list(*args, **kwargs):
     return labels, clustering
 
 
-def arg_parser(argv=None):
-    """Parse command line arguments."""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Agglomerative Clustering with Connectivity")
-    parser.add_argument("input", nargs="+", help="Input raster files")
-    parser.add_argument("-n", "--n_clusters", type=int, default=4, help="Number of clusters")
-    parser.add_argument("-o", "--output", help="Output raster file")
-    return parser.parse_args(argv)
-
-
-def main(argv=None):
-    """
-
-    args = arg_parser(["elevation.tif", "tree_height.tif", "age.tif", "-n", "3"])
-    """
-    if argv is sys.argv:
-        argv = sys.argv[1:]
-    args = arg_parser(argv)
-
+def plot(elevation, trees, age, labels_reshaped):
     import matplotlib.pyplot as plt
-
-    # Define map dimensions
-    width = 160
-    height = 90
-
-    # Create random data for the 3 layers
-    np.random.seed(0)  # For reproducibility
-
-    # Create elevation data using a 2D normal distribution to emulate slopes
-    x, y = np.meshgrid(np.linspace(-1, 1, width), np.linspace(-1, 1, height))
-    elevation = np.exp(-(x**2 + y**2)) * 100  # Elevation with a peak in the center
-
-    # Create tree height and age data using wavy patterns with dampening
-    trees = np.exp(-x) * np.cos(y) * 50  # Tree height with a wavy pattern
-    shrubs = np.exp(-y * x) * np.sin(x) * 50  # Age with a wavy pattern
-    age = np.exp(-y) * np.cos(x) * 50  # Age with a wavy pattern
-
-    # nodatas
-    if False:
-        elevation[0, 0] = np.nan
-        trees[1, 1] = np.nan
-        shrubs[2, 1] = np.nan
-        age[2, 2] = np.nan
-
-        elevation = neighbor_nan_filter(elevation, method="mean")
-        trees = neighbor_nan_filter(trees, method="median")
-        shrubs = neighbor_nan_filter(shrubs, method="min")
-        age = neighbor_nan_filter(age, method="mode")
-
-    data_list = [elevation, trees, shrubs, age]
-    height, width = check_shapes(data_list)
-    # labels_reshaped, clustering = agglomerative_clustering_data_list(*data_list, n_clusters=13)
-    labels_reshaped, clustering = hdbscan_data_list(*data_list)
 
     # Create a 4x4 plot to visualize the three layers and the clustering results
     fig, axs = plt.subplots(2, 2, figsize=(12, 10))
@@ -268,6 +216,82 @@ def main(argv=None):
 
     plt.tight_layout()
     plt.show()
+
+
+def arg_parser(argv=None):
+    """Parse command line arguments."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Agglomerative Clustering with Connectivity")
+    parser.add_argument("input", nargs="+", help="Input raster files")
+    parser.add_argument("-n", "--n_clusters", type=int, default=4, help="Number of clusters")
+    parser.add_argument("-o", "--output", help="Output raster file")
+    return parser.parse_args(argv)
+
+
+def main(argv=None):
+    """
+
+    args = arg_parser(["elevation.tif", "tree_height.tif", "age.tif", "-n", "3"])
+    """
+    if argv is sys.argv:
+        argv = sys.argv[1:]
+    args = arg_parser(argv)
+
+    # Define map dimensions
+    width = 160
+    height = 90
+
+    # Create random data for the 3 layers
+    np.random.seed(0)  # For reproducibility
+
+    # Create elevation data using a 2D normal distribution to emulate slopes
+    x, y = np.meshgrid(np.linspace(-1, 1, width), np.linspace(-1, 1, height))
+    elevation = np.exp(-(x**2 + y**2)) * 100  # Elevation with a peak in the center
+
+    # Create tree height and age data using wavy patterns with dampening
+    trees = np.exp(-x) * np.cos(y) * 50  # Tree height with a wavy pattern
+    shrubs = np.exp(-y * x) * np.sin(x) * 50  # Age with a wavy pattern
+    age = np.exp(-y) * np.cos(x) * 50  # Age with a wavy pattern
+
+    # nodatas
+    if True:
+        elevation[3, 3] = np.nan
+        trees[1, 1] = np.nan
+        shrubs[2, 1] = np.nan
+        age[2, 2] = np.nan
+        elevation[:, 0] = np.nan
+        trees[0, :] = np.nan
+        shrubs[-1, :] = np.nan
+        age[:, 0] = np.nan
+
+        elevation = neighbor_nan_filter(elevation, method="mean")
+        trees = neighbor_nan_filter(trees, method="median")
+        shrubs = neighbor_nan_filter(shrubs, method="min")
+        age = neighbor_nan_filter(age, method="mode")
+
+    if False:
+        minmaxfunc = lambda x: (x - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
+        for arr in [elevation, trees, shrubs, age]:
+            arr = minmaxfunc(arr)
+    else:
+        from sklearn.preprocessing import RobustScaler
+
+        scaler = RobustScaler()
+        for arr in [elevation, trees, shrubs, age]:
+            arr = scaler.fit_transform(arr)
+
+        from sklearn.preprocessing OneHotEncoder
+        enc = OneHotEncoder()
+        for arr in [elevation, trees, shrubs, age]:
+            arr = enc.fit_transform(arr)
+
+    data_list = [elevation, trees, shrubs, age]
+    height, width = check_shapes(data_list)
+    labels_reshaped, clustering = agglomerative_clustering_data_list(*data_list, n_clusters=13)
+    labels_reshaped, clustering = hdbscan_data_list(*data_list)
+
+    plot(elevation, trees, age, labels_reshaped)
 
 
 if __name__ == "__main__":
