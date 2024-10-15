@@ -24,7 +24,7 @@ classifiers = [
 dependencies = [
     "matplotlib",
     "networkx>=2.7",
-    "numpy<2.0.0",
+    "numpy",
     "pandas",
     "pyomo",
     "scikit-learn",

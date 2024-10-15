@@ -1,0 +1,12 @@
+["fuels.tif"]
+nodata = "mode"
+scaling = "onehot"
+
+["elevation.tif"]
+scaling = "standard"
+
+["cbh.tif"]
+
+["cbd.tif"]
+
+["ccf.tif"]
