@@ -48,7 +48,7 @@ def neighbor_nan_filter(image, method="mean"):
         valid_values = values[~np.isnan(values)]
         if len(valid_values) == 0:
             return np.nan
-        return mode(valid_values).mode[0]
+        return mode(valid_values, keepdims=True).mode[0]
 
     def min_of_neighbors(values):
         valid_values = values[~np.isnan(values)]
