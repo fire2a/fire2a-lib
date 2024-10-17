@@ -3,15 +3,17 @@
 ### Overview
 1. Choose your raster files
 2. Configure nodata and scaling strategies in the `config.toml` file
-3. Configure the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm
-    - Or "number of clusters" or "distance threshold"
+3. Choose "number of clusters" or "distance threshold" for the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm
 
 ```bash
-cd fire2a-lib/cluster-tmp
-python aggcluster.py -d 10.0
+$ cd fire2a-lib/cluster-tmp
+(qgis) $ python agglomerative_clustering_pipeline.py -d 10.0 [config.toml]
 
 # windows💩
-C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat aggcluster.py -d 10.0
+C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat agglomerative_clustering_pipeline.py -d 10.0
+
+# check help
+python agglomerative_clustering_pipeline.py -h
 ```
 [how to: windows 💩 use qgis-python](https://github.com/fire2a/fire2a-lib/tree/main/qgis-launchers)
 
@@ -30,7 +32,7 @@ scaling_strategy = "onehot"
 ```
 
 1. __scaling_strategy__
-   - can be "standard", "robust", "onehot" (default is robust, onehot is categorical)
+   - can be "standard", "robust", "onehot"
    - default is "robust"
    - [Standard](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): (x-mean)/stddev
    - [Robust](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html): same but droping the tails of the distribution
@@ -44,14 +46,14 @@ scaling_strategy = "onehot"
    - [SimpleImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html)
 
 3. __fill_value__ 
-   - used when no_data_strategy is "constant"
+   - used when __no_data_strategy__ is "constant"
    - default is 0
    - [SimpleImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html)
 
 
 ### 3. Clustering configuration
 1. __Agglomerative__ clustering algorithm is used. The following parameters are muttually exclusive:
-- n_clusters: The number of clusters to form as well as the number of centroids to generate.
-- distance_threshold: The linkage distance threshold above which, clusters will not be merged. When scaling start with 10.0 and downward (0.0 is compute the whole algorithm).
+- `-n` or `--n_clusters`: The number of clusters to form as well as the number of centroids to generate.
+- `-d` or `--distance_threshold`: The linkage distance threshold above which, clusters will not be merged. When scaling start with 10.0 and downward (0.0 is compute the whole algorithm).
 
 For passing more parameters, see [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html)
