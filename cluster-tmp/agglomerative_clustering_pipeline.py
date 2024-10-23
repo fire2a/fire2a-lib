@@ -257,23 +257,41 @@ def write_raster(data, info, args, output, driver_name="GTiff", feedback=None, l
 
 def arg_parser(argv=None):
     """Parse command line arguments."""
-    import argparse
+    from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
-    parser = argparse.ArgumentParser(description="Agglomerative Clustering with Connectivity")
+    parser = ArgumentParser(
+        description="Agglomerative Clustering with Connectivity for raster data",
+        formatter_class=ArgumentDefaultsHelpFormatter,
+        epilog="More at https://fire2a.github.io/fire2a-lib",
+    )
     parser.add_argument(
         "config_file",
         nargs="?",
         type=Path,
-        help="Local Path to raster files & configuration file",
+        help="For each raster file, configure its preprocess: nodata & scaling methods",
         default="config.toml",
     )
 
-    aggclu = parser.add_mutually_exclusive_group()
-    aggclu.add_argument("-d", "--distance_threshold", type=float, help="Distance threshold")
+    aggclu = parser.add_mutually_exclusive_group(required=True)
+    aggclu.add_argument(
+        "-d",
+        "--distance_threshold",
+        type=float,
+        help="Distance threshold (a good starting point when scaling is 10, higher means less clusters, 0 could take a long time)",
+    )
     aggclu.add_argument("-n", "--n_clusters", type=int, help="Number of clusters")
 
     parser.add_argument("-o", "--output", help="Output raster file", default="output.tif")
-    return parser.parse_args(argv)
+    parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
+    parser.add_argument(
+        "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
+    )
+
+    args = parser.parse_args(argv)
+    args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
+    if Path(args.config_file).is_file() is False:
+        parser.error(f"File {args.config_file} not found")
+    return args
 
 
 def main(argv=None):
