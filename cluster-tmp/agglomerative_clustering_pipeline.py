@@ -5,6 +5,7 @@ pyqgisdev
 python aggcluster.py -d 10.0 config_noscaling.toml
 from fire2a.raster import xy2id, id2xy
 """
+import logging
 import sys
 from pathlib import Path
 
@@ -16,6 +17,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
+
+logger = logging.getLogger(__name__)
 
 
 def check_shapes(data_list):
@@ -228,33 +231,6 @@ def read_toml(config_toml="config.toml"):
     return config
 
 
-def write_raster(data, info, args, output, driver_name="GTiff", feedback=None, logger=None):
-    """FIXME
-    from osgeo import gdal
-    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
-
-    if not (authid := raster_props["Projection"]):
-        if not (authid := args.authid):
-            logger.error("No authid found on the base raster or provided")
-            return 1
-    logger.info("Read base raster, using authid: %s", authid)
-
-    driver_name = get_output_raster_format(args.output, feedback=feedback)
-    burn_prob_ds = gdal.GetDriverByName(driver_name).Create(burn_prob, W, H, 1, gdal.GDT_Float32)
-    burn_prob_ds.SetGeoTransform(geotransform)
-    burn_prob_ds.SetProjection(authid)
-    band = burn_prob_ds.GetRasterBand(1)
-    # band.SetUnitType("probability")
-    if 0 != band.SetNoDataValue(-9999):
-        fprint(f"Set NoData failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger)
-    if 0 != band.WriteArray(data):
-        fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger)
-    burn_prob_ds.FlushCache()
-    burn_prob_ds = None
-    """
-    pass
-
-
 def arg_parser(argv=None):
     """Parse command line arguments."""
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
@@ -297,6 +273,7 @@ def arg_parser(argv=None):
 def main(argv=None):
     """
 
+    args = arg_parser(["-d","10.0", "-g","(0, 10, 0, 0, 0, 10)", "config2.toml"])
     args = arg_parser(["-d","10.0"]])
     args = arg_parser(["-d","10.0", "config2.toml"])
     args = arg_parser(["-n","10"])
@@ -390,6 +367,12 @@ def main(argv=None):
     plot(data_list, info_list)
 
     postprocess(labels_reshaped, pipeline, data_list, info_list, width, height)
+
+    from fire2a.raster import write_raster
+
+    write_raster(
+        labels_reshaped, outfile=args.output, authid=args.authid, geotransform=args.geotransform, logger=logger
+    )
 
 
 if __name__ == "__main__":
