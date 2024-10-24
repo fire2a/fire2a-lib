@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """👋🌎 🌲🔥
 
-pyqgisdev
-python aggcluster.py -d 10.0 config_noscaling.toml
-from fire2a.raster import xy2id, id2xy
+pyqgisdev # activate your qgis dev environment
+python -m fire2a.agglomerative_clustering -d 10.0 config.toml
 """
 import logging
 import sys
@@ -60,8 +59,9 @@ def get_map_neighbors(height, width, num_neighbors=8):
     return nb4, nb8
 
 
-# Define a custom imputer that treats a specified nodata_value as np.nan and supports different strategies per column
 class NoDataImputer(BaseEstimator, TransformerMixin):
+    """A custom Imputer that treats a specified nodata_value as np.nan and supports different strategies per column"""
+
     def __init__(self, no_data_values, strategies, constants):
         self.no_data_values = no_data_values
         self.strategies = strategies
@@ -83,6 +83,8 @@ class NoDataImputer(BaseEstimator, TransformerMixin):
 
 
 class RescaleAllToCommonRange(BaseEstimator, TransformerMixin):
+    """A custom transformer that rescales all features to a common range [0, 1]"""
+
     def __init__(self):
         pass
 
@@ -99,14 +101,34 @@ class RescaleAllToCommonRange(BaseEstimator, TransformerMixin):
 
 
 def pipelie(observations, info_list, height, width, **kwargs):
-    # kwargs = {"n_clusters": args.n_clusters, "distance_threshold": args.distance_threshold}
-    """Agglomerative Clustering with connectivity on a list of spatial data arrays."""
+    """A scipy pipeline to achieve Agglomerative Clustering with connectivity on 2d matrix
+    Steps are:
+    1. Impute missing values
+    2. Scale the features
+    3. Rescale all features to a common range
+    4. Cluster the data using Agglomerative Clustering with connectivity
+    5. Reshape the labels back to the original spatial map shape
+    6. Return the labels and the pipeline object
 
+    Args:
+        observations (np.ndarray): The input data to cluster (n_samples, n_features) shaped
+        info_list (list): A list of dictionaries containing information about each feature
+        height (int): The height of the spatial map
+        width (int): The width of the spatial map
+        kwargs: Additional keyword arguments for AgglomerativeClustering, at least one of n_clusters or distance_threshold
+
+    Returns:
+        np.ndarray: The labels of the clusters, reshaped to the original 2d spatial map shape
+        Pipeline: The pipeline object containing all the steps of the pipeline
+    """
+    # kwargs = {"n_clusters": args.n_clusters, "distance_threshold": args.distance_threshold}
+
+    # imputer strategies
     no_data_values = [info["NoDataValue"] for info in info_list]
     no_data_strategies = [info["no_data_strategy"] for info in info_list]
-    scaling_strategies = [info["scaling_strategy"] for info in info_list]
     fill_values = [info["fill_value"] for info in info_list]
 
+    # scaling strategies
     index_map = {}
     for strategy in ["robust", "standard", "onehot"]:
         index_map[strategy] = [i for i, info in enumerate(info_list) if info["scaling_strategy"] == strategy]
@@ -127,10 +149,13 @@ def pipelie(observations, info_list, height, width, **kwargs):
         ]
     )
 
+    # Get the neighbors of each cell in a 2D grid
     grid_points = np.indices((height, width)).reshape(2, -1).T
     connectivity = radius_neighbors_graph(
         grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
     )
+
+    # Create the clustering object
     clustering = AgglomerativeClustering(connectivity=connectivity, **kwargs)
 
     # Create and apply the pipeline
@@ -153,17 +178,29 @@ def pipelie(observations, info_list, height, width, **kwargs):
 
 
 def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height):
-    print("EXPERIMENTE AQUI")
-    print("exit para continuar")
-    from IPython.terminal.embed import InteractiveShellEmbed
 
-    InteractiveShellEmbed()()
+    # trick to plot
+    effective_num_clusters = len(np.unique(labels_reshaped))
+
+    # add final data as a new data
+    data_list += [labels_reshaped]
+    info_list += [
+        {
+            "fname": f"CLUSTERS n:{args.n_clusters},",
+            "no_data_strategy": f"d:{args.distance_threshold},",
+            "scaling_strategy": f"eff:{effective_num_clusters}",
+        }
+    ]
+    plot(data_list, info_list)
 
     # preprocessed_data = pipeline.named_steps["preprocessor"].transform(flattened_data)
     # print(preprocessed_data)
 
     # rescaled_data = pipeline.named_steps["rescale_all"].transform(preprocessed_data)
     # print(rescaled_data)
+    # from IPython.terminal.embed import InteractiveShellEmbed
+
+    # InteractiveShellEmbed()()
     pass
 
 
@@ -257,12 +294,25 @@ def arg_parser(argv=None):
     )
     aggclu.add_argument("-n", "--n_clusters", type=int, help="Number of clusters")
 
-    parser.add_argument("-o", "--output", help="Output raster file", default="output.tif")
+    parser.add_argument("-o", "--output", help="Output raster file, warning overwrites!", default="output.tif")
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
     )
-
+    parser.add_argument(
+        "-nw",
+        "--no_write",
+        action="store_true",
+        help="Do not write output raster",
+        default=False,
+    )
+    parser.add_argument(
+        "-s",
+        "--script",
+        action="store_true",
+        help="Run in script mode, returning the label_map and the pipeline object",
+        default=False,
+    )
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
     if Path(args.config_file).is_file() is False:
@@ -283,96 +333,68 @@ def main(argv=None):
     args = arg_parser(argv)
 
     # 1 LEE ARGUMENTOS
-    print(args)
+    logger.debug(args)
 
-    if True:
-        # 2 LEE CONFIG
-        config = read_toml(args.config_file)
-        print(config)
-        # 2.1 ADD DEFAULTS
-        for filename, file_config in config.items():
-            if "no_data_strategy" not in file_config:
-                config[filename]["no_data_strategy"] = "mean"
-            if "scaling_strategy" not in file_config:
-                config[filename]["scaling_strategy"] = "robust"
-            if "fill_value" not in file_config:
-                config[filename]["fill_value"] = 0
-        print(config)
+    # 2 LEE CONFIG
+    config = read_toml(args.config_file)
+    # logger.debug(config)
 
-        # 3. LEE DATA
-        from fire2a.raster import read_raster
+    # 2.1 ADD DEFAULTS
+    for filename, file_config in config.items():
+        if "no_data_strategy" not in file_config:
+            config[filename]["no_data_strategy"] = "mean"
+        if "scaling_strategy" not in file_config:
+            config[filename]["scaling_strategy"] = "robust"
+        if "fill_value" not in file_config:
+            config[filename]["fill_value"] = 0
+    logger.debug(config)
 
-        data_list, info_list = [], []
-        for filename, file_config in config.items():
-            data, info = read_raster(filename)
-            info["fname"] = Path(filename).name
-            info["no_data_strategy"] = file_config["no_data_strategy"]
-            info["scaling_strategy"] = file_config["scaling_strategy"]
-            info["fill_value"] = file_config["fill_value"]
-            data_list += [data]
-            info_list += [info]
+    # 3. LEE DATA
+    from fire2a.raster import read_raster
 
-        # 4. VALIDAR 2d todos mismo shape
-        height, width = check_shapes(data_list)
+    data_list, info_list = [], []
+    for filename, file_config in config.items():
+        data, info = read_raster(filename)
+        info["fname"] = Path(filename).name
+        info["no_data_strategy"] = file_config["no_data_strategy"]
+        info["scaling_strategy"] = file_config["scaling_strategy"]
+        info["fill_value"] = file_config["fill_value"]
+        data_list += [data]
+        info_list += [info]
 
-        # 5. lista[mapas] -> OBSERVACIONES
-        observations = np.column_stack([data.ravel() for data in data_list])
+    # 4. VALIDAR 2d todos mismo shape
+    height, width = check_shapes(data_list)
 
-        # to pickle
-        import pickle
+    # 5. lista[mapas] -> OBSERVACIONES
+    observations = np.column_stack([data.ravel() for data in data_list])
 
-        with open("pre.pkl", "wb") as f:
-            pickle.dump((observations, data_list, info_list, height, width), f)
-    else:
-        # read pickle
-        import pickle
+    # 6. nodata -> feature scaling -> all scaling -> clustering
+    labels_reshaped, pipeline = pipelie(
+        observations,
+        info_list,
+        height,
+        width,
+        n_clusters=args.n_clusters,
+        distance_threshold=args.distance_threshold,
+    )
 
-        with open("pre.pkl", "rb") as f:
-            observations, data_list, info_list, height, width = pickle.load(f)
-
-    if True:
-        # 6. nodata -> feature scaling -> all scaling -> clustering
-        labels_reshaped, pipeline = pipelie(
-            observations,
-            info_list,
-            height,
-            width,
-            n_clusters=args.n_clusters,
-            distance_threshold=args.distance_threshold,
-        )
-        # to pickle
-        import pickle
-
-        with open("post.pkl", "wb") as f:
-            pickle.dump((labels_reshaped, pipeline), f)
-    else:
-        # read pickle
-        import pickle
-
-        with open("post.pkl", "rb") as f:
-            data_list, info_list, width, height = pickle.load(f)
-
-    # trick to plot
-    effective_num_clusters = len(np.unique(labels_reshaped))
-
-    # add final data as a new data
-    data_list += [labels_reshaped]
-    info_list += [
-        {
-            "fname": f"CLUSTERS n:{args.n_clusters},",
-            "no_data_strategy": f"d:{args.distance_threshold},",
-            "scaling_strategy": f"eff:{effective_num_clusters}",
-        }
-    ]
-    plot(data_list, info_list)
-
+    # 7 debug postprocess
     postprocess(labels_reshaped, pipeline, data_list, info_list, width, height)
 
-    from fire2a.raster import write_raster
+    # 8. ESCRIBIR RASTER
+    if not args.no_write:
+        from fire2a.raster import write_raster
 
-    write_raster(
-        labels_reshaped, outfile=args.output, authid=args.authid, geotransform=args.geotransform, logger=logger
-    )
+        if not write_raster(
+            labels_reshaped, outfile=args.output, authid=args.authid, geotransform=args.geotransform, logger=logger
+        ):
+            logger.error("Error writing output raster")
+
+    # 9. SCRIPT MODE
+    if args.script:
+        return labels_reshaped, pipeline
+
+    return 0
 
 
 if __name__ == "__main__":
