@@ -69,28 +69,50 @@ python -m fire2a.cell2fire -vvv --base-raster ../fuels.asc --authid EPSG:25831 -
    echo "alias pythonq='/Applications/QGIS.app/Contents/MacOS/bin/python'" >> ~/.zshrc
    ```
 #### Interactive 
-- debbuging:
+1. Interactive sessions in IPython, qtconsole, jupyter-lab, or IPyConsole (QGIS plugin) compatible
+```bash
+# Press tab to auto-complete of available modules from IPython
+In [1]: from fire2a.<press-tab>
 ```
+2. Suggested interactive debbuging options:
+a. Launch a colored terminal where you want to interact with your code:
+```python
+from IPython.terminal.embed import InteractiveShellEmbed
+
+InteractiveShellEmbed()()
+```
+b. (If no support for colored terminals) import a embedded terminal
+```python
 breakpoint()
 from IPython import embed
 embed()
 ```
-- sessions, with: IPython, qtconsole, jupyter-lab, or IPyConsole (QGIS plugin) compatible
-```bash
-# Interactive explore from IPython
-In [1]: from fire2a.<press-tab>
+c. For QGIS sessions:
+```python
+from qgis.PyQt.QtCore import pyqtRemoveInputHook
 
+pyqtRemoveInputHook()
+import pdb
+
+pdb.set_trace()
+from IPython.terminal.embed import InteractiveShellEmbed
+
+InteractiveShellEmbed()()
+```
+3. Copy and paste the code interactive sessions
+```bash
 # Select and Copy a whole module from line 1 up -but not included- to 'def main def main(argv=None):' line 
 In [2]: %paste
 
 # Choose your args 
 In [3]: args = arg_parser.parse_args(['-vvv', '--base-raster', ...
-# Skip:
+
+# Skip (reading args from sys.argv o main)
     if argv is sys.argv:
         argv = sys.argv[1:]
     args = arg_parser(argv)
 
-# Ready
+# Ready to run the main interactively (args object ready)
 ```
 
 # [Contributing](./CODING.md)

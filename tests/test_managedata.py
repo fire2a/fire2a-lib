@@ -16,7 +16,7 @@ def test_DataCsv_isGenerated(request, tmp_path):
     """
     from fire2a.managedata import GenDataFile
 
-    assets_path = request.config.rootdir / "tests" / "assets"
+    assets_path = request.config.rootdir / "tests" / "manage_data"
     copy(assets_path / "spain_lookup_table.csv", tmp_path)
     copy(assets_path / "fuels.asc", tmp_path)
     GenDataFile(tmp_path, "S")

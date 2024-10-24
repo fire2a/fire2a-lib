@@ -10,13 +10,13 @@ __revision__ = "$Format:%H$"
 
 import logging
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from osgeo import gdal, ogr
 from qgis.core import QgsRasterLayer
-from typing import Optional, Tuple, Union, Any, Dict, List
 
-from .utils import qgis2numpy_dtype
+from fire2a.utils import fprint, qgis2numpy_dtype
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,9 @@ def read_raster_band(filename: str, band: int = 1) -> tuple[np.ndarray, int, int
     return dataset.GetRasterBand(band).ReadAsArray(), dataset.RasterXSize, dataset.RasterYSize
 
 
-def read_raster(filename: str, band: int = 1, data: bool = True, info: bool = True) -> tuple[Union[np.ndarray,None], Union[dict,None]]:
+def read_raster(
+    filename: str, band: int = 1, data: bool = True, info: bool = True
+) -> tuple[Union[np.ndarray, None], Union[dict, None]]:
     """Read a raster file and return the data as a numpy array.
     Along raster info: transform, projection, raster count, raster width, raster height.
 
@@ -349,7 +351,9 @@ def rasterize_polygons(polygons: list[ogr.Geometry], width: int, height: int) ->
     return mask_array
 
 
-def stack_rasters(file_list: list[Path], mask_polygon: Union[list[ogr.Geometry],None] = None) -> tuple[np.ndarray, list[str]]:
+def stack_rasters(
+    file_list: list[Path], mask_polygon: Union[list[ogr.Geometry], None] = None
+) -> tuple[np.ndarray, list[str]]:
     """Stack raster files from a list into a 3D NumPy array.
 
     Args:
@@ -386,6 +390,63 @@ def stack_rasters(file_list: list[Path], mask_polygon: Union[list[ogr.Geometry],
     stacked_array = np.stack(array_list, axis=0)  #  type: np.array
     print(stacked_array.shape)
     return stacked_array, layer_names
+
+
+def write_raster(
+    data,
+    outfile="output.tif",
+    driver_name="GTiff",
+    authid="EPSG:3857",
+    geotransform=(0, 1, 0, 0, 0, 1),
+    feedback=None,
+    logger=None,  # logger default ?
+):
+    """Write a raster file from a numpy array.
+
+    To spatially match another raster, get authid and geotransform using:
+        from fire2a.raster import read_raster
+        _,info = read_raster(filename, data=False, info=True).
+        authid = info["Transform"]
+        geotransform = info["Projection"].
+
+    Args:
+        data (np.array): numpy array to write as raster
+        outfile (str, optional): output raster filename. Defaults to "output.tif".
+        driver_name (str, optional): GDAL driver name. Defaults to "GTiff".
+        authid (str, optional): EPSG code. Defaults to "EPSG:3857".
+        geotransform (tuple, optional): geotransform parameters. Defaults to (0, 1, 0, 0, 0, 1).
+        feedback (Optional, optional): qgsprocessing.feedback object. Defaults to None.
+        logger ([type], optional): logging.logger object. Defaults to None.
+    Returns:
+        bool: True if the raster was written successfully, False otherwise.
+    """
+
+    try:
+        from fire2a.processing_utils import get_output_raster_format
+
+        driver_name = get_output_raster_format(outfile, feedback=feedback)
+    except Exception as e:
+        fprint(
+            f"Couln't get output raster format: {e}, defaulting to GTiff",
+            level="warning",
+            feedback=feedback,
+            logger=logger,
+        )
+        driver_name = "GTiff"
+    H, W = data.shape
+    ds = gdal.GetDriverByName(driver_name).Create(outfile, W, H, 1, gdal.GDT_Float32)
+    ds.SetGeoTransform(geotransform)
+    ds.SetProjection(authid)
+    band = ds.GetRasterBand(1)
+    if 0 != band.SetNoDataValue(-9999):
+        fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
+        return False
+    if 0 != band.WriteArray(data):
+        fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger)
+        return False
+    ds.FlushCache()
+    ds = None
+    return True
 
 
 if __name__ == "__main__":
