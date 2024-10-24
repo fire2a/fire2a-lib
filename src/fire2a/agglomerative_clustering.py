@@ -235,7 +235,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
     return labels_reshaped, pipeline
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height):
+def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
 
     # trick to plot
     effective_num_clusters = len(np.unique(labels_reshaped))
@@ -249,7 +249,7 @@ def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height):
             "scaling_strategy": f"eff:{effective_num_clusters}",
         }
     ]
-    plot(data_list, info_list)
+    # plot(data_list, info_list)
 
     # preprocessed_data = pipeline.named_steps["preprocessor"].transform(flattened_data)
     # print(preprocessed_data)
@@ -437,7 +437,7 @@ def main(argv=None):
     )
 
     # 7 debug postprocess
-    postprocess(labels_reshaped, pipeline, data_list, info_list, width, height)
+    postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
 
     # 8. ESCRIBIR RASTER
     if not args.no_write:
