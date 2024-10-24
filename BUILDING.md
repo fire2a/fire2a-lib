@@ -15,12 +15,11 @@ git clean -dfX -n
 
 # tags check
 git tag
-# tag create locally
-git tag -a v1.2.3 -m 'message'
-# tag upload
-git push origin v1.2.3
 
-# oops: revert tag
+# tag create locally & upload
+git tag -a v0.3.0 -m 'agglomerative clustering' && git push origin v0.3.0
+
+# delete tag locally & upstream
 git tag --delete v1.2.3 && git push --delete origin v1.2.3
 
 # view calculated version to check is not dirty
