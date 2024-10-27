@@ -79,6 +79,8 @@ from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
 
+from fire2a.utils import fprint
+
 logger = logging.getLogger(__name__)
 
 
@@ -297,9 +299,11 @@ def write(
 
     # B separado
     # for loop for creating each label_map value into a different polygonized feature
-    tmp_ds = ogr.GetDriverByName("Memory").CreateDataSource("")
+    mem_drv = ogr.GetDriverByName("Memory")
+    tmp_ds = mem_drv.CreateDataSource("tmp_ds")
     # itera = iter(np.unique(label_map))
     # cluster_id = next(itera)
+    areas = []
     for cluster_id in np.unique(label_map):
         # temporarily write band
         src_band = src_ds.GetRasterBand(1)
@@ -310,17 +314,19 @@ def write(
         # create feature
         tmp_lyr = tmp_ds.CreateLayer("", srs=sp_ref)
         gdal.Polygonize(src_band, None, tmp_lyr, -1)
-        # setup
+        # set
         feat = tmp_lyr.GetNextFeature()
         geom = feat.GetGeometryRef()
         featureDefn = dst_lyr.GetLayerDefn()
         feature = ogr.Feature(featureDefn)
         feature.SetGeometry(geom)
         feature.SetField("DN", int(cluster_id))
+        areas += [geom.GetArea()]
         feature.SetField("area", int(geom.GetArea()))
         feature.SetField("perimeter", int(geom.Boundary().Length()))
         dst_lyr.CreateFeature(feature)
 
+    fprint(f"Clusters: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
     # fix temporarily written band
     src_band = src_ds.GetRasterBand(1)
     if nodata:
@@ -411,6 +417,56 @@ def plot(data_list, info_list):
     plt.show()
 
 
+def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
+    """Apply a sieve filter to the data to remove small clusters. The sieve filter is applied using the GDAL library. https://gdal.org/en/latest/programs/gdal_sieve.html#gdal-sieve
+    Args:
+        data (np.ndarray): The input data to filter
+        threshold (int): The maximum number of pixels in a cluster to keep
+        connectedness (int): The number of connected pixels to consider when filtering 4 or 8
+        feedback (QgsTaskFeedback): A feedback object to report progress to use inside QGIS plugins
+    Returns:
+        np.ndarray: The filtered data
+    """
+    logger.info("Applying sieve filter")
+    from osgeo import gdal
+
+    height, width = data.shape
+    # fprint("antes", np.sort(np.unique(data, return_counts=True)), len(np.unique(data)), level="info", feedback=feedback, logger=logger)
+    num_clusters = len(np.unique(data))
+    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, gdal.GDT_Int64)
+    src_band = src_ds.GetRasterBand(1)
+    src_band.WriteArray(data)
+    if 0 != gdal.SieveFilter(src_band, None, src_band, threshold, connectedness):
+        fprint("Error applying sieve filter", level="error", feedback=feedback, logger=logger)
+    else:
+        sieved = src_band.ReadAsArray()
+        src_band = None
+        src_ds = None
+        num_sieved = len(np.unique(sieved))
+        # fprint("despues", np.sort(np.unique(sieved, return_counts=True)), len(np.unique(sieved)), level="info", feedback=feedback, logger=logger)
+        fprint(
+            f"Reduced from {num_clusters} to {num_sieved} clusters, {num_clusters-num_sieved} less",
+            level="info",
+            feedback=feedback,
+            logger=logger,
+        )
+        fprint(
+            "Please try again increasing distance_threshold or reducing n_clusters instead...",
+            level="info",
+            feedback=feedback,
+            logger=logger,
+        )
+        # from matplotlib import pyplot as plt
+        # fig, (ax1, ax2) = plt.subplots(1, 2)
+        # ax1.imshow(data)
+        # ax1.set_title("before sieve" + str(len(np.unique(data))))
+        # ax2.imshow(sieved)
+        # ax2.set_title("after sieve" + str(len(np.unique(sieved))))
+        # plt.show()
+        # data = sieved
+        return sieved
+
+
 def read_toml(config_toml="config.toml"):
     if sys.version_info >= (3, 11):
         import tomllib
@@ -469,6 +525,11 @@ def arg_parser(argv=None):
         action="store_true",
         help="Run in script mode, returning the label_map and the pipeline object",
         default=False,
+    )
+    parser.add_argument(
+        "--sieve",
+        type=int,
+        help="Use GDAL sieve filter to merge small clusters (number of pixels) into the biggest neighbor",
     )
     parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
     args = parser.parse_args(argv)
@@ -540,6 +601,10 @@ def main(argv=None):
         n_clusters=args.n_clusters,
         distance_threshold=args.distance_threshold,
     )
+
+    # SIEVE
+    if args.sieve:
+        labels_reshaped = sieve_filter(labels_reshaped, args.sieve)
 
     # 7 debug postprocess
     # postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
