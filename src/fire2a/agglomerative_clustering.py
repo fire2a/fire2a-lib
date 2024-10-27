@@ -213,9 +213,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
 
     # Get the neighbors of each cell in a 2D grid
     grid_points = np.indices((height, width)).reshape(2, -1).T
-    # 8 nb
-    # radius=2 ** (1 / 2), metric="euclidean"
-    # 4 nb
+    # grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
     connectivity = radius_neighbors_graph(grid_points, radius=1, metric="manhattan", include_self=False, n_jobs=-1)
 
     # Create the clustering object
