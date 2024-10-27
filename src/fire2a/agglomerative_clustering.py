@@ -236,8 +236,103 @@ def pipelie(observations, info_list, height, width, **kwargs):
     return labels_reshaped, pipeline
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
+def write(
+    label_map,
+    width,
+    height,
+    output_raster="",
+    output_poly="output.shp",
+    authid="EPSG:3857",
+    geotransform=(0, 1, 0, 0, 0, 1),
+    nodata=None,
+    feedback=None,
+):
+    from osgeo import gdal, ogr, osr
 
+    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
+
+    # setup drivers for raster and polygon output formats
+    if output_raster == "":
+        raster_driver = "MEM"
+    else:
+        try:
+            raster_driver = get_output_raster_format(output_raster, feedback=feedback)
+        except Exception:
+            raster_driver = "GTiff"
+    try:
+        poly_driver = get_vector_driver_from_filename(output_poly)
+    except Exception:
+        poly_driver = "ESRI Shapefile"
+
+    # create raster output
+    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    src_ds.SetGeoTransform(geotransform)  # != 0 ?
+    src_ds.SetProjection(authid)  # != 0 ?
+    #  src_band = src_ds.GetRasterBand(1)
+    #  if nodata:
+    #      src_band.SetNoDataValue(nodata)
+    #  src_band.WriteArray(label_map)
+
+    # create polygon output
+    drv = ogr.GetDriverByName(poly_driver)
+    dst_ds = drv.CreateDataSource(output_poly)
+    sp_ref = osr.SpatialReference()
+    sp_ref.SetFromUserInput(authid)  # != 0 ?
+    dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
+    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
+    dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+
+    # != 0 ?
+    # gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
+
+    # A todo junto
+    #  src_band = src_ds.GetRasterBand(1)
+    #  if nodata:
+    #      src_band.SetNoDataValue(nodata)
+    #  src_band.WriteArray(label_map)
+    # gdal.Polygonize(src_band, None, dst_lyr, 0, callback=gdal.TermProgress)  # , ["8CONNECTED=8"])
+
+    # B separado
+    # for loop for creating each label_map value into a different polygonized feature
+    tmp_ds = ogr.GetDriverByName("Memory").CreateDataSource("")
+    # itera = iter(np.unique(label_map))
+    # cluster_id = next(itera)
+    for cluster_id in np.unique(label_map):
+        # temporarily write band
+        src_band = src_ds.GetRasterBand(1)
+        data = np.zeros_like(label_map)
+        data -= 1  # labels in 0..NC
+        data[label_map == cluster_id] = label_map[label_map == cluster_id]
+        src_band.WriteArray(data)
+        # create feature
+        tmp_lyr = tmp_ds.CreateLayer("", srs=sp_ref)
+        gdal.Polygonize(src_band, None, tmp_lyr, -1)
+        # setup
+        feat = tmp_lyr.GetNextFeature()
+        geom = feat.GetGeometryRef()
+        featureDefn = dst_lyr.GetLayerDefn()
+        feature = ogr.Feature(featureDefn)
+        feature.SetGeometry(geom)
+        feature.SetField("DN", int(cluster_id))
+        feature.SetField("area", int(geom.GetArea()))
+        feature.SetField("perimeter", int(geom.Boundary().Length()))
+        dst_lyr.CreateFeature(feature)
+
+    # fix temporarily written band
+    src_band = src_ds.GetRasterBand(1)
+    if nodata:
+        src_band.SetNoDataValue(nodata)
+    src_band.WriteArray(label_map)
+    # close datasets
+    src_ds.FlushCache()
+    src_ds = None
+    dst_ds.FlushCache()
+    dst_ds = None
+    return True
+
+
+def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
     # trick to plot
     effective_num_clusters = len(np.unique(labels_reshaped))
 
@@ -353,7 +448,8 @@ def arg_parser(argv=None):
     )
     aggclu.add_argument("-n", "--n_clusters", type=int, help="Number of clusters")
 
-    parser.add_argument("-o", "--output", help="Output raster file, warning overwrites!", default="output.tif")
+    parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
+    parser.add_argument("-op", "--output_poly", help="Output polygons file, warning overwrites!", default="output.gpkg")
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
@@ -362,7 +458,7 @@ def arg_parser(argv=None):
         "-nw",
         "--no_write",
         action="store_true",
-        help="Do not write output raster",
+        help="Do not write outputs raster nor polygons",
         default=False,
     )
     parser.add_argument(
@@ -438,14 +534,18 @@ def main(argv=None):
     )
 
     # 7 debug postprocess
-    postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
+    # postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
 
     # 8. ESCRIBIR RASTER
     if not args.no_write:
-        from fire2a.raster import write_raster
-
-        if not write_raster(
-            labels_reshaped, outfile=args.output, authid=args.authid, geotransform=args.geotransform, logger=logger
+        if not write(
+            labels_reshaped,
+            width,
+            height,
+            output_raster=args.output_raster,
+            output_poly=args.output_poly,
+            authid=args.authid,
+            geotransform=args.geotransform,
         ):
             logger.error("Error writing output raster")
 
