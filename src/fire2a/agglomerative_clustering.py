@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# fmt: off
 """👋🌎 🌲🔥
 # Raster clustering
 ## Usage
@@ -62,6 +63,9 @@ fill_value = 0
 For passing more parameters, see [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html)
 
 """
+# fmt: on
+# from IPython.terminal.embed import InteractiveShellEmbed
+# InteractiveShellEmbed()()
 import logging
 import sys
 from pathlib import Path
