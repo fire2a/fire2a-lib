@@ -7,25 +7,33 @@
 1. Choose your raster files
 2. Configure nodata and scaling strategies in the `config.toml` file
 3. Choose "number of clusters" or "distance threshold" for the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm
+   - Start with a distance threshold of 10.0 and decrease for less or increase for more clusters
+   - After calibrating the distance threshold; 
+   - [Sieve](https://gdal.org/en/latest/programs/gdal_sieve.html) small clusters (merge them to the biggest neighbor) with the `--sieve integer_pixels_size` option 
 
+### Execution
 ```bash
-source pyqgisdev/bin/activate # activate your qgis dev environment
+# get command line help
+python -m fire2a.agglomerative_clustering -h
+python -m fire2a.agglomerative_clustering --help
+
+# activate your qgis dev environment
+source ~/pyqgisdev/bin/activate 
+# execute 
 (qgis) $ python -m fire2a.agglomerative_clustering -d 10.0
 
-# windows💩
+# windows💩 users should use QGIS's python
 C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat -m fire2a.agglomerative_clustering -d 10.0
-
-# check help
-python agglomerative_clustering_pipeline.py -h
 ```
-[how to: windows 💩 use qgis-python](https://github.com/fire2a/fire2a-lib/tree/main/qgis-launchers)
+[More info on: How to windows 💩 using qgis's python](https://github.com/fire2a/fire2a-lib/tree/main/qgis-launchers)
 
-### 1. Choose your raster files
+### Preparation
+#### 1. Choose your raster files
 - Any [GDAL compatible](https://gdal.org/en/latest/drivers/raster/index.html) raster will be read
 - Place them all in the same directory where the script will be executed
 - "Quote them" if they have any non alphanumerical chars [a-zA-Z0-9]
 
-### 2. Preprocessing configuration
+#### 2. Preprocessing configuration
 See the `config.toml` file for example of the configuration of the preprocessing steps. The file is structured as follows:
 
 ```toml
@@ -55,13 +63,12 @@ fill_value = 0
    - [SimpleImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html)
 
 
-### 3. Clustering configuration
+#### 3. Clustering configuration
 1. __Agglomerative__ clustering algorithm is used. The following parameters are muttually exclusive:
 - `-n` or `--n_clusters`: The number of clusters to form as well as the number of centroids to generate.
 - `-d` or `--distance_threshold`: The linkage distance threshold above which, clusters will not be merged. When scaling start with 10.0 and downward (0.0 is compute the whole algorithm).
 
 For passing more parameters, see [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html)
-
 """
 # fmt: on
 # from IPython.terminal.embed import InteractiveShellEmbed
