@@ -470,6 +470,7 @@ def arg_parser(argv=None):
         help="Run in script mode, returning the label_map and the pipeline object",
         default=False,
     )
+    parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
     if Path(args.config_file).is_file() is False:
@@ -489,8 +490,13 @@ def main(argv=None):
         argv = sys.argv[1:]
     args = arg_parser(argv)
 
-    # 1 LEE ARGUMENTOS
-    logger.debug(args)
+    if args.verbose != 0:
+        global logger
+        from fire2a import setup_logger
+
+        logger = setup_logger(verbosity=args.verbose)
+
+    logger.info("args %s", args)
 
     # 2 LEE CONFIG
     config = read_toml(args.config_file)
