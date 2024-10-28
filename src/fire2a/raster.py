@@ -213,6 +213,7 @@ def get_rlayer_info(layer: QgsRasterLayer):
         "cellsize_y": layer.rasterUnitsPerPixelY(),
         "nodata": ndv,
         "bands": layer.bandCount(),
+        "file": layer.publicSource(),
     }
 
 
