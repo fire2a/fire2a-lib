@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# fmt: off
 """👋🌎 🌲🔥
 # Raster clustering
 ## Usage
@@ -6,25 +7,33 @@
 1. Choose your raster files
 2. Configure nodata and scaling strategies in the `config.toml` file
 3. Choose "number of clusters" or "distance threshold" for the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm
+   - Start with a distance threshold of 10.0 and decrease for less or increase for more clusters
+   - After calibrating the distance threshold; 
+   - [Sieve](https://gdal.org/en/latest/programs/gdal_sieve.html) small clusters (merge them to the biggest neighbor) with the `--sieve integer_pixels_size` option 
 
+### Execution
 ```bash
-source pyqgisdev/bin/activate # activate your qgis dev environment
+# get command line help
+python -m fire2a.agglomerative_clustering -h
+python -m fire2a.agglomerative_clustering --help
+
+# activate your qgis dev environment
+source ~/pyqgisdev/bin/activate 
+# execute 
 (qgis) $ python -m fire2a.agglomerative_clustering -d 10.0
 
-# windows💩
+# windows💩 users should use QGIS's python
 C:\\PROGRA~1\\QGIS33~1.3\\bin\\python-qgis.bat -m fire2a.agglomerative_clustering -d 10.0
-
-# check help
-python agglomerative_clustering_pipeline.py -h
 ```
-[how to: windows 💩 use qgis-python](https://github.com/fire2a/fire2a-lib/tree/main/qgis-launchers)
+[More info on: How to windows 💩 using qgis's python](https://github.com/fire2a/fire2a-lib/tree/main/qgis-launchers)
 
-### 1. Choose your raster files
+### Preparation
+#### 1. Choose your raster files
 - Any [GDAL compatible](https://gdal.org/en/latest/drivers/raster/index.html) raster will be read
 - Place them all in the same directory where the script will be executed
 - "Quote them" if they have any non alphanumerical chars [a-zA-Z0-9]
 
-### 2. Preprocessing configuration
+#### 2. Preprocessing configuration
 See the `config.toml` file for example of the configuration of the preprocessing steps. The file is structured as follows:
 
 ```toml
@@ -54,14 +63,16 @@ fill_value = 0
    - [SimpleImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html)
 
 
-### 3. Clustering configuration
+#### 3. Clustering configuration
 1. __Agglomerative__ clustering algorithm is used. The following parameters are muttually exclusive:
 - `-n` or `--n_clusters`: The number of clusters to form as well as the number of centroids to generate.
 - `-d` or `--distance_threshold`: The linkage distance threshold above which, clusters will not be merged. When scaling start with 10.0 and downward (0.0 is compute the whole algorithm).
 
 For passing more parameters, see [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html)
-
 """
+# fmt: on
+# from IPython.terminal.embed import InteractiveShellEmbed
+# InteractiveShellEmbed()()
 import logging
 import sys
 from pathlib import Path
@@ -74,6 +85,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
+
+from fire2a.utils import fprint
 
 logger = logging.getLogger(__name__)
 
@@ -209,9 +222,8 @@ def pipelie(observations, info_list, height, width, **kwargs):
 
     # Get the neighbors of each cell in a 2D grid
     grid_points = np.indices((height, width)).reshape(2, -1).T
-    connectivity = radius_neighbors_graph(
-        grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
-    )
+    # grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
+    connectivity = radius_neighbors_graph(grid_points, radius=1, metric="manhattan", include_self=False, n_jobs=-1)
 
     # Create the clustering object
     clustering = AgglomerativeClustering(connectivity=connectivity, **kwargs)
@@ -235,8 +247,107 @@ def pipelie(observations, info_list, height, width, **kwargs):
     return labels_reshaped, pipeline
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
+def write(
+    label_map,
+    width,
+    height,
+    output_raster="",
+    output_poly="output.shp",
+    authid="EPSG:3857",
+    geotransform=(0, 1, 0, 0, 0, 1),
+    nodata=None,
+    feedback=None,
+):
+    from osgeo import gdal, ogr, osr
 
+    from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
+
+    # setup drivers for raster and polygon output formats
+    if output_raster == "":
+        raster_driver = "MEM"
+    else:
+        try:
+            raster_driver = get_output_raster_format(output_raster, feedback=feedback)
+        except Exception:
+            raster_driver = "GTiff"
+    try:
+        poly_driver = get_vector_driver_from_filename(output_poly)
+    except Exception:
+        poly_driver = "ESRI Shapefile"
+
+    # create raster output
+    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    src_ds.SetGeoTransform(geotransform)  # != 0 ?
+    src_ds.SetProjection(authid)  # != 0 ?
+    #  src_band = src_ds.GetRasterBand(1)
+    #  if nodata:
+    #      src_band.SetNoDataValue(nodata)
+    #  src_band.WriteArray(label_map)
+
+    # create polygon output
+    drv = ogr.GetDriverByName(poly_driver)
+    dst_ds = drv.CreateDataSource(output_poly)
+    sp_ref = osr.SpatialReference()
+    sp_ref.SetFromUserInput(authid)  # != 0 ?
+    dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
+    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
+    dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+
+    # != 0 ?
+    # gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
+
+    # A todo junto
+    #  src_band = src_ds.GetRasterBand(1)
+    #  if nodata:
+    #      src_band.SetNoDataValue(nodata)
+    #  src_band.WriteArray(label_map)
+    # gdal.Polygonize(src_band, None, dst_lyr, 0, callback=gdal.TermProgress)  # , ["8CONNECTED=8"])
+
+    # B separado
+    # for loop for creating each label_map value into a different polygonized feature
+    mem_drv = ogr.GetDriverByName("Memory")
+    tmp_ds = mem_drv.CreateDataSource("tmp_ds")
+    # itera = iter(np.unique(label_map))
+    # cluster_id = next(itera)
+    areas = []
+    for cluster_id in np.unique(label_map):
+        # temporarily write band
+        src_band = src_ds.GetRasterBand(1)
+        data = np.zeros_like(label_map)
+        data -= 1  # labels in 0..NC
+        data[label_map == cluster_id] = label_map[label_map == cluster_id]
+        src_band.WriteArray(data)
+        # create feature
+        tmp_lyr = tmp_ds.CreateLayer("", srs=sp_ref)
+        gdal.Polygonize(src_band, None, tmp_lyr, -1)
+        # set
+        feat = tmp_lyr.GetNextFeature()
+        geom = feat.GetGeometryRef()
+        featureDefn = dst_lyr.GetLayerDefn()
+        feature = ogr.Feature(featureDefn)
+        feature.SetGeometry(geom)
+        feature.SetField("DN", int(cluster_id))
+        areas += [geom.GetArea()]
+        feature.SetField("area", int(geom.GetArea()))
+        feature.SetField("perimeter", int(geom.Boundary().Length()))
+        dst_lyr.CreateFeature(feature)
+
+    fprint(f"Clusters: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
+    # fix temporarily written band
+    src_band = src_ds.GetRasterBand(1)
+    if nodata:
+        src_band.SetNoDataValue(nodata)
+    src_band.WriteArray(label_map)
+    # close datasets
+    src_ds.FlushCache()
+    src_ds = None
+    dst_ds.FlushCache()
+    dst_ds = None
+    return True
+
+
+def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
     # trick to plot
     effective_num_clusters = len(np.unique(labels_reshaped))
 
@@ -313,6 +424,56 @@ def plot(data_list, info_list):
     plt.show()
 
 
+def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
+    """Apply a sieve filter to the data to remove small clusters. The sieve filter is applied using the GDAL library. https://gdal.org/en/latest/programs/gdal_sieve.html#gdal-sieve
+    Args:
+        data (np.ndarray): The input data to filter
+        threshold (int): The maximum number of pixels in a cluster to keep
+        connectedness (int): The number of connected pixels to consider when filtering 4 or 8
+        feedback (QgsTaskFeedback): A feedback object to report progress to use inside QGIS plugins
+    Returns:
+        np.ndarray: The filtered data
+    """
+    logger.info("Applying sieve filter")
+    from osgeo import gdal
+
+    height, width = data.shape
+    # fprint("antes", np.sort(np.unique(data, return_counts=True)), len(np.unique(data)), level="info", feedback=feedback, logger=logger)
+    num_clusters = len(np.unique(data))
+    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, gdal.GDT_Int64)
+    src_band = src_ds.GetRasterBand(1)
+    src_band.WriteArray(data)
+    if 0 != gdal.SieveFilter(src_band, None, src_band, threshold, connectedness):
+        fprint("Error applying sieve filter", level="error", feedback=feedback, logger=logger)
+    else:
+        sieved = src_band.ReadAsArray()
+        src_band = None
+        src_ds = None
+        num_sieved = len(np.unique(sieved))
+        # fprint("despues", np.sort(np.unique(sieved, return_counts=True)), len(np.unique(sieved)), level="info", feedback=feedback, logger=logger)
+        fprint(
+            f"Reduced from {num_clusters} to {num_sieved} clusters, {num_clusters-num_sieved} less",
+            level="info",
+            feedback=feedback,
+            logger=logger,
+        )
+        fprint(
+            "Please try again increasing distance_threshold or reducing n_clusters instead...",
+            level="info",
+            feedback=feedback,
+            logger=logger,
+        )
+        # from matplotlib import pyplot as plt
+        # fig, (ax1, ax2) = plt.subplots(1, 2)
+        # ax1.imshow(data)
+        # ax1.set_title("before sieve" + str(len(np.unique(data))))
+        # ax2.imshow(sieved)
+        # ax2.set_title("after sieve" + str(len(np.unique(sieved))))
+        # plt.show()
+        # data = sieved
+        return sieved
+
+
 def read_toml(config_toml="config.toml"):
     if sys.version_info >= (3, 11):
         import tomllib
@@ -352,7 +513,8 @@ def arg_parser(argv=None):
     )
     aggclu.add_argument("-n", "--n_clusters", type=int, help="Number of clusters")
 
-    parser.add_argument("-o", "--output", help="Output raster file, warning overwrites!", default="output.tif")
+    parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
+    parser.add_argument("-op", "--output_poly", help="Output polygons file, warning overwrites!", default="output.gpkg")
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
@@ -361,7 +523,7 @@ def arg_parser(argv=None):
         "-nw",
         "--no_write",
         action="store_true",
-        help="Do not write output raster",
+        help="Do not write outputs raster nor polygons",
         default=False,
     )
     parser.add_argument(
@@ -371,6 +533,12 @@ def arg_parser(argv=None):
         help="Run in script mode, returning the label_map and the pipeline object",
         default=False,
     )
+    parser.add_argument(
+        "--sieve",
+        type=int,
+        help="Use GDAL sieve filter to merge small clusters (number of pixels) into the biggest neighbor",
+    )
+    parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
     if Path(args.config_file).is_file() is False:
@@ -390,8 +558,13 @@ def main(argv=None):
         argv = sys.argv[1:]
     args = arg_parser(argv)
 
-    # 1 LEE ARGUMENTOS
-    logger.debug(args)
+    if args.verbose != 0:
+        global logger
+        from fire2a import setup_logger
+
+        logger = setup_logger(verbosity=args.verbose)
+
+    logger.info("args %s", args)
 
     # 2 LEE CONFIG
     config = read_toml(args.config_file)
@@ -436,15 +609,23 @@ def main(argv=None):
         distance_threshold=args.distance_threshold,
     )
 
+    # SIEVE
+    if args.sieve:
+        labels_reshaped = sieve_filter(labels_reshaped, args.sieve)
+
     # 7 debug postprocess
-    postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
+    # postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
 
     # 8. ESCRIBIR RASTER
     if not args.no_write:
-        from fire2a.raster import write_raster
-
-        if not write_raster(
-            labels_reshaped, outfile=args.output, authid=args.authid, geotransform=args.geotransform, logger=logger
+        if not write(
+            labels_reshaped,
+            width,
+            height,
+            output_raster=args.output_raster,
+            output_poly=args.output_poly,
+            authid=args.authid,
+            geotransform=args.geotransform,
         ):
             logger.error("Error writing output raster")
 

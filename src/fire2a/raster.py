@@ -213,6 +213,7 @@ def get_rlayer_info(layer: QgsRasterLayer):
         "cellsize_y": layer.rasterUnitsPerPixelY(),
         "nodata": ndv,
         "bands": layer.bandCount(),
+        "file": layer.publicSource(),
     }
 
 
@@ -398,6 +399,7 @@ def write_raster(
     driver_name="GTiff",
     authid="EPSG:3857",
     geotransform=(0, 1, 0, 0, 0, 1),
+    nodata=None,
     feedback=None,
     logger=None,  # logger default ?
 ):
@@ -438,9 +440,10 @@ def write_raster(
     ds.SetGeoTransform(geotransform)
     ds.SetProjection(authid)
     band = ds.GetRasterBand(1)
-    if 0 != band.SetNoDataValue(-9999):
-        fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
-        return False
+    if nodata:
+        if 0 != band.SetNoDataValue(nodata):
+            fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
+            return False
     if 0 != band.WriteArray(data):
         fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger)
         return False
