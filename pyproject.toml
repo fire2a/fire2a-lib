@@ -29,6 +29,7 @@ dependencies = [
     "pyomo",
     "scikit-learn",
     "scipy",
+    "toml",
 ]
 dynamic = ["version"]
 

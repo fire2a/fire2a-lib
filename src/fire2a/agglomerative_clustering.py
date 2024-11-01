@@ -86,7 +86,7 @@ from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
 
-from fire2a.utils import fprint
+from fire2a.utils import fprint, read_toml
 
 logger = logging.getLogger(__name__)
 
@@ -472,19 +472,6 @@ def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
         # plt.show()
         # data = sieved
         return sieved
-
-
-def read_toml(config_toml="config.toml"):
-    if sys.version_info >= (3, 11):
-        import tomllib
-
-        with open(config_toml, "rb") as f:
-            config = tomllib.load(f)
-    else:
-        import toml
-
-        config = toml.load(config_toml)
-    return config
 
 
 def arg_parser(argv=None):

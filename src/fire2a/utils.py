@@ -5,15 +5,29 @@ Miscellaneous utility functions that simplify common tasks.
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
 import logging
+import sys
+from typing import Any, Union
 
 import numpy as np
 from qgis.core import Qgis, QgsProcessingFeedback
-from typing import Union, Any
 
 logger = logging.getLogger(__name__)
 
 
-def loadtxt_nodata(fname : str, no_data : int = -9999, dtype=np.float32, **kwargs) -> np.ndarray:
+def read_toml(config_toml="config.toml"):
+    if sys.version_info >= (3, 11):
+        import tomllib
+
+        with open(config_toml, "rb") as f:
+            config = tomllib.load(f)
+    else:
+        import toml
+
+        config = toml.load(config_toml)
+    return config
+
+
+def loadtxt_nodata(fname: str, no_data: int = -9999, dtype=np.float32, **kwargs) -> np.ndarray:
     """Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)
 
