@@ -137,10 +137,12 @@ class NoDataImputer(BaseEstimator, TransformerMixin):
         self.no_data_values = no_data_values
         self.strategies = strategies
         self.constants = constants
-        self.imputers = [
-            SimpleImputer(strategy=strategy, missing_values=no_data_value, fill_value=constant)
-            for (no_data_value, strategy, constant) in zip(no_data_values, strategies, constants)
-        ]
+        self.imputers = []
+        for no_data_value, strategy, constant in zip(no_data_values, strategies, constants):
+            if no_data_value:
+                self.imputers += [SimpleImputer(strategy=strategy, missing_values=no_data_value, fill_value=constant)]
+            else:
+                self.imputers += [SimpleImputer(strategy=strategy, fill_value=constant)]
 
     def fit(self, X, y=None):
         for i, imputer in enumerate(self.imputers):
