@@ -200,6 +200,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
     no_data_values = [info["NoDataValue"] for info in info_list]
     no_data_strategies = [info["no_data_strategy"] for info in info_list]
     fill_values = [info["fill_value"] for info in info_list]
+    # scaling_strategies = [info["scaling_strategy"] for info in info_list]
 
     # scaling strategies
     index_map = {}
@@ -228,6 +229,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
     connectivity = radius_neighbors_graph(grid_points, radius=1, metric="manhattan", include_self=False, n_jobs=-1)
 
     # Create the clustering object
+    # clustering = AgglomerativeClustering(connectivity=connectivity, distance_threshold=distance_threshold)
     clustering = AgglomerativeClustering(connectivity=connectivity, **kwargs)
 
     # Create and apply the pipeline
@@ -581,6 +583,8 @@ def main(argv=None):
         info["fill_value"] = file_config["fill_value"]
         data_list += [data]
         info_list += [info]
+        logger.debug("%s", data[:2, :2])
+        logger.debug("%s", info)
 
     # 4. VALIDAR 2d todos mismo shape
     height, width = check_shapes(data_list)
@@ -601,6 +605,8 @@ def main(argv=None):
     # SIEVE
     if args.sieve:
         labels_reshaped = sieve_filter(labels_reshaped, args.sieve)
+
+    logger.info(f"Final number of clusters: {len(np.unique(labels_reshaped))}")
 
     # 7 debug postprocess
     # postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
