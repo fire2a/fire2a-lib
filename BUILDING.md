@@ -17,10 +17,10 @@ git clean -dfX -n
 git tag
 
 # tag create locally & upload
-git tag -a v0.3.0 -m 'agglomerative clustering' && git push origin v0.3.0
+git tag -a v0.3.1 -m 'agglomerative clustering outputs polygon and sieves' && git push origin v0.3.1
 
 # delete tag locally & upstream
-git tag --delete v1.2.3 && git push --delete origin v1.2.3
+git tag --delete v0.3.1 && git push --delete origin v0.3.1
 
 # view calculated version to check is not dirty
 python -m setuptools_scm
