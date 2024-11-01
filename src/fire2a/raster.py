@@ -86,8 +86,18 @@ def read_raster(
         param data: if True, return the data as a numpy array (default True)
         param info: if True, return the raster info (default True)
 
-    Returns:
-        tuple: (data, geotransform, projection)
+    Return tuple: (data, info)
+        data: numpy 2d array with the raster data
+        info: dictionary with keys:
+            - Transform: geotransform parameters
+            - Projection: projection string
+            - RasterCount: number of bands
+            - RasterXSize: width of the raster
+            - RasterYSize: height of the raster
+            - DataType: data type of the raster
+            - NoDataValue: no data value of the raster
+            - Minimum: minimum value of the raster
+            - Maximum: maximum value of the raster
 
     Raises:
         FileNotFoundError: if the file is not found
