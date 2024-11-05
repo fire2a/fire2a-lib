@@ -86,7 +86,7 @@ from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
 
-from fire2a.utils import fprint, read_toml #error en import read_toml
+from fire2a.utils import fprint, read_toml  # error en import read_toml
 
 logger = logging.getLogger(__name__)
 
@@ -232,6 +232,13 @@ def pipelie(observations, info_list, height, width, **kwargs):
     # clustering = AgglomerativeClustering(connectivity=connectivity, distance_threshold=distance_threshold)
     clustering = AgglomerativeClustering(connectivity=connectivity, **kwargs)
 
+    # Create a temporary directory for caching
+    import tempfile
+
+    import joblib
+
+    temp_dir = tempfile.mkdtemp()
+    memory = joblib.Memory(location=temp_dir, verbose=0)
     # Create and apply the pipeline
     pipeline = Pipeline(
         steps=[
@@ -240,6 +247,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
             ("common_rescaling", RescaleAllToCommonRange()),
             ("agglomerative_clustering", clustering),
         ],
+        memory=memory,
         verbose=True,
     )
 
@@ -248,7 +256,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
 
     # Reshape the labels back to the original spatial map shape
     labels_reshaped = labels.reshape(height, width)
-    return labels_reshaped, pipeline,index_map
+    return labels_reshaped, pipeline, index_map
 
 
 def write(
@@ -351,7 +359,7 @@ def write(
     return True
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args,index_map):
+def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args, index_map):
     # trick to plot
     effective_num_clusters = len(np.unique(labels_reshaped))
 
@@ -379,8 +387,8 @@ def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, 
 
 def plot(data_list, rescaled_data, info_list, index_map):
     """Plot a list of spatial data arrays, reading the name from the info_list["fname"]"""
-    from matplotlib import pyplot as plt
     import numpy as np
+    from matplotlib import pyplot as plt
 
     robust_list = []
     standard_list = []
@@ -400,22 +408,23 @@ def plot(data_list, rescaled_data, info_list, index_map):
     if (grid * grid) - len(data_list) >= grid:
         grid_height -= 1
 
-
     fig, axs = plt.subplots(grid_height, grid_width, figsize=(15, 15))
 
     for i, (data, info) in enumerate(zip(rescaled_data, my_lista)):
         ax = axs[i // grid, i % grid]
 
         # Crear el boxplot y el violin plot en el mismo eje
-        boxplots_colors = ['yellowgreen']
+        boxplots_colors = ["yellowgreen"]
         bp = ax.boxplot(data.flatten(), patch_artist=True, vert=False, showfliers=False)  # No incluir outliers
-        for patch, color in zip(bp['boxes'], boxplots_colors):
+        for patch, color in zip(bp["boxes"], boxplots_colors):
             patch.set_facecolor(color)
             patch.set_alpha(0.4)
-        
-        violin_colors = ['thistle']
-        vp = ax.violinplot(data.flatten(), points=500, bw_method=0.3, showmeans=True, showextrema=True, showmedians=True, vert=False)
-        for idx, b in enumerate(vp['bodies']):
+
+        violin_colors = ["thistle"]
+        vp = ax.violinplot(
+            data.flatten(), points=500, bw_method=0.3, showmeans=True, showextrema=True, showmedians=True, vert=False
+        )
+        for idx, b in enumerate(vp["bodies"]):
             m = np.mean(b.get_paths()[0].vertices[:, 0])
             b.get_paths()[0].vertices[:, 1] = np.clip(b.get_paths()[0].vertices[:, 1], idx + 1, idx + 2)
             b.set_facecolor(violin_colors[idx % len(violin_colors)])
@@ -430,11 +439,11 @@ def plot(data_list, rescaled_data, info_list, index_map):
 
     ax1 = axs[(len(rescaled_data)) // grid, (len(rescaled_data)) % grid]
     unique_labels, counts = np.unique(flat_labels, return_counts=True)
-    ax1.plot(unique_labels, counts, marker='o', color='blue')
+    ax1.plot(unique_labels, counts, marker="o", color="blue")
     ax1.set_title("Line Plot of Cluster Sizes\n" + info["fname"])
     ax1.set_xlabel("Cluster Label")
     ax1.set_ylabel("Count")
-    
+
     # Crear el histograma de la última capa en la cuadrícula
     ax2 = axs[(len(rescaled_data) + 1) // grid, (len(rescaled_data) + 1) % grid]
     ax2.hist(counts, log=True)
@@ -613,7 +622,7 @@ def main(argv=None):
     observations = np.column_stack([data.ravel() for data in data_list])
 
     # 6. nodata -> feature scaling -> all scaling -> clustering
-    labels_reshaped, pipeline,index_map = pipelie(
+    labels_reshaped, pipeline, index_map = pipelie(
         observations,
         info_list,
         height,
@@ -646,19 +655,20 @@ def main(argv=None):
 
     # 9. SCRIPT MODE
     if args.script:
-        return labels_reshaped, pipeline, index_map #en ipython me falla tambien
+        return labels_reshaped, pipeline, index_map  # en ipython me falla tambien
     if args.debug:
-        postprocess(labels_reshaped, pipeline, data_list, info_list, width, height,args,index_map)
+        postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args, index_map)
         from IPython.terminal.embed import InteractiveShellEmbed
+
         InteractiveShellEmbed()()
         no_data = pipeline.named_steps["no_data_imputer"].transform(observations)
         preprocessed_data = pipeline.named_steps["feature_scaling"].transform(no_data)
         rescaled_data = pipeline.named_steps["common_rescaling"].transform(preprocessed_data)
-        tt = len(index_map["robust"])+len(index_map["standard"])
-        res_data = rescaled_data[:,:tt]
-        bb = res_data.T.reshape(tt,height,width)
-    
-        plot(data_list, bb, info_list,index_map)
+        tt = len(index_map["robust"]) + len(index_map["standard"])
+        res_data = rescaled_data[:, :tt]
+        bb = res_data.T.reshape(tt, height, width)
+
+        plot(data_list, bb, info_list, index_map)
     return 0
 
 
