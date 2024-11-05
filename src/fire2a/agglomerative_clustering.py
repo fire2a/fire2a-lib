@@ -535,7 +535,12 @@ def arg_parser(argv=None):
     parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
     parser.add_argument("-op", "--output_poly", help="Output polygons file, warning overwrites!", default="output.gpkg")
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
-    parser.add_argument("-debug", "--debug",action="store_true",help="Enable debug mode" )    
+    parser.add_argument(
+        "-p",
+        "--plots",
+        action="store_true",
+        help="Raise a matplotlib window with input/output data related to the clustering. For example, the rescaled data distributions and the clustering size history",
+    )
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
     )
@@ -656,7 +661,7 @@ def main(argv=None):
     # 9. SCRIPT MODE
     if args.script:
         return labels_reshaped, pipeline, index_map  # en ipython me falla tambien
-    if args.debug:
+    if args.plots:
         postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args, index_map)
         from IPython.terminal.embed import InteractiveShellEmbed
 
