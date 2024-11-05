@@ -86,7 +86,7 @@ from sklearn.neighbors import radius_neighbors_graph
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
 
-from fire2a.utils import fprint, read_toml
+from fire2a.utils import fprint, read_toml #error en import read_toml
 
 logger = logging.getLogger(__name__)
 
@@ -248,7 +248,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
 
     # Reshape the labels back to the original spatial map shape
     labels_reshaped = labels.reshape(height, width)
-    return labels_reshaped, pipeline
+    return labels_reshaped, pipeline,index_map
 
 
 def write(
@@ -351,7 +351,7 @@ def write(
     return True
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
+def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args,index_map):
     # trick to plot
     effective_num_clusters = len(np.unique(labels_reshaped))
 
@@ -377,54 +377,73 @@ def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, 
     pass
 
 
-def plot(data_list, info_list):
-    """Plot a list of spatial data arrays. reading the name from the info_list["fname"]"""
-    # for data_list make a plot of each layer, in a most squared grid
+def plot(data_list, rescaled_data, info_list, index_map):
+    """Plot a list of spatial data arrays, reading the name from the info_list["fname"]"""
     from matplotlib import pyplot as plt
+    import numpy as np
 
-    # squared grid
-    grid = int(np.ceil(np.sqrt(len(data_list))))
+    robust_list = []
+    standard_list = []
+    for i in range(len(info_list)):
+        if info_list[i]["scaling_strategy"] == "robust":
+            robust_list.append(info_list[i])
+        elif info_list[i]["scaling_strategy"] == "standard":
+            standard_list.append(info_list[i])
+    my_lista = robust_list + standard_list
+
+    # Crear cuadrícula cuadrada
+    grid = int(np.ceil(np.sqrt(len(rescaled_data) + 2)))  # +2 para agregar espacio para los histogramas
     grid_width = grid
     grid_height = grid
-    # if not using last row
+
+    # Si no se usa la última fila
     if (grid * grid) - len(data_list) >= grid:
         grid_height -= 1
-    # print(grid_width, grid_height)
 
-    fig, axs = plt.subplots(grid_height, grid_width, figsize=(12, 10))
-    for i, (data, info) in enumerate(zip(data_list, info_list)):
+
+    fig, axs = plt.subplots(grid_height, grid_width, figsize=(15, 15))
+
+    for i, (data, info) in enumerate(zip(rescaled_data, my_lista)):
         ax = axs[i // grid, i % grid]
-        im = ax.imshow(data, cmap="viridis", interpolation="nearest")
-        ax.set_title(info["fname"] + " " + info["no_data_strategy"] + " " + info["scaling_strategy"])
+
+        # Crear el boxplot y el violin plot en el mismo eje
+        boxplots_colors = ['yellowgreen']
+        bp = ax.boxplot(data.flatten(), patch_artist=True, vert=False, showfliers=False)  # No incluir outliers
+        for patch, color in zip(bp['boxes'], boxplots_colors):
+            patch.set_facecolor(color)
+            patch.set_alpha(0.4)
+        
+        violin_colors = ['thistle']
+        vp = ax.violinplot(data.flatten(), points=500, bw_method=0.3, showmeans=True, showextrema=True, showmedians=True, vert=False)
+        for idx, b in enumerate(vp['bodies']):
+            m = np.mean(b.get_paths()[0].vertices[:, 0])
+            b.get_paths()[0].vertices[:, 1] = np.clip(b.get_paths()[0].vertices[:, 1], idx + 1, idx + 2)
+            b.set_facecolor(violin_colors[idx % len(violin_colors)])
+            b.set_alpha(0.6)
+
+        ax.set_title(info["fname"] + " (rescaled)")
         ax.grid(True)
-        fig.colorbar(im, ax=ax)
 
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.4, hspace=0.4)
-    plt.show()
-
-    # make a histogram of the last plot
+    # Crear el gráfico de líneas de la última capa en la cuadrícula
     flat_labels = data_list[-1].flatten()
     info = info_list[-1]
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.hist(flat_labels)
-    ax1.set_title(
-        "histogram pixel count per cluster"
-        + info["fname"]
-        + " "
-        + info["no_data_strategy"]
-        + " "
-        + info["scaling_strategy"]
-    )
 
-    # Get the unique labels and their counts
+    ax1 = axs[(len(rescaled_data)) // grid, (len(rescaled_data)) % grid]
     unique_labels, counts = np.unique(flat_labels, return_counts=True)
-    # Plot a histogram of the cluster sizes
+    ax1.plot(unique_labels, counts, marker='o', color='blue')
+    ax1.set_title("Line Plot of Cluster Sizes\n" + info["fname"])
+    ax1.set_xlabel("Cluster Label")
+    ax1.set_ylabel("Count")
+    
+    # Crear el histograma de la última capa en la cuadrícula
+    ax2 = axs[(len(rescaled_data) + 1) // grid, (len(rescaled_data) + 1) % grid]
     ax2.hist(counts, log=True)
     ax2.set_xlabel("Cluster Size (in pixels)")
     ax2.set_ylabel("Number of Clusters")
     ax2.set_title("Histogram of Cluster Sizes")
 
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.4, hspace=0.4)
     plt.show()
 
 
@@ -507,6 +526,7 @@ def arg_parser(argv=None):
     parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
     parser.add_argument("-op", "--output_poly", help="Output polygons file, warning overwrites!", default="output.gpkg")
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
+    parser.add_argument("-debug", "--debug",action="store_true",help="Enable debug mode" )    
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
     )
@@ -593,7 +613,7 @@ def main(argv=None):
     observations = np.column_stack([data.ravel() for data in data_list])
 
     # 6. nodata -> feature scaling -> all scaling -> clustering
-    labels_reshaped, pipeline = pipelie(
+    labels_reshaped, pipeline,index_map = pipelie(
         observations,
         info_list,
         height,
@@ -626,8 +646,19 @@ def main(argv=None):
 
     # 9. SCRIPT MODE
     if args.script:
-        return labels_reshaped, pipeline
-
+        return labels_reshaped, pipeline, index_map #en ipython me falla tambien
+    if args.debug:
+        postprocess(labels_reshaped, pipeline, data_list, info_list, width, height,args,index_map)
+        from IPython.terminal.embed import InteractiveShellEmbed
+        InteractiveShellEmbed()()
+        no_data = pipeline.named_steps["no_data_imputer"].transform(observations)
+        preprocessed_data = pipeline.named_steps["feature_scaling"].transform(no_data)
+        rescaled_data = pipeline.named_steps["common_rescaling"].transform(preprocessed_data)
+        tt = len(index_map["robust"])+len(index_map["standard"])
+        res_data = rescaled_data[:,:tt]
+        bb = res_data.T.reshape(tt,height,width)
+    
+        plot(data_list, bb, info_list,index_map)
     return 0
 
 
