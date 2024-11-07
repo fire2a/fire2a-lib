@@ -328,9 +328,10 @@ def write(
     sp_ref = osr.SpatialReference()
     sp_ref.SetFromUserInput(authid)  # != 0 ?
     dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
-    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger))  # != 0 ?
-    dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
-    dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger64))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", ogr.OFTInteger64))
+    # dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
+    # dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
 
     # != 0 ?
     # gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
@@ -365,10 +366,11 @@ def write(
         featureDefn = dst_lyr.GetLayerDefn()
         feature = ogr.Feature(featureDefn)
         feature.SetGeometry(geom)
-        feature.SetField("DN", int(cluster_id))
+        feature.SetField("DN", float(cluster_id))
         areas += [geom.GetArea()]
-        feature.SetField("area", int(geom.GetArea()))
-        feature.SetField("perimeter", int(geom.Boundary().Length()))
+        feature.SetField("pixel_count", float(px_count))
+        # feature.SetField("area", int(geom.GetArea()))
+        # feature.SetField("perimeter", int(geom.Boundary().Length()))
         dst_lyr.CreateFeature(feature)
 
     fprint(f"Clusters: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
