@@ -333,10 +333,9 @@ def write(
     # dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
     # dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
 
-    # != 0 ?
-    # gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
+    # 0 != gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
 
-    # A todo junto
+    # FAIL: All together it merges labels into a single polygon
     #  src_band = src_ds.GetRasterBand(1)
     #  if nodata:
     #      src_band.SetNoDataValue(nodata)
@@ -350,17 +349,20 @@ def write(
     # itera = iter(np.unique(label_map))
     # cluster_id = next(itera)
     areas = []
-    for cluster_id in np.unique(label_map):
+    pixels = []
+    data = np.zeros_like(label_map)
+    for cluster_id, px_count in zip(*np.unique(label_map, return_counts=True)):
         # temporarily write band
         src_band = src_ds.GetRasterBand(1)
-        data = np.zeros_like(label_map)
-        data -= 1  # labels in 0..NC
-        data[label_map == cluster_id] = label_map[label_map == cluster_id]
+        src_band.SetNoDataValue(0)
+        data[label_map == cluster_id] = 1
         src_band.WriteArray(data)
         # create feature
         tmp_lyr = tmp_ds.CreateLayer("", srs=sp_ref)
-        gdal.Polygonize(src_band, None, tmp_lyr, -1)
-        # set
+        gdal.Polygonize(src_band, src_band.GetMaskBand(), tmp_lyr, -1)
+        # unset tmp data
+        data[label_map == cluster_id] = 0
+        # set polygon feat
         feat = tmp_lyr.GetNextFeature()
         geom = feat.GetGeometryRef()
         featureDefn = dst_lyr.GetLayerDefn()
@@ -368,16 +370,26 @@ def write(
         feature.SetGeometry(geom)
         feature.SetField("DN", float(cluster_id))
         areas += [geom.GetArea()]
+        pixels += [px_count]
         feature.SetField("pixel_count", float(px_count))
         # feature.SetField("area", int(geom.GetArea()))
         # feature.SetField("perimeter", int(geom.Boundary().Length()))
         dst_lyr.CreateFeature(feature)
 
-    fprint(f"Clusters: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
-    # fix temporarily written band
+    fprint(f"Polygon Areas: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
+    fprint(f"Cluster PixelCounts: {min(pixels)=} {max(pixels)=}", level="info", feedback=feedback, logger=logger)
+    # RESTART RASTER
+    # src_ds = None
+    # src_band = None
+    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    # src_ds.SetGeoTransform(geotransform)  # != 0 ?
+    # src_ds.SetProjection(authid)  # != 0 ?
     src_band = src_ds.GetRasterBand(1)
     if nodata:
         src_band.SetNoDataValue(nodata)
+    else:
+        # useless paranoia ?
+        src_band.SetNoDataValue(-1)
     src_band.WriteArray(label_map)
     # close datasets
     src_ds.FlushCache()
