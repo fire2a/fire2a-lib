@@ -665,7 +665,7 @@ def main(argv=None):
 
     # 9. SCRIPT MODE
     if args.script:
-        return labels_reshaped, pipeline, index_map  # en ipython me falla tambien
+        return labels_reshaped, pipeline  # en ipython me falla tambien
 
     return 0
 
