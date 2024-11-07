@@ -12,9 +12,7 @@ from pytest import MonkeyPatch
 
 
 def test_agg0(request, tmp_path):
-    """this test checks if the Data.csv file is generated from a fire Instance Folder
-    TODO add more raster layer
-    """
+    """-n 10 config.toml"""
     from osgeo import ogr
 
     from fire2a.agglomerative_clustering import main
@@ -38,9 +36,7 @@ def test_agg0(request, tmp_path):
 
 
 def test_agg1(request, tmp_path):
-    """this test checks if the Data.csv file is generated from a fire Instance Folder
-    TODO add more raster layer
-    """
+    """-n 10 -s config.toml"""
     from fire2a.agglomerative_clustering import main
 
     assets_path = request.config.rootdir / "tests" / "agglomerative_clustering"
@@ -53,7 +49,7 @@ def test_agg1(request, tmp_path):
     with MonkeyPatch.context() as mp:
         mp.chdir(tmp_path)
         label_map, pipeline = main(["-s", "-n", "10", "config.toml"])
-        assert Path("output.shp").is_file()
+        assert Path("output.gpkg").is_file()
 
     assert label_map.shape == (597, 658)
 
