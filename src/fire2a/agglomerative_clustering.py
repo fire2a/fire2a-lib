@@ -152,6 +152,7 @@ class NoDataImputer(BaseEstimator, TransformerMixin):
     def transform(self, X):
         for i, imputer in enumerate(self.imputers):
             X[:, [i]] = imputer.transform(X[:, [i]])
+        self.output_data = X
         return X
 
 
@@ -163,14 +164,48 @@ class RescaleAllToCommonRange(BaseEstimator, TransformerMixin):
 
     def fit(self, X, y=None):
         # Determine the combined range of all scaled features
-        self.min_val = X.min()
-        self.max_val = X.max()
+        self.min_val = [x.min() for x in X]
+        self.max_val = [x.max() for x in X]
         return self
 
     def transform(self, X):
         # Rescale all features to match the common range
-        rescaled_data = (X - self.min_val) / (self.max_val - self.min_val)
-        return rescaled_data
+        for i, (x, mi, ma) in enumerate(zip(X, self.min_val, self.max_val)):
+            if ma - mi == 0:
+                X[i] = x
+            else:
+                X[i] = (x - mi) / (ma - mi)
+        return X
+
+
+class CustomAgglomerativeClustering(BaseEstimator, TransformerMixin):
+    def __init__(self, height, width, neighbors=4, **kwargs):
+        self.height = height
+        self.width = width
+        self.neighbors = neighbors
+
+        self.grid_points = np.indices((height, width)).reshape(2, -1).T
+        if neighbors == 4:
+            connectivity = radius_neighbors_graph(
+                self.grid_points, radius=1, metric="manhattan", include_self=False, n_jobs=-1
+            )
+        elif neighbors == 8:
+            connectivity = radius_neighbors_graph(
+                self.grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
+            )
+
+        self.connectivity = connectivity
+        self.kwargs = kwargs
+        self.model = AgglomerativeClustering(connectivity=self.connectivity, **self.kwargs)
+
+    def fit(self, X, y=None):
+        logger.debug("not sure why, but this method is never called alas needed")
+        self.model.fit(X)
+        return self
+
+    def fit_predict(self, X, y=None):
+        self.input_data = X
+        return self.model.fit_predict(X)
 
 
 def pipelie(observations, info_list, height, width, **kwargs):
@@ -223,14 +258,12 @@ def pipelie(observations, info_list, height, width, **kwargs):
         ]
     )
 
-    # Get the neighbors of each cell in a 2D grid
-    grid_points = np.indices((height, width)).reshape(2, -1).T
-    # grid_points, radius=2 ** (1 / 2), metric="euclidean", include_self=False, n_jobs=-1
-    connectivity = radius_neighbors_graph(grid_points, radius=1, metric="manhattan", include_self=False, n_jobs=-1)
-
-    # Create the clustering object
-    # clustering = AgglomerativeClustering(connectivity=connectivity, distance_threshold=distance_threshold)
-    clustering = AgglomerativeClustering(connectivity=connectivity, **kwargs)
+    # # Create a temporary directory for caching calculations
+    # # FOR ACCESING STEPS LATER ON VERY LARGE DATASETS
+    # import tempfile
+    # import joblib
+    # temp_dir = tempfile.mkdtemp()
+    # memory = joblib.Memory(location=temp_dir, verbose=0)
 
     # Create and apply the pipeline
     pipeline = Pipeline(
@@ -238,8 +271,9 @@ def pipelie(observations, info_list, height, width, **kwargs):
             ("no_data_imputer", NoDataImputer(no_data_values, no_data_strategies, fill_values)),
             ("feature_scaling", feature_scaler),
             ("common_rescaling", RescaleAllToCommonRange()),
-            ("agglomerative_clustering", clustering),
+            ("agglomerative_clustering", CustomAgglomerativeClustering(height, width, neighbors=4, **kwargs)),
         ],
+        # memory=memory,
         verbose=True,
     )
 
@@ -294,14 +328,14 @@ def write(
     sp_ref = osr.SpatialReference()
     sp_ref.SetFromUserInput(authid)  # != 0 ?
     dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
-    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger))  # != 0 ?
-    dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
-    dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger64))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", ogr.OFTInteger64))
+    # dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
+    # dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
 
-    # != 0 ?
-    # gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
+    # 0 != gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
 
-    # A todo junto
+    # FAIL: All together it merges labels into a single polygon
     #  src_band = src_ds.GetRasterBand(1)
     #  if nodata:
     #      src_band.SetNoDataValue(nodata)
@@ -315,33 +349,47 @@ def write(
     # itera = iter(np.unique(label_map))
     # cluster_id = next(itera)
     areas = []
-    for cluster_id in np.unique(label_map):
+    pixels = []
+    data = np.zeros_like(label_map)
+    for cluster_id, px_count in zip(*np.unique(label_map, return_counts=True)):
         # temporarily write band
         src_band = src_ds.GetRasterBand(1)
-        data = np.zeros_like(label_map)
-        data -= 1  # labels in 0..NC
-        data[label_map == cluster_id] = label_map[label_map == cluster_id]
+        src_band.SetNoDataValue(0)
+        data[label_map == cluster_id] = 1
         src_band.WriteArray(data)
         # create feature
         tmp_lyr = tmp_ds.CreateLayer("", srs=sp_ref)
-        gdal.Polygonize(src_band, None, tmp_lyr, -1)
-        # set
+        gdal.Polygonize(src_band, src_band.GetMaskBand(), tmp_lyr, -1)
+        # unset tmp data
+        data[label_map == cluster_id] = 0
+        # set polygon feat
         feat = tmp_lyr.GetNextFeature()
         geom = feat.GetGeometryRef()
         featureDefn = dst_lyr.GetLayerDefn()
         feature = ogr.Feature(featureDefn)
         feature.SetGeometry(geom)
-        feature.SetField("DN", int(cluster_id))
+        feature.SetField("DN", float(cluster_id))
         areas += [geom.GetArea()]
-        feature.SetField("area", int(geom.GetArea()))
-        feature.SetField("perimeter", int(geom.Boundary().Length()))
+        pixels += [px_count]
+        feature.SetField("pixel_count", float(px_count))
+        # feature.SetField("area", int(geom.GetArea()))
+        # feature.SetField("perimeter", int(geom.Boundary().Length()))
         dst_lyr.CreateFeature(feature)
 
-    fprint(f"Clusters: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
-    # fix temporarily written band
+    fprint(f"Polygon Areas: {min(areas)=} {max(areas)=}", level="info", feedback=feedback, logger=logger)
+    fprint(f"Cluster PixelCounts: {min(pixels)=} {max(pixels)=}", level="info", feedback=feedback, logger=logger)
+    # RESTART RASTER
+    # src_ds = None
+    # src_band = None
+    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    # src_ds.SetGeoTransform(geotransform)  # != 0 ?
+    # src_ds.SetProjection(authid)  # != 0 ?
     src_band = src_ds.GetRasterBand(1)
     if nodata:
         src_band.SetNoDataValue(nodata)
+    else:
+        # useless paranoia ?
+        src_band.SetNoDataValue(-1)
     src_band.WriteArray(label_map)
     # close datasets
     src_ds.FlushCache()
@@ -351,81 +399,108 @@ def write(
     return True
 
 
-def postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args):
-    # trick to plot
-    effective_num_clusters = len(np.unique(labels_reshaped))
-
-    # add final data as a new data
-    data_list += [labels_reshaped]
-    info_list += [
-        {
-            "fname": f"CLUSTERS n:{args.n_clusters},",
-            "no_data_strategy": f"d:{args.distance_threshold},",
-            "scaling_strategy": f"eff:{effective_num_clusters}",
-        }
-    ]
-    # plot(data_list, info_list)
-
-    # preprocessed_data = pipeline.named_steps["preprocessor"].transform(flattened_data)
-    # print(preprocessed_data)
-
-    # rescaled_data = pipeline.named_steps["rescale_all"].transform(preprocessed_data)
-    # print(rescaled_data)
-    # from IPython.terminal.embed import InteractiveShellEmbed
-
-    # InteractiveShellEmbed()()
-    pass
-
-
-def plot(data_list, info_list):
-    """Plot a list of spatial data arrays. reading the name from the info_list["fname"]"""
-    # for data_list make a plot of each layer, in a most squared grid
+def plot(labels_reshaped, pipeline, info_list, **kwargs):
+    """Plot the observed values of the input data, the rescaled data, and the cluster size history and histogram.
+    Args:
+        labels_reshaped (np.ndarray): The reshaped labels of the clusters
+        pipeline (Pipeline): The pipeline object containing all the steps of the pipeline
+        info_list (list): A list of dictionaries containing information about each feature
+        **kargs: Additional keyword arguments
+            n_clusters (int): The number of clusters
+            distance_threshold (float): The linkage distance threshold
+            sieve (int): The number of pixels to use as a sieve filter
+            block (bool): Block the execution until the plot window is closed
+            filename (str): The filename to save the plot
+    """
     from matplotlib import pyplot as plt
 
-    # squared grid
-    grid = int(np.ceil(np.sqrt(len(data_list))))
-    grid_width = grid
-    grid_height = grid
-    # if not using last row
-    if (grid * grid) - len(data_list) >= grid:
-        grid_height -= 1
-    # print(grid_width, grid_height)
+    no_data_imputed = pipeline.named_steps["no_data_imputer"].output_data
+    pre_aggclu_data = pipeline.named_steps["agglomerative_clustering"].input_data
 
-    fig, axs = plt.subplots(grid_height, grid_width, figsize=(12, 10))
-    for i, (data, info) in enumerate(zip(data_list, info_list)):
-        ax = axs[i // grid, i % grid]
-        im = ax.imshow(data, cmap="viridis", interpolation="nearest")
-        ax.set_title(info["fname"] + " " + info["no_data_strategy"] + " " + info["scaling_strategy"])
-        ax.grid(True)
-        fig.colorbar(im, ax=ax)
+    # filtrar onehot
+    num_onehots = sum([1 for i in info_list if i["scaling_strategy"] == "onehot"])
+    num_no_onehots = len(info_list) - num_onehots
+    pre_aggclu_data = pre_aggclu_data[:, :num_no_onehots]
+
+    # indices sin onehots
+    nohots_idxs = [i for i, info in enumerate(info_list) if info["scaling_strategy"] != "onehot"]
+
+    # filtrar onehot de no_data_treated
+    no_data_imputed = no_data_imputed[:, nohots_idxs]
+
+    # reordenados en robust y despues standard
+    rob_std_idxs = [i for i, j in enumerate(nohots_idxs) if info_list[j]["scaling_strategy"] == "robust"]
+    rob_std_idxs += [i for i, j in enumerate(nohots_idxs) if info_list[j]["scaling_strategy"] == "standard"]
+
+    # reordenar rob then std
+    pre_aggclu_data = pre_aggclu_data[:, rob_std_idxs]
+
+    names = [info_list[i]["fname"] for i in nohots_idxs]
+
+    fgs = np.array(plt.rcParams["figure.figsize"]) * 5
+    fig, axs = plt.subplots(3, 2, figsize=fgs)
+    suptitle = ""
+    if n_clusters := kwargs.get("n_clusters"):
+        suptitle = f"n_clusters: {n_clusters}"
+    if distance_threshold := kwargs.get("distance_threshold"):
+        suptitle = f"distance_threshold: {distance_threshold}"
+    if sieve := kwargs.get("sieve"):
+        suptitle += f", sieve: {sieve}"
+    if n_clusters or distance_threshold or sieve:
+        suptitle += f", resulting clusters: {len(np.unique(labels_reshaped))}"
+    suptitle += "\n(Not showing categorical data)"
+    fig.suptitle(suptitle)
+
+    # plot violin plot
+    axs[0, 0].violinplot(no_data_imputed, showmeans=False, showmedians=True, showextrema=True)
+    axs[0, 0].set_title("Violin Plot of NoData Imputed")
+    axs[0, 0].yaxis.grid(True)
+    axs[0, 0].set_xticks([y + 1 for y in range(num_no_onehots)], labels=names)
+    axs[0, 0].set_ylabel("Observed values")
+
+    # plot boxplot
+    axs[0, 1].boxplot(no_data_imputed)
+    axs[0, 1].set_title("Box Plot of NoData Imputed")
+    axs[0, 1].yaxis.grid(True)
+    axs[0, 1].set_xticks([y + 1 for y in range(num_no_onehots)], labels=names)
+    axs[0, 1].set_ylabel("Observed values")
+
+    # plot violin plot
+    axs[1, 0].violinplot(pre_aggclu_data, showmeans=False, showmedians=True, showextrema=True)
+    axs[1, 0].set_title("Violin Plot of Common Rescaled")
+    axs[1, 0].yaxis.grid(True)
+    axs[1, 0].set_xticks([y + 1 for y in range(num_no_onehots)], labels=names)
+    axs[0, 1].set_ylabel("Adjusted range")
+
+    # plot boxplot
+    axs[1, 1].boxplot(pre_aggclu_data)
+    axs[1, 1].set_title("Box Plot of Common Rescaled")
+    axs[1, 1].yaxis.grid(True)
+    axs[1, 1].set_xticks([y + 1 for y in range(num_no_onehots)], labels=names)
+    axs[0, 1].set_ylabel("Adjusted range")
+
+    # cluster history
+    unique_labels, counts = np.unique(labels_reshaped, return_counts=True)
+    axs[2, 0].plot(unique_labels, counts, marker="o", color="blue")
+    axs[2, 0].set_title("Cluster history size (in pixels)")
+    axs[2, 0].set_xlabel("Algorithm Step")
+    axs[2, 0].set_ylabel("Size (in pixels)")
+
+    # cluster histogram
+    axs[2, 1].hist(counts, log=True)
+    axs[2, 1].set_xlabel("Cluster Size (in pixels)")
+    axs[2, 1].set_ylabel("Number of Clusters")
+    axs[2, 1].set_title("Histogram of Cluster Sizes")
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.4, hspace=0.4)
-    plt.show()
-
-    # make a histogram of the last plot
-    flat_labels = data_list[-1].flatten()
-    info = info_list[-1]
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.hist(flat_labels)
-    ax1.set_title(
-        "histogram pixel count per cluster"
-        + info["fname"]
-        + " "
-        + info["no_data_strategy"]
-        + " "
-        + info["scaling_strategy"]
-    )
-
-    # Get the unique labels and their counts
-    unique_labels, counts = np.unique(flat_labels, return_counts=True)
-    # Plot a histogram of the cluster sizes
-    ax2.hist(counts, log=True)
-    ax2.set_xlabel("Cluster Size (in pixels)")
-    ax2.set_ylabel("Number of Clusters")
-    ax2.set_title("Histogram of Cluster Sizes")
-
-    plt.show()
+    if filename := kwargs.get("filename"):
+        logger.info(f"Saving plot to {filename}")
+        plt.savefig(filename)
+    else:
+        if block := kwargs.get("block"):
+            plt.show(block=block)
+        else:
+            plt.show()
 
 
 def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
@@ -530,6 +605,29 @@ def arg_parser(argv=None):
         help="Use GDAL sieve filter to merge small clusters (number of pixels) into the biggest neighbor",
     )
     parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
+
+    plot = parser.add_argument_group(
+        "Plotting, Visually inspect input distributions: NoData treated observations, rescaled data, with violing plots and boxplots. Also check output clustering size history and histograms"
+    )
+    plot.add_argument(
+        "-p",
+        "--plots",
+        action="store_true",
+        help="Activate the plotting routines",
+    )
+    plot.add_argument(
+        "-b",
+        "--block",
+        action="store_false",
+        default=True,
+        help="Block the execution until the plot window is closed. Use False for interactive ipykernels or QGIS",
+    )
+    plot.add_argument(
+        "-f",
+        "--filename",
+        type=str,
+        help="Filename to save the plot. If not provided, matplotlib will raise a window",
+    )
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
     if Path(args.config_file).is_file() is False:
@@ -600,16 +698,18 @@ def main(argv=None):
         width,
         n_clusters=args.n_clusters,
         distance_threshold=args.distance_threshold,
-    )
+    )  # insert more keyworded arguments to the clustering algorithm here!
 
     # SIEVE
     if args.sieve:
+        logger.info(f"Number of clusters before sieving: {len(np.unique(labels_reshaped))}")
         labels_reshaped = sieve_filter(labels_reshaped, args.sieve)
 
     logger.info(f"Final number of clusters: {len(np.unique(labels_reshaped))}")
 
-    # 7 debug postprocess
-    # postprocess(labels_reshaped, pipeline, data_list, info_list, width, height, args)
+    # 7 debbuging plots
+    if args.plots:
+        plot(labels_reshaped, pipeline, info_list, **vars(args))
 
     # 8. ESCRIBIR RASTER
     if not args.no_write:
@@ -626,7 +726,7 @@ def main(argv=None):
 
     # 9. SCRIPT MODE
     if args.script:
-        return labels_reshaped, pipeline
+        return labels_reshaped, pipeline  # en ipython me falla tambien
 
     return 0
 
