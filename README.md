@@ -39,7 +39,7 @@ digraph = digraph_from_messages('messages01.csv')
    - A. Open File Explorer, go to `C:\Program Files\QGIS 3.38.3\apps`, right-click `Python312` folder [Show more options]\Properties\Security\Edit\Allow Full control\OK
    - B. Open cmd administrator terminal, type:
      ```
-     icacls "C:\Program Files\QGIS 3.38.3\apps\Python312" /grant %username%:F`
+     icacls "C:\Program Files\QGIS 3.38.3\apps\Python312" /grant %username%:F /T
      ```
    - C. Open administrator powershell, type:
      ```
