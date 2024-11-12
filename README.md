@@ -41,15 +41,6 @@ digraph = digraph_from_messages('messages01.csv')
      ```
      icacls "C:\Program Files\QGIS 3.38.3\apps\Python312" /grant %username%:F /T
      ```
-   - C. Open administrator powershell, type:
-     ```
-     $path = "C:\Program Files\QGIS 3.38.3\apps\Python312"
-     $username = $env:USERNAME
-     $acl = Get-Acl $path
-     $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule($username, "FullControl", "Allow")
-     $acl.SetAccessRule($accessRule)
-     Set-Acl -Path $path -AclObject $acl
-     ```
 
      
 2. Locate python, prepare environment
