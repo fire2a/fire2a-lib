@@ -48,7 +48,7 @@ def test_agg1(request, tmp_path):
 
     with MonkeyPatch.context() as mp:
         mp.chdir(tmp_path)
-        label_map, pipeline = main(["-s", "-n", "10", "config.toml"])
+        label_map, pipe1, pipe2 = main(["-s", "-n", "10", "config.toml"])
         assert Path("output.gpkg").is_file()
 
     assert label_map.shape == (597, 658)
