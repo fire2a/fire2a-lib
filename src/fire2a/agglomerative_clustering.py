@@ -5,9 +5,9 @@
 ## Usage
 ### Overview
 1. Choose your raster files
-2. Configure nodata and scaling strategies in the `config.toml` file
-3. Choose "number of clusters" or "distance threshold" for the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm
-   - Start with a distance threshold of 10.0 and decrease for less or increase for more clusters
+2. Configure nodata, scaling strategies and weights in the `config.toml` file
+3. Choose "distance threshold" (or "number of clusters") for the [Agglomerative](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) clustering algorithm. Recommended:
+   - Start with a distance threshold of 10.0 and decrease for more or increase for less clusters
    - After calibrating the distance threshold; 
    - [Sieve](https://gdal.org/en/latest/programs/gdal_sieve.html) small clusters (merge them to the biggest neighbor) with the `--sieve integer_pixels_size` option 
 
@@ -41,6 +41,7 @@ See the `config.toml` file for example of the configuration of the preprocessing
 no_data_strategy = "most_frequent"
 scaling_strategy = "onehot"
 fill_value = 0
+weight = 1
 ```
 
 1. __scaling_strategy__
@@ -62,13 +63,33 @@ fill_value = 0
    - default is 0
    - [SimpleImputer](https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html)
 
+4. __weight__
+   - default is 1
+   - used to give more importance to some features than others
+   - This is done after the nodata imputation and scaling steps, before clustering
+
 
 #### 3. Clustering configuration
+
 1. __Agglomerative__ clustering algorithm is used. The following parameters are muttually exclusive:
 - `-n` or `--n_clusters`: The number of clusters to form as well as the number of centroids to generate.
 - `-d` or `--distance_threshold`: The linkage distance threshold above which, clusters will not be merged. When scaling start with 10.0 and downward (0.0 is compute the whole algorithm).
+- More [parameters](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html) for clustering can be passed directly into the pipelie method as keyword arguments
 
-For passing more parameters, see [here](https://scikit-learn.org/stable/modules/generated/sklearn.cluster.AgglomerativeClustering.html)
+2. __Sieve filter__ is applied to remove small clusters. The sieve filter is applied using the [GDAL sieve library](https://gdal.org/en/latest/programs/gdal_sieve.html#gdal-sieve)
+- `--sieve`: Use GDAL sieve filter to merge small clusters (number of pixels) into the biggest neighbor
+
+#### 4. Post-processing
+Outputs can be:
+- A raster file with the cluster labels and a polygon file with the cluster polygons
+- A polygon file with the cluster polygons, with attribute being the number of pixels in each cluster
+- A plot of the input data distributions, the rescaled data distributions, and the cluster size history and histogram (crashes QGIS in windows)
+
+Or use the `--script` option to return the label_map and the pipeline object for further processing in another python script:
+    ```python
+    from fire2a.agglomerative_clustering import main
+    label_map, pipe1, pipe2 = main(["-d", "10.0", "-s"])
+    ```
 """
 # fmt: on
 # from IPython.terminal.embed import InteractiveShellEmbed
@@ -159,22 +180,22 @@ class NoDataImputer(BaseEstimator, TransformerMixin):
 class RescaleAllToCommonRange(BaseEstimator, TransformerMixin):
     """A custom transformer that rescales all features to a common range [0, 1]"""
 
-    def __init__(self):
-        pass
+    def __init__(self, weight_map):
+        self.weight_map = weight_map
 
     def fit(self, X, y=None):
         # Determine the combined range of all scaled features
-        self.min_val = [x.min() for x in X]
-        self.max_val = [x.max() for x in X]
+        self.min_val = [x.min() for x in X.T]
+        self.max_val = [x.max() for x in X.T]
         return self
 
     def transform(self, X):
         # Rescale all features to match the common range
-        for i, (x, mi, ma) in enumerate(zip(X, self.min_val, self.max_val)):
+        for i, (x, mi, ma) in enumerate(zip(X.T, self.min_val, self.max_val)):
             if ma - mi == 0:
-                X[i] = x
+                X.T[i] = x * self.weight_map[i]
             else:
-                X[i] = (x - mi) / (ma - mi)
+                X.T[i] = (x - mi) / (ma - mi) * self.weight_map[i]
         return X
 
 
@@ -235,6 +256,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
     no_data_values = [info["NoDataValue"] for info in info_list]
     no_data_strategies = [info["no_data_strategy"] for info in info_list]
     fill_values = [info["fill_value"] for info in info_list]
+    weights = [info["weight"] for info in info_list]
     # scaling_strategies = [info["scaling_strategy"] for info in info_list]
 
     # scaling strategies
@@ -248,6 +270,7 @@ def pipelie(observations, info_list, height, width, **kwargs):
     robust_transformer = Pipeline(steps=[("robust_step", RobustScaler())])
     standard_transformer = Pipeline(steps=[("standard_step", StandardScaler())])
     onehot_transformer = Pipeline(steps=[("onehot_step", OneHotEncoder(sparse_output=False))])
+    # OneHotEncoder._n_features_outs):
 
     # Combine transformers using ColumnTransformer
     feature_scaler = ColumnTransformer(
@@ -266,11 +289,37 @@ def pipelie(observations, info_list, height, width, **kwargs):
     # memory = joblib.Memory(location=temp_dir, verbose=0)
 
     # Create and apply the pipeline
-    pipeline = Pipeline(
+    # part 1 until feature scaling
+    pipe1 = Pipeline(
+        # n_features_in_ : int
+        # feature_names_in_ : ndarray of shape (`n_features_in_`,)
         steps=[
             ("no_data_imputer", NoDataImputer(no_data_values, no_data_strategies, fill_values)),
             ("feature_scaling", feature_scaler),
-            ("common_rescaling", RescaleAllToCommonRange()),
+        ],
+        # memory=memory,
+        verbose=True,
+    )
+    # map weights to new columns (onehot feature scaler creates one column per category)
+    obs1 = pipe1.fit_transform(observations)
+    cat_names = pipe1.named_steps["feature_scaling"]["onehot"].get_feature_names_out()
+    split_names = [name.split("_")[0] for name in cat_names]
+    cat_count = np.unique(split_names, return_counts=True)[1]
+    onehot_map = {}
+    for i, key in enumerate(index_map["onehot"]):
+        onehot_map[key] = cat_count[i]
+    # onehot_map = {key: cat_count[i] for i, key in enumerate(index_map["onehot"])}
+    weight_map = []
+    for name, idxs in index_map.items():
+        for idx in idxs:
+            if name == "onehot":
+                weight_map += [weights[idx]] * onehot_map[idx]
+                continue
+            weight_map += [weights[idx]]
+    # part 2 use weight_map and cluster
+    pipe2 = Pipeline(
+        steps=[
+            ("common_rescaling", RescaleAllToCommonRange(weight_map)),
             ("agglomerative_clustering", CustomAgglomerativeClustering(height, width, neighbors=4, **kwargs)),
         ],
         # memory=memory,
@@ -278,11 +327,11 @@ def pipelie(observations, info_list, height, width, **kwargs):
     )
 
     # apply pipeLIE
-    labels = pipeline.fit_predict(observations)
+    labels = pipe2.fit_predict(obs1)
 
     # Reshape the labels back to the original spatial map shape
     labels_reshaped = labels.reshape(height, width)
-    return labels_reshaped, pipeline
+    return labels_reshaped, pipe1, pipe2
 
 
 def write(
@@ -399,11 +448,12 @@ def write(
     return True
 
 
-def plot(labels_reshaped, pipeline, info_list, **kwargs):
+def plot(labels_reshaped, pipe1, pipe2, info_list, **kwargs):
     """Plot the observed values of the input data, the rescaled data, and the cluster size history and histogram.
     Args:
         labels_reshaped (np.ndarray): The reshaped labels of the clusters
-        pipeline (Pipeline): The pipeline object containing all the steps of the pipeline
+        pipe1 (Pipeline): The first pipeline object containing imputer and feature scaling steps
+        pipe2 (Pipeline): The second pipeline object containing the rescaling and clustering steps
         info_list (list): A list of dictionaries containing information about each feature
         **kargs: Additional keyword arguments
             n_clusters (int): The number of clusters
@@ -414,8 +464,8 @@ def plot(labels_reshaped, pipeline, info_list, **kwargs):
     """
     from matplotlib import pyplot as plt
 
-    no_data_imputed = pipeline.named_steps["no_data_imputer"].output_data
-    pre_aggclu_data = pipeline.named_steps["agglomerative_clustering"].input_data
+    no_data_imputed = pipe1.named_steps["no_data_imputer"].output_data
+    pre_aggclu_data = pipe2.named_steps["agglomerative_clustering"].input_data
 
     # filtrar onehot
     num_onehots = sum([1 for i in info_list if i["scaling_strategy"] == "onehot"])
@@ -667,6 +717,8 @@ def main(argv=None):
             config[filename]["scaling_strategy"] = "robust"
         if "fill_value" not in file_config:
             config[filename]["fill_value"] = 0
+        if "weight" not in file_config:
+            config[filename]["weight"] = 1
     logger.debug(config)
 
     # 3. LEE DATA
@@ -679,6 +731,7 @@ def main(argv=None):
         info["no_data_strategy"] = file_config["no_data_strategy"]
         info["scaling_strategy"] = file_config["scaling_strategy"]
         info["fill_value"] = file_config["fill_value"]
+        info["weight"] = file_config["weight"]
         data_list += [data]
         info_list += [info]
         logger.debug("%s", data[:2, :2])
@@ -691,7 +744,7 @@ def main(argv=None):
     observations = np.column_stack([data.ravel() for data in data_list])
 
     # 6. nodata -> feature scaling -> all scaling -> clustering
-    labels_reshaped, pipeline = pipelie(
+    labels_reshaped, pipe1, pipe2 = pipelie(
         observations,
         info_list,
         height,
@@ -709,7 +762,7 @@ def main(argv=None):
 
     # 7 debbuging plots
     if args.plots:
-        plot(labels_reshaped, pipeline, info_list, **vars(args))
+        plot(labels_reshaped, pipe1, pipe2, info_list, **vars(args))
 
     # 8. ESCRIBIR RASTER
     if not args.no_write:
@@ -726,7 +779,7 @@ def main(argv=None):
 
     # 9. SCRIPT MODE
     if args.script:
-        return labels_reshaped, pipeline  # en ipython me falla tambien
+        return labels_reshaped, pipe1, pipe2
 
     return 0
 
