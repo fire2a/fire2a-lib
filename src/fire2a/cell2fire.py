@@ -590,9 +590,11 @@ def build_stats(
     if stat_summary:
         summed = np_zeros((H, W), dtype=np_float32)
         sumsquared = np_zeros((H, W), dtype=np_float32)
+        burncount = np_zeros((H, W), dtype=np_float32)
     else:
         summed = None
         sumsquared = None
+        burncount = None
 
     count = 0
     for afile in files:
@@ -630,6 +632,7 @@ def build_stats(
         if stat_summary:
             summed[data != -9999] += data[data != -9999]
             sumsquared[data != -9999] += data[data != -9999] ** 2
+            burncount[(data != -9999) & (data != 0)] += 1
 
         if callback:
             callback(count / len(files) * 100, f"Processed Statistic {count}/{len(files)}")
@@ -646,10 +649,11 @@ def build_stats(
         stat_summary_ds.SetGeoTransform(geotransform)
         stat_summary_ds.SetProjection(authid)
         # mean
-        N = len(files)
-        mean = summed / N
+        mask = burncount != 0
+        mean = np_zeros((H, W), dtype=np_float32) - 9999
+        mean[mask] = summed[mask] / burncount[mask]
         band = stat_summary_ds.GetRasterBand(1)
-        if 0 != band.SetNoDataValue(0):
+        if 0 != band.SetNoDataValue(-9999):
             fprint(
                 f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
@@ -658,9 +662,10 @@ def build_stats(
                 f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
         # std
-        stddev = np_sqrt(sumsquared / N - mean**2)
+        stddev = np_zeros((H, W), dtype=np_float32) - 9999
+        stddev[mask] = (sumsquared[mask] / burncount[mask] - mean[mask] ** 2) ** 0.5
         band = stat_summary_ds.GetRasterBand(2)
-        if 0 != band.SetNoDataValue(0):
+        if 0 != band.SetNoDataValue(-9999):
             fprint(
                 f"Set NoData failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
