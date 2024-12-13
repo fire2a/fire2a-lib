@@ -23,8 +23,6 @@ This code:
 * Reads the protection values from a gdal compatible raster file
 * Calculates the downstream protection value algorithm serially for windows, and parallel for linux
 * Is hooked up to usage_template/downstream_protection_value.ipynb for graphical exploration
-
-https://fire2a.github.io/fire2a-lib/src/fire2a/downstream_protection_value.html
 """
 import logging
 import re
