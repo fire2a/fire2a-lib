@@ -663,7 +663,10 @@ def build_stats(
             )
         # std
         stddev = np_zeros((H, W), dtype=np_float32) - 9999
-        stddev[mask] = (sumsquared[mask] / burncount[mask] - mean[mask] ** 2) ** 0.5
+        zero_mask = burncount == 0
+        burncount[zero_mask] = 1
+        stddev = np_sqrt(sumsquared / burncount - mean ** 2)
+        stddev[~mask] = -9999
         band = stat_summary_ds.GetRasterBand(2)
         if 0 != band.SetNoDataValue(-9999):
             fprint(
