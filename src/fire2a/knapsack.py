@@ -53,20 +53,28 @@ This example states the raster `filename.tif` values will be rescaled using the 
    - for categorical data it does not make sense!
 
 """
+# fmt: on
 import logging
 import sys
 from pathlib import Path
 
 import numpy as np
+from matplotlib import pyplot as plt
 
-from fire2a.utils import fprint, read_toml
+from fire2a.utils import read_toml
 
 logger = logging.getLogger(__name__)
 
 config_attrs = ["value_rescaling", "value_weight", "capacity_sense", "capacity_ratio"]
 config_types = [str, float, str, float]
 config_def = ["", np.nan, "", np.nan]
-config_allowed = {"value_rescaling": ["minmax", "standard", "robust", "onehot"], "capacity_sense": ["<=", ">=", "leq", "geq", "ub", "lb", ""]}
+allowed_ub = ["<=", "leq", "ub"]
+allowed_lb = [">=", "geq", "lb"]
+config_allowed = {
+    "value_rescaling": ["minmax", "standard", "robust", "onehot"],
+    "capacity_sense": allowed_ub + allowed_lb,
+}
+
 
 def check_shapes(data_list):
     """Check if all data arrays have the same shape and are 2D.
@@ -87,6 +95,7 @@ def check_shapes(data_list):
     height, width = shape
     return height, width
 
+
 def pipelie(observations, config):
     """Create a pipeline for the observations and the configuration."""
     from sklearn.compose import ColumnTransformer
@@ -99,6 +108,7 @@ def pipelie(observations, config):
         "standard": StandardScaler(),
         "robust": RobustScaler(),
         "onehot": OneHotEncoder(),
+        "passthrough": "passthrough",
     }
 
     # 2. PIPELINE
@@ -108,10 +118,11 @@ def pipelie(observations, config):
                 "scaler",
                 ColumnTransformer(
                     [
-                        (item['name'], scalers.get(item.get("value_rescaling")), [i])
-                        for i, item in enumerate(config) if item.get("value_rescaling")
+                        (item["name"], scalers.get(item.get("value_rescaling")), [i])
+                        for i, item in enumerate(config)
+                        if item.get("value_rescaling")
                     ],
-                    remainder="passthrough",
+                    remainder="drop",
                 ),
             )
         ],
@@ -120,8 +131,12 @@ def pipelie(observations, config):
 
     # 3. FIT
     scaled = pipe.fit_transform(observations)
-    feat_names = pipe.named_steps['scaler'].get_feature_names_out()
-    return scaled, pipe, feat_names 
+    feat_names = pipe.named_steps["scaler"].get_feature_names_out()
+    logger.debug("Pipeline input: %s", [{itm.get("name"): itm.get("value_rescaling")} for itm in config])
+    logger.debug("Pipeline output: feat_names:%s", feat_names)
+    logger.debug("Pipeline output: scaled.shape:%s", scaled.shape)
+    return scaled, pipe, feat_names
+
 
 def arg_parser(argv=None):
     """Parse command line arguments."""
@@ -165,12 +180,15 @@ def arg_parser(argv=None):
         parser.error(f"File {args.config_file} not found")
     return args
 
+
 def main(argv=None):
     """
 
     args = arg_parser(["-vvv", "tmpp9r9e05_.toml"])
     args = arg_parser(["-vvv", "tmpaca3giia.toml"])
      --authid EPSG:32718 --geotransform (720874.0, 100.0, 0.0, 5680572.0, 0.0, -100.0)
+
+     args = arg_parser(["-vvv", "tmpwrtvbldt.toml", "--authid", "EPSG:3978", "--geotransform", "(457900.0, 100.0, 0.0, 5739100.0, 0.0, -100.0)", "--output_raster", "/tmp/processing_UfvZvG/b15b55b7ef344024a01d4680fa43c43a/OUT_LAYER.gpkg"])
     """
     if argv is sys.argv:
         argv = sys.argv[1:]
@@ -186,55 +204,48 @@ def main(argv=None):
 
     # 2 LEE CONFIG
     config = read_toml(args.config_file)
-    a,b = list(config.keys()), list(config.values())
-    config = [ {'name': Path(a).name, 'filename': Path(a), **b} for a,b in zip(a,b) ]
+    # dict -> list[dict]
+    a, b = list(config.keys()), list(config.values())
+    config = [{"name": Path(a).name, "filename": Path(a), **b} for a, b in zip(a, b)]
     for itm in config:
         logger.debug(itm)
 
-    # 2.1 CHECK PAIRS
+    # 2.1 CHECK PAIRS + defaults
+    # vr : value_rescaling
+    # vw : value_weight
+    # cr : capacity_ratio
+    # cs : capacity_sense
     for itm in config:
-        if cr:=itm.get("capacity_ratio"):
-            if not (-1 < cr < 1):
-                logger.critical("Wrong value for capacity_ratio in %s, should be (-1,1)", itm)
-                sys.exit(1)
-            if "capacity_sense" not in itm:
-                logger.warning("capacity_ratio without capacity_sense for item: %s\n ASSUMING SENSE IS UPPER BOUND", itm["name"])
-                itm["capacity_sense"] = "ub"
-        elif "capacity_sense" in itm:
-            logger.critical("capacity_sense without capacity_ratio for item: %s", itm["name"])
-            sys.exit(1)
-        if vr:=itm.get("value_rescaling"):
+        if vr := itm.get("value_rescaling"):
+            # !vr? =>!<=
             if vr not in config_allowed["value_rescaling"]:
                 logger.critical("Wrong value for value_rescaling in %s", itm)
                 sys.exit(1)
+            # vr & !vw => vw = 1
             if "value_weight" not in itm:
-                logger.warning("value_rescaling without value_weight for item: %s\n ASSUMING VALUE WEIGHT IS 1", itm["name"])
+                logger.warning(
+                    "value_rescaling without value_weight for item: %s\n ASSUMING VALUE WEIGHT IS 1", itm["name"]
+                )
                 itm["value_weight"] = 1
+        # !vr & vw => vr = passthrough
         elif "value_weight" in itm:
-            logger.warning("value_weight without value_rescaling for item: %s\n PASS THROUGH RESCALING", itm["name"])
-    # 2.1 ADD DEFAULTS
-    # for item in config:
-    #     for attr in config_attrs:
-    #         if attr not in item:
-    #             item[attr] = config_def[config_attrs.index(attr)]
-    #             print("adding default", attr, item[attr])
-    # for item in config:
-    #     #  val_resc & !val_weig ->  ?
-    #     #  !val_resc & val_weig ->  ?
-    #     #  cap_rati & !cap_sens ->  cap_sens = ub
-    #     if np.isfinite(item['capacity_ratio']) and item['capacity_sense'] == "":
-    #         item['capacity_sense'] = 'ub'
-    #         print("adding default", 'capacity_sense', item['capacity_sense'])
-    #     # !cap_rati &  cap_sens -> !cap_sens
-    #     if item['capacity_ratio'] is np.nan and item['capacity_sense'] != "":
-    #         item['capacity_sense'] = ""
-    #         print("adding default", 'capacity_sense', item['capacity_sense'])
-    # for item in config:
-    #     for key in item:
-    #         if key in config_allowed:
-    #             assert item[key] in config_allowed[key], f"Wrong value for {key} in {item}"
-    #     logger.info("%s", item)
-    # logger.debug(config)
+            logger.warning("value_weight without value_rescaling for item: %s\n PASSTHROUGH RESCALING", itm["name"])
+            itm["value_rescaling"] = "passthrough"
+        if cr := itm.get("capacity_ratio"):
+            # cr not in (-1,1) =>!<=
+            if not (-1 < cr < 1):
+                logger.critical("Wrong value for capacity_ratio in %s, should be (-1,1)", itm)
+                sys.exit(1)
+            # cr & !cs => cs = ub
+            if "capacity_sense" not in itm:
+                logger.warning(
+                    "capacity_ratio without capacity_sense for item: %s\n ASSUMING SENSE IS UPPER BOUND", itm["name"]
+                )
+                itm["capacity_sense"] = "ub"
+        # !cr & cs =>!<=
+        elif "capacity_sense" in itm:
+            logger.critical("capacity_sense without capacity_ratio for item: %s", itm["name"])
+            sys.exit(1)
 
     # 3. LEE DATA
     from fire2a.raster import read_raster
@@ -251,21 +262,41 @@ def main(argv=None):
     # 5. lista[mapas] -> OBSERVACIONES
     all_observations = np.column_stack([data.ravel() for data in data_list])
 
-    # 6. if all rasters are nodata then mask out 
-    nodatas = [ item["NoDataValue"] for item in config ]
+    # 6. if all rasters are nodata then mask out
+    nodatas = [item["NoDataValue"] for item in config]
     nodata_mask = np.all(all_observations == nodatas, axis=1)
     logger.info("All rasters NoData: %s pixels", nodata_mask.sum())
     observations = all_observations[~nodata_mask]
 
-    # 7. nodata -> 0 
+    # 7. nodata -> 0
     for col, nd in zip(observations.T, nodatas):
-        col[col == nd ] = 0
+        col[col == nd] = 0
+
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].violinplot(observations, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].set_title("observations")
+    ax[0].set_xticks(range(1, len(config) + 1), [itm["name"] for i, itm in enumerate(config)])
+    ax[1].boxplot(observations)
+    ax[1].set_title("observations")
+    ax[1].set_xticks(range(1, len(config) + 1), [itm["name"] for i, itm in enumerate(config)])
+    plt.show()
+    plt.close()
 
     # scaling
     # 8. PIPELINE
     scaled, pipe, feat_names = pipelie(observations, config)
     assert observations.shape[0] == scaled.shape[0]
-    assert observations.shape[1] <= scaled.shape[1]
+    assert observations.shape[1] >= scaled.shape[1]
+
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].violinplot(scaled, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].set_title("scaled")
+    ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
+    ax[1].boxplot(scaled)
+    ax[1].set_title("scaled")
+    ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
+    plt.show()
+    plt.close()
 
     # weights
     values_weights = []
@@ -274,16 +305,29 @@ def main(argv=None):
             if name.startswith(item["name"]):
                 values_weights += [item["value_weight"]]
 
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    ax[0].violinplot(values_weights * scaled, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].set_title("scaled weighted")
+    ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
+    ax[1].boxplot(values_weights * scaled)
+    ax[1].set_title("scaled weighted")
+    ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
+    plt.show()
+    plt.close()
+
     # capacities
-    # ["<=", "leq", "ub"]
-    # [">=", "geq", "lb"]
-    cap_cfg= [ {"idx": i,
+    # "name": item["filename"].name.replace('.','_'),
+    cap_cfg = [
+        {
+            "idx": i,
             "name": item["filename"].stem,
-             "cap": observations[:,i].sum() * item["capacity_ratio"],
-             "sense": item["capacity_sense"]}
-              for i,item in enumerate(config) if item["capacity_ratio"] is not np.nan
-           ]
-    cap_data = observations[:,[itm["idx"] for itm in cap_cfg]] 
+            "cap": observations[:, i].sum() * item["capacity_ratio"],
+            "sense": item["capacity_sense"],
+        }
+        for i, item in enumerate(config)
+        if "capacity_ratio" in item
+    ]
+    cap_data = observations[:, [itm["idx"] for itm in cap_cfg]]
 
     # 9. PYOMO MODEL & SOLVE
     from pyomo import environ as pyo
@@ -293,41 +337,61 @@ def main(argv=None):
     # sets
     m.V = pyo.RangeSet(0, scaled.shape[1] - 1)
     scaled_n, scaled_v = scaled.nonzero()
-    m.NV = pyo.Set( initialize=[(n,v) for n,v in zip(scaled_n, scaled_v)] )
+    m.NV = pyo.Set(initialize=[(n, v) for n, v in zip(scaled_n, scaled_v)])
     m.W = pyo.RangeSet(0, len(cap_cfg) - 1)
     cap_data_n, cap_data_v = cap_data.nonzero()
-    m.NW = pyo.Set( initialize=[(n,w) for n,w in zip(cap_data_n, cap_data_v)] )
+    m.NW = pyo.Set(initialize=[(n, w) for n, w in zip(cap_data_n, cap_data_v)])
     both_nv_nw = list(set(scaled_n) | set(cap_data_n))
     both_nv_nw.sort()
-    m.N = pyo.Set( initialize=both_nv_nw)
+    m.N = pyo.Set(initialize=both_nv_nw)
     # parameters
-    m.scaled_values = pyo.Param(m.NV, initialize=lambda m, n, v: scaled[n,v])
+    m.scaled_values = pyo.Param(m.NV, initialize=lambda m, n, v: scaled[n, v])
     m.values_weight = pyo.Param(m.V, initialize=values_weights)
     m.total_capacity = pyo.Param(m.W, initialize=[itm["cap"] for itm in cap_cfg])
-    m.capacity_weight = pyo.Param(m.NW, initialize=lambda m, n, w: cap_data[n,w])
+    m.capacity_weight = pyo.Param(m.NW, initialize=lambda m, n, w: cap_data[n, w])
     # variables
     m.X = pyo.Var(m.N, within=pyo.Binary)
+
     # constraints
     def capacity_rule(m, w):
-        if cap_cfg[w]["sense"] in ["<=", "leq", "ub"]:
-            return sum(m.X[n] * m.capacity_weight[n,w] for n,ww in m.NW if ww==w) <= m.total_capacity[w]
-        elif cap_cfg[w]["sense"] in [">=", "geq", "lb"]:
-            return sum(m.X[n] * m.capacity_weight[n,w] for n,ww in m.NW if ww==w) >= m.total_capacity[w]
+        if cap_cfg[w]["sense"] in allowed_ub:
+            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) <= m.total_capacity[w]
+        elif cap_cfg[w]["sense"] in allowed_lb:
+            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) >= m.total_capacity[w]
         else:
-            logger.critical("Wrong sense for capacity constraint")
+            logger.critical("Skipping capacity constraint %s, %s", w, cap_cfg[w])
             return pyo.Constraint.Skip
-    m.capacity = pyo.Constraint(m.W, rule=capacity_rule)
 
+    m.capacity = pyo.Constraint(m.W, rule=capacity_rule)
     # objective
     m.obj = pyo.Objective(
-        expr=sum(m.values_weight[v] * sum(m.X[n]* m.scaled_values[n,v] for n,vv in m.NV if vv==v) for v in m.V),
+        expr=sum(m.values_weight[v] * sum(m.X[n] * m.scaled_values[n, v] for n, vv in m.NV if vv == v) for v in m.V),
         sense=pyo.maximize,
     )
 
     from pyomo.opt import SolverFactory
+
     opt = SolverFactory("cplex")
     results = opt.solve(m, tee=True)
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=float)
     slacks = m.capacity[:].slack()
-    [ print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}") for i,itm in enumerate(cap_cfg) ]
-    m.obj()
+    print("objective", m.obj())
+    print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
+    [print(f, v) for f, v in zip(feat_names, np.matmul(scaled.T, soln))]
+    [print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}") for i, itm in enumerate(cap_cfg)]
+
+    if args.script:
+        return soln, pipe
+    else:
+        # 10. WRITE OUTPUTS
+        from fire2a.raster import write_raster
+
+        if args.output_raster:
+            if not write_raster(
+                soln.reshape(height, width),
+                args.output_raster,
+                driver_name="GPKG",
+                authid=args.authid,
+                geotransform=args.geotransform,
+            ):
+                logger.error("Error writing output raster")
