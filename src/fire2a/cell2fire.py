@@ -566,6 +566,8 @@ def build_stats(
     callback=None,
     feedback=None,
 ):
+    """Builds final statistics raster (1 band per-simulation) and summary raster (2 bands: mean against pixel burn count and stdev against total number of simulations) files
+    """
     from numpy import float32 as np_float32
     from numpy import loadtxt as np_loadtxt
     from numpy import sqrt as np_sqrt
@@ -630,9 +632,11 @@ def build_stats(
                 stat_raster_ds.FlushCache()
 
         if stat_summary:
-            summed[data != -9999] += data[data != -9999]
-            sumsquared[data != -9999] += data[data != -9999] ** 2
-            burncount[(data != -9999) & (data != 0)] += 1
+            mask = data != -9999
+            tmp = data[mask]
+            summed[mask] += tmp
+            sumsquared[mask] += tmp ** 2
+            burncount[mask & (data != 0)] += 1
 
         if callback:
             callback(count / len(files) * 100, f"Processed Statistic {count}/{len(files)}")
@@ -662,11 +666,15 @@ def build_stats(
                 f"WriteArray failed for Statistic {count}: {afile}", level="warning", feedback=feedback, logger=logger
             )
         # std
-        stddev = np_zeros((H, W), dtype=np_float32) - 9999
-        zero_mask = burncount == 0
-        burncount[zero_mask] = 1
-        stddev = np_sqrt(sumsquared / burncount - mean ** 2)
-        stddev[~mask] = -9999
+        # from all simulations
+        N = len(files)
+        stddev = np_sqrt(sumsquared / N - (summed/N)**2)
+        # beacause this is always zero:
+        # stddev = np_zeros((H, W), dtype=np_float32) - 9999
+        # zero_mask = burncount == 0
+        # burncount[zero_mask] = 1
+        # stddev = np_sqrt(sumsquared / burncount - mean ** 2)
+        # stddev[~mask] = -9999
         band = stat_summary_ds.GetRasterBand(2)
         if 0 != band.SetNoDataValue(-9999):
             fprint(
