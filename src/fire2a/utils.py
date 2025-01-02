@@ -203,11 +203,11 @@ def count_header_lines(file, sep=" ", feedback=None):
                 header_count += 1
     if header_count == 0 or header_count > 6:
         fprint(
-            "Weird header count: %s found! (%s) Check %s file. Maybe replace commas, for periods.?".format(),
+            f"Weird header count: {header_count} found! ({found}) Check {file} file. Maybe replace commas, for periods.?",
             level="warning",
             feedback=feedback,
             logger=logger,
         )
-    fprint("First number found: %s".format(), level="debug", feedback=feedback, logger=logger)
-    fprint("Number headers lines: %s, in file %s".format(), level="info", feedback=feedback, logger=logger)
+    fprint(f"First number found: {found}", level="debug", feedback=feedback, logger=logger)
+    fprint(f"Number headers lines: {header_count}, in file {file}", level="info", feedback=feedback, logger=logger)
     return header_count
