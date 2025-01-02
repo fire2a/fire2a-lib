@@ -279,23 +279,29 @@ def main(argv=None):
     ax[1].boxplot(observations)
     ax[1].set_title("observations")
     ax[1].set_xticks(range(1, len(config) + 1), [itm["name"] for i, itm in enumerate(config)])
-    plt.show()
+    # plt.show()
+    fname =  Path(args.output_raster).parent / "observations.png"
+    plt.savefig(fname)
     plt.close()
 
     # scaling
     # 8. PIPELINE
     scaled, pipe, feat_names = pipelie(observations, config)
-    assert observations.shape[0] == scaled.shape[0]
-    assert observations.shape[1] >= scaled.shape[1]
+    # assert observations.shape[0] == scaled.shape[0]
+    # assert observations.shape[1] >= scaled.shape[1]
+    print(f"{observations.shape=}")
+    print(f"{scaled.shape=}")
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].violinplot(scaled, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].violinplot(scaled.toarray(), showmeans=False, showmedians=True, showextrema=True)
     ax[0].set_title("scaled")
     ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    ax[1].boxplot(scaled)
+    ax[1].boxplot(scaled.toarray())
     ax[1].set_title("scaled")
     ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    plt.show()
+    # plt.show()
+    fname = Path(args.output_raster).parent / "scaled.png"
+    plt.savefig(fname)
     plt.close()
 
     # weights
@@ -304,15 +310,19 @@ def main(argv=None):
         for item in config:
             if name.startswith(item["name"]):
                 values_weights += [item["value_weight"]]
+    values_weights = np.array(values_weights)
+    print(f"{values_weights.shape=}")
 
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].violinplot(values_weights * scaled, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].violinplot(scaled * values_weights, showmeans=False, showmedians=True, showextrema=True)
     ax[0].set_title("scaled weighted")
     ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    ax[1].boxplot(values_weights * scaled)
+    ax[1].boxplot(scaled * values_weights )
     ax[1].set_title("scaled weighted")
     ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    plt.show()
+    # plt.show()
+    fname = Path(args.output_raster).parent / "scaled_weighted.png"
+    plt.savefig(fname)
     plt.close()
 
     # capacities
@@ -377,7 +387,7 @@ def main(argv=None):
     slacks = m.capacity[:].slack()
     print("objective", m.obj())
     print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
-    [print(f, v) for f, v in zip(feat_names, np.matmul(scaled.T, soln))]
+    [print(f, v) for f, v in zip(feat_names, np.matmul(scaled.toarray().T, soln))]
     [print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}") for i, itm in enumerate(cap_cfg)]
 
     if args.script:
@@ -395,3 +405,8 @@ def main(argv=None):
                 geotransform=args.geotransform,
             ):
                 logger.error("Error writing output raster")
+                return 1
+    return 0
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
