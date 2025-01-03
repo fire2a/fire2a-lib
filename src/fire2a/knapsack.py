@@ -174,11 +174,41 @@ def arg_parser(argv=None):
         default=False,
     )
     parser.add_argument("--verbose", "-v", action="count", default=0, help="WARNING:1, INFO:2, DEBUG:3")
+    parser.add_argument(
+        "-p",
+        "--plots",
+        action="store_true",
+        help="Activate the plotting routines (saves 3 .png files to the same output than the raster)",
+        default=True,
+    )
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
     if Path(args.config_file).is_file() is False:
         parser.error(f"File {args.config_file} not found")
     return args
+
+
+def aplot(data: np.ndarray, title: str, series_names: list[str], outpath: Path, show=__name__ == "__main__"):
+    """
+    names = [itm["name"] for i, itm in enumerate(config)]
+    outpath = Path(args.output_raster).parent
+    fname =  outpath / "observations.png"
+    """
+    if not isinstance(data, np.ndarray):
+        data = data.toarray()
+    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+    fig.suptitle(title)
+    ax[0].violinplot(data, showmeans=False, showmedians=True, showextrema=True)
+    ax[0].set_title("violinplot")
+    ax[0].set_xticks(range(1, len(series_names) + 1), series_names)
+    ax[1].boxplot(data)
+    ax[1].set_title("boxplot")
+    ax[1].set_xticks(range(1, len(series_names) + 1), series_names)
+    if show:
+        plt.show()
+    fname = outpath / (title + ".png")
+    plt.savefig(fname)
+    plt.close()
 
 
 def main(argv=None):
@@ -272,17 +302,10 @@ def main(argv=None):
     for col, nd in zip(observations.T, nodatas):
         col[col == nd] = 0
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].violinplot(observations, showmeans=False, showmedians=True, showextrema=True)
-    ax[0].set_title("observations")
-    ax[0].set_xticks(range(1, len(config) + 1), [itm["name"] for i, itm in enumerate(config)])
-    ax[1].boxplot(observations)
-    ax[1].set_title("observations")
-    ax[1].set_xticks(range(1, len(config) + 1), [itm["name"] for i, itm in enumerate(config)])
-    # plt.show()
-    fname =  Path(args.output_raster).parent / "observations.png"
-    plt.savefig(fname)
-    plt.close()
+    if args.plots:
+        aplot(
+            observations, "observations", [itm["name"] for i, itm in enumerate(config)], Path(args.output_raster).parent
+        )
 
     # scaling
     # 8. PIPELINE
@@ -292,17 +315,8 @@ def main(argv=None):
     print(f"{observations.shape=}")
     print(f"{scaled.shape=}")
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].violinplot(scaled.toarray(), showmeans=False, showmedians=True, showextrema=True)
-    ax[0].set_title("scaled")
-    ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    ax[1].boxplot(scaled.toarray())
-    ax[1].set_title("scaled")
-    ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    # plt.show()
-    fname = Path(args.output_raster).parent / "scaled.png"
-    plt.savefig(fname)
-    plt.close()
+    if args.plots:
+        aplot(scaled, "scaled", feat_names, Path(args.output_raster).parent)
 
     # weights
     values_weights = []
@@ -313,17 +327,8 @@ def main(argv=None):
     values_weights = np.array(values_weights)
     print(f"{values_weights.shape=}")
 
-    fig, ax = plt.subplots(1, 2, figsize=(10, 5))
-    ax[0].violinplot(scaled * values_weights, showmeans=False, showmedians=True, showextrema=True)
-    ax[0].set_title("scaled weighted")
-    ax[0].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    ax[1].boxplot(scaled * values_weights )
-    ax[1].set_title("scaled weighted")
-    ax[1].set_xticks(range(1, len(feat_names) + 1), feat_names)
-    # plt.show()
-    fname = Path(args.output_raster).parent / "scaled_weighted.png"
-    plt.savefig(fname)
-    plt.close()
+    if args.plots:
+        aplot(scaled * values_weights, "scaled_weighted", feat_names, Path(args.output_raster).parent)
 
     # capacities
     # "name": item["filename"].name.replace('.','_'),
@@ -383,12 +388,37 @@ def main(argv=None):
 
     opt = SolverFactory("cplex")
     results = opt.solve(m, tee=True)
+
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=float)
+    print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
+    soln[~soln.astype(bool)] = 0
+
     slacks = m.capacity[:].slack()
     print("objective", m.obj())
-    print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
-    [print(f, v) for f, v in zip(feat_names, np.matmul(scaled.toarray().T, soln))]
-    [print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}") for i, itm in enumerate(cap_cfg)]
+
+    if not isinstance(scaled, np.ndarray):
+        scaled = scaled.toarray()
+    vx = np.matmul(scaled.T, soln)
+
+    for f, v in zip(feat_names, vx):
+        print(f"{f}\t\t{v:.4f}")
+
+    if args.plots:
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        fig.suptitle("solution")
+        ax[0].set_title("positive objectives, abs(w*v*x)")
+        ax[0].pie(np.absolute(vx * values_weights), labels=feat_names, autopct="%1.1f%%")
+
+        cap_ratio = [slacks[i] / itm["cap"] for i, itm in enumerate(cap_cfg)]
+        ax[1].set_title("capacity slack ratios")
+        ax[1].bar([itm["name"] for itm in cap_cfg], cap_ratio)
+
+        # plt.show()
+        plt.savefig(Path(args.output_raster).parent / "solution.png")
+        plt.close()
+
+    for i, itm in enumerate(cap_cfg):
+        print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}")
 
     if args.script:
         return soln, pipe
@@ -397,16 +427,22 @@ def main(argv=None):
         from fire2a.raster import write_raster
 
         if args.output_raster:
+            # put soln into the original shape of all_observations using the reversal of nodata_mask
+            final = np.zeros(all_observations.shape[0]) - 9999
+            final[~nodata_mask] = soln
+            final = final.reshape(height, width)
             if not write_raster(
-                soln.reshape(height, width),
+                final,
                 args.output_raster,
                 driver_name="GPKG",
+                nodata=-9999,
                 authid=args.authid,
                 geotransform=args.geotransform,
             ):
                 logger.error("Error writing output raster")
                 return 1
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
