@@ -8,14 +8,19 @@ Select the best set of pixels maximizing the sum of several weighted rasters, mi
 1. Choose your raster files
 2. Configure, for values: scaling strategies and absolute weights in the `config.toml` file
 3. Configure, for capacites: capacity ratio in the `config.toml` file
-### Execution
-```bash
-# get command line help
-python -m fire2a.knapsack --help
+### Command line execution
+    ```bash
+    # get interface help
+    python -m fire2a.knapsack --help
 
-# run
-python -m fire2a.knapsack [config.toml]
-```
+    # run (in a qgis/gdal aware python environment)
+    python -m fire2a.knapsack [config.toml]
+    ```
+### Script integration
+    ```python
+    from fire2a.knapasack import main
+    soln, m, instance, args = main(["config.toml"])
+    ```
 ### Preparation
 #### 1. Choose your raster files
 - Any [GDAL compatible](https://gdal.org/en/latest/drivers/raster/index.html) raster will be read
@@ -60,6 +65,7 @@ from pathlib import Path
 
 import numpy as np
 from matplotlib import pyplot as plt
+from pyomo import environ as pyo
 
 from fire2a.utils import read_toml
 
@@ -211,15 +217,56 @@ def aplot(data: np.ndarray, title: str, series_names: list[str], outpath: Path, 
     plt.close()
 
 
-def main(argv=None):
-    """
+def get_model(scaled=None, values_weights=None, cap_cfg=None, cap_data=None, **kwargs):
 
-    args = arg_parser(["-vvv", "tmpp9r9e05_.toml"])
-    args = arg_parser(["-vvv", "tmpaca3giia.toml"])
-     --authid EPSG:32718 --geotransform (720874.0, 100.0, 0.0, 5680572.0, 0.0, -100.0)
+    # m model
+    m = pyo.ConcreteModel("MultiObjectiveKnapsack")
+    # sets
+    m.V = pyo.RangeSet(0, scaled.shape[1] - 1)
+    scaled_n, scaled_v = scaled.nonzero()
+    m.NV = pyo.Set(initialize=[(n, v) for n, v in zip(scaled_n, scaled_v)])
+    m.W = pyo.RangeSet(0, len(cap_cfg) - 1)
+    cap_data_n, cap_data_v = cap_data.nonzero()
+    m.NW = pyo.Set(initialize=[(n, w) for n, w in zip(cap_data_n, cap_data_v)])
+    both_nv_nw = list(set(scaled_n) | set(cap_data_n))
+    both_nv_nw.sort()
+    m.N = pyo.Set(initialize=both_nv_nw)
+    # parameters
+    m.scaled_values = pyo.Param(m.NV, initialize=lambda m, n, v: scaled[n, v])
+    m.values_weight = pyo.Param(m.V, initialize=values_weights)
+    m.total_capacity = pyo.Param(m.W, initialize=[itm["cap"] for itm in cap_cfg])
+    m.capacity_weight = pyo.Param(m.NW, initialize=lambda m, n, w: cap_data[n, w])
+    # variables
+    m.X = pyo.Var(m.N, within=pyo.Binary)
 
-     args = arg_parser(["-vvv", "tmpwrtvbldt.toml", "--authid", "EPSG:3978", "--geotransform", "(457900.0, 100.0, 0.0, 5739100.0, 0.0, -100.0)", "--output_raster", "/tmp/processing_UfvZvG/b15b55b7ef344024a01d4680fa43c43a/OUT_LAYER.gpkg"])
-    """
+    # constraints
+    def capacity_rule(m, w):
+        if cap_cfg[w]["sense"] in allowed_ub:
+            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) <= m.total_capacity[w]
+        elif cap_cfg[w]["sense"] in allowed_lb:
+            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) >= m.total_capacity[w]
+        else:
+            logger.critical("Skipping capacity constraint %s, %s", w, cap_cfg[w])
+            return pyo.Constraint.Skip
+
+    m.capacity = pyo.Constraint(m.W, rule=capacity_rule)
+    # objective
+    m.obj = pyo.Objective(
+        expr=sum(m.values_weight[v] * sum(m.X[n] * m.scaled_values[n, v] for n, vv in m.NV if vv == v) for v in m.V),
+        sense=pyo.maximize,
+    )
+    return m
+
+
+def solve_pyomo(m, tee=True, solver="cplex", **kwargs):
+    from pyomo.opt import SolverFactory
+
+    opt = SolverFactory(solver)
+    results = opt.solve(m, tee=tee, **kwargs)
+    return opt, results
+
+
+def pre_solve(argv):
     if argv is sys.argv:
         argv = sys.argv[1:]
     args = arg_parser(argv)
@@ -303,9 +350,7 @@ def main(argv=None):
         col[col == nd] = 0
 
     if args.plots:
-        aplot(
-            observations, "observations", [itm["name"] for i, itm in enumerate(config)], Path(args.output_raster).parent
-        )
+        aplot(observations, "observations", [itm["name"] for itm in config], Path(args.output_raster).parent)
 
     # scaling
     # 8. PIPELINE
@@ -343,52 +388,67 @@ def main(argv=None):
         if "capacity_ratio" in item
     ]
     cap_data = observations[:, [itm["idx"] for itm in cap_cfg]]
+    instance = {
+        "scaled": scaled,
+        "values_weights": values_weights,
+        "cap_cfg": cap_cfg,
+        "cap_data": cap_data,
+        "feat_names": feat_names,
+        "height": height,
+        "width": width,
+        "nodata_mask": nodata_mask,
+        "all_observations": all_observations,
+        "observations": observations,
+        "pipe": pipe,
+        "nodatas": nodatas,
+    }
+    return instance, args
 
-    # 9. PYOMO MODEL & SOLVE
-    from pyomo import environ as pyo
 
-    # m model
-    m = pyo.ConcreteModel("MultiObjectiveKnapsack")
-    # sets
-    m.V = pyo.RangeSet(0, scaled.shape[1] - 1)
-    scaled_n, scaled_v = scaled.nonzero()
-    m.NV = pyo.Set(initialize=[(n, v) for n, v in zip(scaled_n, scaled_v)])
-    m.W = pyo.RangeSet(0, len(cap_cfg) - 1)
-    cap_data_n, cap_data_v = cap_data.nonzero()
-    m.NW = pyo.Set(initialize=[(n, w) for n, w in zip(cap_data_n, cap_data_v)])
-    both_nv_nw = list(set(scaled_n) | set(cap_data_n))
-    both_nv_nw.sort()
-    m.N = pyo.Set(initialize=both_nv_nw)
-    # parameters
-    m.scaled_values = pyo.Param(m.NV, initialize=lambda m, n, v: scaled[n, v])
-    m.values_weight = pyo.Param(m.V, initialize=values_weights)
-    m.total_capacity = pyo.Param(m.W, initialize=[itm["cap"] for itm in cap_cfg])
-    m.capacity_weight = pyo.Param(m.NW, initialize=lambda m, n, w: cap_data[n, w])
-    # variables
-    m.X = pyo.Var(m.N, within=pyo.Binary)
+def main(argv=None):
+    """This main is split in 3 parts with the objective of being called from within QGIS fire2a's toolbox-plugin.
+    Nevertheless, it can be called from the command line:
+    ```bash
+    python -m fire2a.knapsack [config.toml]
+    ```
+    Or integrated into other scripts.
+    from fire2a.knapasack import main
+    ```python
+    soln, m, instance, args = main(["config.toml"])
+    ```
+    """
+    # 0..9 PRE
+    instance, args = pre_solve(argv)
 
-    # constraints
-    def capacity_rule(m, w):
-        if cap_cfg[w]["sense"] in allowed_ub:
-            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) <= m.total_capacity[w]
-        elif cap_cfg[w]["sense"] in allowed_lb:
-            return sum(m.X[n] * m.capacity_weight[n, w] for n, ww in m.NW if ww == w) >= m.total_capacity[w]
-        else:
-            logger.critical("Skipping capacity constraint %s, %s", w, cap_cfg[w])
-            return pyo.Constraint.Skip
+    # 9. PYOMO MODEL
+    m = get_model(**instance)
 
-    m.capacity = pyo.Constraint(m.W, rule=capacity_rule)
-    # objective
-    m.obj = pyo.Objective(
-        expr=sum(m.values_weight[v] * sum(m.X[n] * m.scaled_values[n, v] for n, vv in m.NV if vv == v) for v in m.V),
-        sense=pyo.maximize,
-    )
+    # 10. PYOMO SOLVE
+    opt, results = solve_pyomo(m, tee=True, solver="cplex")
+    instance["opt"] = opt
+    instance["results"] = results
 
-    from pyomo.opt import SolverFactory
+    # 11. POST
+    return post_solve(m, args=args, **instance)
 
-    opt = SolverFactory("cplex")
-    results = opt.solve(m, tee=True)
 
+def post_solve(
+    m,
+    args=None,
+    scaled=None,
+    values_weights=None,
+    cap_cfg=None,
+    cap_data=None,
+    feat_names=None,
+    height=None,
+    width=None,
+    nodata_mask=None,
+    all_observations=None,
+    observations=None,
+    pipe=None,
+    nodatas=None,
+    **kwargs,
+):
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=np.float32)
     print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
     soln[~soln.astype(bool)] = 0
@@ -418,10 +478,24 @@ def main(argv=None):
         plt.close()
 
     for i, itm in enumerate(cap_cfg):
-        print(f"{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}")
+        print(f"{i}: name:{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}")
 
     if args.script:
-        return soln, pipe
+        instance = {
+            "scaled": scaled,
+            "values_weights": values_weights,
+            "cap_cfg": cap_cfg,
+            "cap_data": cap_data,
+            "feat_names": feat_names,
+            "height": height,
+            "width": width,
+            "nodata_mask": nodata_mask,
+            "all_observations": all_observations,
+            "observations": observations,
+            "pipe": pipe,
+            "nodatas": nodatas,
+        }
+        return soln, m, instance, args
     else:
         # 10. WRITE OUTPUTS
         from fire2a.raster import write_raster
