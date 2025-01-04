@@ -389,7 +389,7 @@ def main(argv=None):
     opt = SolverFactory("cplex")
     results = opt.solve(m, tee=True)
 
-    soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=float)
+    soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=np.float32)
     print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
     soln[~soln.astype(bool)] = 0
 
@@ -428,16 +428,16 @@ def main(argv=None):
 
         if args.output_raster:
             # put soln into the original shape of all_observations using the reversal of nodata_mask
-            final = np.zeros(all_observations.shape[0]) - 9999
-            final[~nodata_mask] = soln
-            final = final.reshape(height, width)
+            data = np.zeros(height * width, dtype=np.float32) - 9999
+            data[~nodata_mask] = soln
+            data = data.reshape(height, width)
             if not write_raster(
-                final,
-                args.output_raster,
-                driver_name="GPKG",
-                nodata=-9999,
+                data,
+                outfile=str(args.output_raster),
+                nodata=-9999.0,
                 authid=args.authid,
                 geotransform=args.geotransform,
+                logger=logger,
             ):
                 logger.error("Error writing output raster")
                 return 1
