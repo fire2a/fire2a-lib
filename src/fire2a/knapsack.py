@@ -71,19 +71,12 @@ from fire2a.utils import read_toml
 
 logger = logging.getLogger(__name__)
 
-config_attrs = ["value_rescaling", "value_weight", "capacity_sense", "capacity_ratio"]
-config_types = [str, float, str, float]
-config_def = ["minmax", np.nan, "lb", np.nan]
 allowed_ub = ["<=", "≤", "le", "leq", "ub"]
 allowed_lb = [">=", "≥", "ge", "geq", "lb"]
 config_allowed = {
-    "value_rescaling": ["minmax", "standard", "robust", "onehot"],
+    "value_rescaling": ["minmax", "standard", "robust", "onehot", "pass"],
     "capacity_sense": allowed_ub + allowed_lb,
 }
-# CONFIG = {
-#     "values_rescaling": {"options": ["minmax", "standard", "robust", "onehot", "pass", ""], "default": "minmax"},
-#     "capacity_sense": {"options": ["<=", "leq", "ub", ">=", "geq", "lb"], "default": "ub"},
-# }
 
 
 def check_shapes(data_list):
@@ -308,10 +301,12 @@ def pre_solve(argv):
                     "value_rescaling without value_weight for item: %s\n ASSUMING VALUE WEIGHT IS 1", itm["name"]
                 )
                 itm["value_weight"] = 1
+            if vr == "pass":
+                itm["value_weight"] = "passthrough"
         # !vr & vw => vr = passthrough
         elif "value_weight" in itm:
-            logger.warning("value_weight without value_rescaling for item: %s\n PASSTHROUGH RESCALING", itm["name"])
-            itm["value_rescaling"] = "passthrough"
+            logger.warning("value_weight without value_rescaling for item: %s\n DEFAULTING TO MINMAX", itm["name"])
+            itm["value_rescaling"] = "minmax"
         if cr := itm.get("capacity_ratio"):
             # cr not in (-1,1) =>!<=
             if not (-1 < cr < 1):
