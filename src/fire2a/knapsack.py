@@ -358,8 +358,8 @@ def pre_solve(argv):
     scaled, pipe, feat_names = pipelie(observations, config)
     # assert observations.shape[0] == scaled.shape[0]
     # assert observations.shape[1] >= scaled.shape[1]
-    print(f"{observations.shape=}")
-    print(f"{scaled.shape=}")
+    logger.info(f"{observations.shape=}")
+    logger.info(f"{scaled.shape=}")
 
     if args.plots:
         aplot(scaled, "scaled", feat_names, Path(args.output_raster).parent, show=False)
@@ -371,7 +371,7 @@ def pre_solve(argv):
             if name.startswith(item["name"]):
                 values_weights += [item["value_weight"]]
     values_weights = np.array(values_weights)
-    print(f"{values_weights.shape=}")
+    logger.info(f"{values_weights.shape=}")
 
     if args.plots:
         aplot(scaled * values_weights, "scaled_weighted", feat_names, Path(args.output_raster).parent, show=False)
@@ -451,18 +451,23 @@ def post_solve(
     **kwargs,
 ):
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=np.float32)
-    print("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
+    logger.info("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
     soln[~soln.astype(bool)] = 0
 
-    slacks = m.capacity[:].slack()
-    print("objective", m.obj())
+    try:
+        slacks = m.capacity[:].slack()
+        logger.info("objective", m.obj())
+    except Exception as e:
+        logger.error(e)
+        slacks = [0] * len(cap_cfg)
 
     if not isinstance(scaled, np.ndarray):
         scaled = scaled.toarray()
     vx = np.matmul(scaled.T, soln)
 
+    logger.info("Values per objective:")
     for f, v in zip(feat_names, vx):
-        print(f"{f}\t\t{v:.4f}")
+        logger.info(f"{f}\t\t{v:.4f}")
 
     if args.plots:
         fig, ax = plt.subplots(1, 2, figsize=(10, 5))
@@ -479,8 +484,9 @@ def post_solve(
         plt.savefig(Path(args.output_raster).parent / "solution.png")
         plt.close()
 
+    logger.info("Capacity slack:")
     for i, itm in enumerate(cap_cfg):
-        print(f"{i}: name:{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}")
+        logger.info(f"{i}: name:{itm['name']} cap:{itm['cap']} sense:{itm['sense']} slack:{slacks[i]}")
 
     if args.script:
         instance = {
