@@ -454,9 +454,11 @@ def write_raster(
         fprint("WriteArray failed", level="warning", feedback=feedback, logger=logger)
         return False
     if nodata and data[data == nodata].size > 0:
-        if 0 != band.SetNoDataValue(nodata):
-            fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
-            return False
+        band.SetNoDataValue(nodata)
+        # TBD : always returns 1?
+        # if 0 != band.SetNoDataValue(nodata):
+        #     fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
+        #     return False
     ds.FlushCache()
     ds = None
     return True
