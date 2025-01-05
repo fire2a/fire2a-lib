@@ -73,13 +73,17 @@ logger = logging.getLogger(__name__)
 
 config_attrs = ["value_rescaling", "value_weight", "capacity_sense", "capacity_ratio"]
 config_types = [str, float, str, float]
-config_def = ["", np.nan, "", np.nan]
-allowed_ub = ["<=", "leq", "ub"]
-allowed_lb = [">=", "geq", "lb"]
+config_def = ["minmax", np.nan, "lb", np.nan]
+allowed_ub = ["<=", "≤", "le", "leq", "ub"]
+allowed_lb = [">=", "≥", "ge", "geq", "lb"]
 config_allowed = {
     "value_rescaling": ["minmax", "standard", "robust", "onehot"],
     "capacity_sense": allowed_ub + allowed_lb,
 }
+# CONFIG = {
+#     "values_rescaling": {"options": ["minmax", "standard", "robust", "onehot", "pass", ""], "default": "minmax"},
+#     "capacity_sense": {"options": ["<=", "leq", "ub", ">=", "geq", "lb"], "default": "ub"},
+# }
 
 
 def check_shapes(data_list):
@@ -185,7 +189,7 @@ def arg_parser(argv=None):
         "--plots",
         action="store_true",
         help="Activate the plotting routines (saves 3 .png files to the same output than the raster)",
-        default=True,
+        default=False,
     )
     args = parser.parse_args(argv)
     args.geotransform = tuple(map(float, args.geotransform[1:-1].split(",")))
@@ -350,7 +354,9 @@ def pre_solve(argv):
         col[col == nd] = 0
 
     if args.plots:
-        aplot(observations, "observations", [itm["name"] for itm in config], Path(args.output_raster).parent)
+        aplot(
+            observations, "observations", [itm["name"] for itm in config], Path(args.output_raster).parent, show=False
+        )
 
     # scaling
     # 8. PIPELINE
@@ -361,7 +367,7 @@ def pre_solve(argv):
     print(f"{scaled.shape=}")
 
     if args.plots:
-        aplot(scaled, "scaled", feat_names, Path(args.output_raster).parent)
+        aplot(scaled, "scaled", feat_names, Path(args.output_raster).parent, show=False)
 
     # weights
     values_weights = []
@@ -373,7 +379,7 @@ def pre_solve(argv):
     print(f"{values_weights.shape=}")
 
     if args.plots:
-        aplot(scaled * values_weights, "scaled_weighted", feat_names, Path(args.output_raster).parent)
+        aplot(scaled * values_weights, "scaled_weighted", feat_names, Path(args.output_raster).parent, show=False)
 
     # capacities
     # "name": item["filename"].name.replace('.','_'),
@@ -473,7 +479,8 @@ def post_solve(
         ax[1].set_title("capacity slack ratios")
         ax[1].bar([itm["name"] for itm in cap_cfg], cap_ratio)
 
-        # plt.show()
+        # if __name__ == "__main__":
+        #      plt.show()
         plt.savefig(Path(args.output_raster).parent / "solution.png")
         plt.close()
 
@@ -508,7 +515,7 @@ def post_solve(
             if not write_raster(
                 data,
                 outfile=str(args.output_raster),
-                nodata=-9999.0,
+                nodata=-9999,
                 authid=args.authid,
                 geotransform=args.geotransform,
                 logger=logger,
