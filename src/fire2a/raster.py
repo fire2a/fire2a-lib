@@ -408,7 +408,7 @@ def write_raster(
     outfile="output.tif",
     driver_name="GTiff",
     authid="EPSG:3857",
-    geotransform=(0, 1, 0, 0, 0, 1),
+    geotransform=(0, 1, 0, 0, 0, -1),
     nodata: int | None = None,
     feedback=None,
     logger=None,  # logger default ?
