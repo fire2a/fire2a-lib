@@ -408,8 +408,8 @@ def write_raster(
     outfile="output.tif",
     driver_name="GTiff",
     authid="EPSG:3857",
-    geotransform=(0, 1, 0, 0, 0, 1),
-    nodata=None,
+    geotransform=(0, 1, 0, 0, 0, -1),
+    nodata: int | None = None,
     feedback=None,
     logger=None,  # logger default ?
 ):
@@ -450,13 +450,15 @@ def write_raster(
     ds.SetGeoTransform(geotransform)
     ds.SetProjection(authid)
     band = ds.GetRasterBand(1)
-    if nodata:
-        if 0 != band.SetNoDataValue(nodata):
-            fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
-            return False
     if 0 != band.WriteArray(data):
-        fprint(f"WriteArray failed for Burn Probability {burn_prob}", level="warning", feedback=feedback, logger=logger)
+        fprint("WriteArray failed", level="warning", feedback=feedback, logger=logger)
         return False
+    if nodata and data[data == nodata].size > 0:
+        band.SetNoDataValue(nodata)
+        # TBD : always returns 1?
+        # if 0 != band.SetNoDataValue(nodata):
+        #     fprint("Set NoData failed", level="warning", feedback=feedback, logger=logger)
+        #     return False
     ds.FlushCache()
     ds = None
     return True

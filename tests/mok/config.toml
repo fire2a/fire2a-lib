@@ -1,0 +1,19 @@
+["/home/fdo/source/fire/mok-tmp/v0.tif"]
+value_weight = 1.0
+
+["/home/fdo/source/fire/mok-tmp/v1.tif"]
+value_weight = 1.25
+
+["/home/fdo/source/fire/mok-tmp/v2.tif"]
+value_weight = 1.25
+
+["/home/fdo/source/fire/mok-tmp/v3.tif"]
+value_weight = 1.0
+
+["/home/fdo/source/fire/mok-tmp/w0.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.25
+
+["/home/fdo/source/fire/mok-tmp/w1.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.25
