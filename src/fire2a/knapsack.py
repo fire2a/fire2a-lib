@@ -191,7 +191,7 @@ def arg_parser(argv=None):
     return args
 
 
-def aplot(data: np.ndarray, title: str, series_names: list[str], outpath: Path, show=__name__ == "__main__"):
+def aplot(data: np.ndarray, title: str, series_names: list[str], outpath: Path, show=False):  # __name__ == "__main__"
     """
     names = [itm["name"] for i, itm in enumerate(config)]
     outpath = Path(args.output_raster).parent
