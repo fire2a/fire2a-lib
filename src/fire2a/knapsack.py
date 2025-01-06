@@ -199,6 +199,9 @@ def aplot(data: np.ndarray, title: str, series_names: list[str], outpath: Path, 
     """
     if not isinstance(data, np.ndarray):
         data = data.toarray()
+    if not isinstance(data[0], np.ndarray):
+        for itm in data:
+            itm = itm.toarray()
     fig, ax = plt.subplots(1, 2, figsize=(10, 5))
     fig.suptitle(title)
     ax[0].violinplot(data, showmeans=False, showmedians=True, showextrema=True)
@@ -362,7 +365,15 @@ def pre_solve(argv):
     logger.info(f"{scaled.shape=}")
 
     if args.plots:
-        aplot(scaled, "scaled", feat_names, Path(args.output_raster).parent, show=False)
+        # exclude multiple ocurrences of onehots
+        first_occurrences = {}
+        for i, fn in enumerate(feat_names):
+            for bn in [itm["name"] for itm in config]:
+                if fn.startswith(bn) and bn not in first_occurrences:
+                    first_occurrences[bn] = i
+                    break
+        idxs = list(first_occurrences.values())
+        aplot(scaled[:, idxs], "scaled", feat_names[idxs], Path(args.output_raster).parent, show=False)
 
     # weights
     values_weights = []
@@ -374,7 +385,18 @@ def pre_solve(argv):
     logger.info(f"{values_weights.shape=}")
 
     if args.plots:
-        aplot(scaled * values_weights, "scaled_weighted", feat_names, Path(args.output_raster).parent, show=False)
+        from scipy.sparse import csr_matrix
+
+        values_weights_diag = csr_matrix(np.diag(values_weights[idxs]))
+        scaled_weighted = scaled[:, idxs].dot(values_weights_diag)
+
+        aplot(
+            scaled_weighted,
+            "scaled_weighted",
+            feat_names[idxs],
+            Path(args.output_raster).parent,
+            show=False,
+        )
 
     # capacities
     # "name": item["filename"].name.replace('.','_'),

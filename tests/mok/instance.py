@@ -5,8 +5,9 @@ test instance for multi objective knapsack problem
 import sys
 
 import numpy as np
-from fire2a.raster import write_raster
 from matplotlib import pyplot as plt
+
+from fire2a.raster import write_raster
 
 # arguments
 show, save, write = False, False, False
@@ -26,7 +27,8 @@ v = np.zeros((height, width, 4))
 v[:, :, 0] = np.sin(x * 2 * np.pi / width)
 v[:, :, 1] = -np.sin(x * 2 * np.pi / width)
 v[:, :, 2] = np.sin(y * 2 * np.pi / height)
-v[:, :, 3] = -np.sin(y * 2 * np.pi / height)
+v[:, :, 3] = (-10 * np.sin(y * 2 * np.pi / height)).astype(int)
+v[::2, ::2, 3] = 0
 
 if show or save:
     fig, ax = plt.subplots(2, 2)
@@ -44,6 +46,8 @@ if show or save:
 v[1, 1, :] = -9999
 # one layer nodata
 v[0, 0, 0] = -9999
+# categorical to no data
+v[::2, ::2, 3] = -9999
 
 if write:
     for i in range(4):

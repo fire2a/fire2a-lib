@@ -1,19 +1,20 @@
-["/home/fdo/source/fire/mok-tmp/v0.tif"]
+["v0.tif"]
 value_weight = 1.0
 
-["/home/fdo/source/fire/mok-tmp/v1.tif"]
-value_weight = 1.25
+["v1.tif"]
+value_weight = 1.2
 
-["/home/fdo/source/fire/mok-tmp/v2.tif"]
-value_weight = 1.25
+["v2.tif"]
+value_weight = 1.3
 
-["/home/fdo/source/fire/mok-tmp/v3.tif"]
-value_weight = 1.0
+["v3.tif"]
+value_rescaling = "onehot"
+value_weight = 1.4
 
-["/home/fdo/source/fire/mok-tmp/w0.tif"]
+["w0.tif"]
 capacity_sense = "<="
 capacity_ratio = 0.25
 
-["/home/fdo/source/fire/mok-tmp/w1.tif"]
+["w1.tif"]
 capacity_sense = "<="
 capacity_ratio = 0.25
