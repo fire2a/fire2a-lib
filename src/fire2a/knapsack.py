@@ -285,6 +285,16 @@ def pre_solve(argv):
     a, b = list(config.keys()), list(config.values())
     config = [{"name": Path(a).name, "filename": Path(a), **b} for a, b in zip(a, b)]
     for itm in config:
+        if "value_rescaling" in itm:
+            itm["value_rescaling"] = itm["value_rescaling"].lower()
+            if itm["value_rescaling"] not in config_allowed["value_rescaling"]:
+                logger.critical("Wrong value for value_rescaling in %s", itm)
+                sys.exit(1)
+        if "capacity_sense" in itm:
+            itm["capacity_sense"] = itm["capacity_sense"].lower()
+            if itm["capacity_sense"] not in config_allowed["capacity_sense"]:
+                logger.critical("Wrong value for capacity_sense in %s", itm)
+                sys.exit(1)
         logger.debug(itm)
 
     # 2.1 CHECK PAIRS + defaults
@@ -294,10 +304,6 @@ def pre_solve(argv):
     # cs : capacity_sense
     for itm in config:
         if vr := itm.get("value_rescaling"):
-            # !vr? =>!<=
-            if vr not in config_allowed["value_rescaling"]:
-                logger.critical("Wrong value for value_rescaling in %s", itm)
-                sys.exit(1)
             # vr & !vw => vw = 1
             if "value_weight" not in itm:
                 logger.warning(
