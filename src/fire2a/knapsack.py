@@ -473,12 +473,12 @@ def post_solve(
     **kwargs,
 ):
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=np.float32)
-    logger.info("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
+    logger.info("solution pseudo-histogram: %s", np.unique(soln, return_counts=True))
     soln[~soln.astype(bool)] = 0
 
     try:
         slacks = m.capacity[:].slack()
-        logger.info("objective", m.obj())
+        logger.info("objective: %s", m.obj(exception=False))
     except Exception as e:
         logger.error(e)
         slacks = [0] * len(cap_cfg)
