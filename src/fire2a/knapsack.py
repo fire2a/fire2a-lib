@@ -2,12 +2,13 @@
 # fmt: off
 """👋🌎 🌲🔥
 # MultiObjective Knapsack Rasters
-Select the best set of pixels maximizing the sum of several weighted rasters, minding capacity constraints.
+Select the best set of pixels maximizing the sum of several rescaled and weighted rasters, minding capacity constraints.
 ## Usage
 ### Overview
-1. Choose your raster files
-2. Configure, for values: scaling strategies and absolute weights in the `config.toml` file
-3. Configure, for capacites: capacity ratio in the `config.toml` file
+1. Choose your raster files (absolute path or relative to the script execution directory)
+2. Configure, for values: rescaling strategies (minmax, onehot, standard, robust or pass) and absolute weights (any real number)
+3. Configure, for capacites: capacity sense (lower or upper bound) and ratio (between -1 and 1)
+4. Set output options (raster, authid, geotransform, plots, ...)
 ### Command line execution
     ```bash
     # get interface help
@@ -19,43 +20,58 @@ Select the best set of pixels maximizing the sum of several weighted rasters, mi
 ### Script integration
     ```python
     from fire2a.knapasack import main
-    soln, m, instance, args = main(["config.toml"])
+    solution, model, instance, args = main(["--script","config.toml"])
     ```
 ### Preparation
 #### 1. Choose your raster files
 - Any [GDAL compatible](https://gdal.org/en/latest/drivers/raster/index.html) raster will be read
-- Place them all in the same directory where the script will be executed
+- Mind that any nodata value will exclude that pixel from the optimization (this can be overriden but not recommended, see `--exclude_nodata`, specially for weight constraining rasters)
+- A good practice is to place them all in the same directory where the script will be executed
 - "Quote them" if they have any non alphanumerical chars [a-zA-Z0-9]
 
 #### 2. Preprocessing configuration
 See the `config.toml` file for example of the configuration of the preprocessing steps. The file is structured as follows:
 
 ```toml
-["filename.tif"]
-scaling_strategy = "onehot"
+["a_filename.tif"]
+value_rescaling = "onehot"
 value_weight = 0.5
-capacity_ratio = -0.1
+
+["b_filename.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.1
 ```
 This example states the raster `filename.tif` values will be rescaled using the `OneHot` strategy, then multiplied by 0.5 in the sought objective; Also that at leat 10% of its weighted pixels must be selected. 
 
-1. __scaling_strategy__
-   - can be "minmax", "standard", "robust", "onehot"
-   - default is "minmax", notice: other strategies may not scale into [0,1)
+1. __value_rescaling__
+   - can be minmax, onehot, standard, robust or pass for no rescaling.
+   - minmax (default) and onehot scale into [0,1], standard and robust not, mix them adjusting the value_weight
    - [MinMax](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html): (x-min)/(max-min)
-   - [Standard](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): (x-mean)/stddev
-   - [Robust](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html): same but droping the tails of the distribution
-   - [OneHot](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html): __for CATEGORICAL DATA__
+   - [Standard Scaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): (x-mean)/stddev
+   - [Robust Scaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html): same but droping the tails of the distribution
+   - [OneHot Encoder](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html): __for CATEGORICAL DATA__
 
 2. __value_weight__
    - can be any real number, although zero does not make sense
    - positive maximizes, negative minimizes
 
-3. __capacity_ratio__
+3. __capacity_sense__
+    - can be >=, ≥, ge, geq, lb for lower bound, <=, ≤, le, leq, ub for upper bound
+    - default is upper bound
+
+4. __capacity_ratio__
    - can be any real number, between -1 and 1
-   - is proportional to the sum of the values of the pixels in the raster
-   - positive is upper bound (less or equal to), negative will be lower bound (greater or equal to the positive value)
-   - zero is no constraint
-   - for categorical data it does not make sense!
+   - is proportional to the sum of all values of the pixels in the raster, meaning if all values are the same it represents the proportion of pixels to be selected
+
+#### 3. Other options
+- __output_raster__ (default "")
+- __authid__ (default "EPSG:3857")
+- __geotransform__ (default "(0, 1, 0, 0, 0, -1)")
+- __plots__ (default False) saves 3 .png files to the same output than the raster, showing the data, the scaled data and the weighted scaled data. Great for debugging but Can really slow down the process.
+- __exclude_nodata__ (default "any") if "any" layer is nodata, it's excluded. It can be relaxed by setting "all" (layers must be nodata to be excluded) can cause great problems with the capacity rasters selecting pixels that weight 0.
+- __script__ (default False) only for integrating into other scripts
+- __no_write__ (default False)
+- __verbose__ (default 0)
 
 """
 # fmt: on
