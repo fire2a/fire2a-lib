@@ -148,13 +148,13 @@ def arg_parser(argv=None):
     parser = ArgumentParser(
         description="MultiObjective Knapsack Rasters",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="More at https://fire2a.github.io/fire2a-lib",
+        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/knapsack.html",
     )
     parser.add_argument(
         "config_file",
         nargs="?",
         type=Path,
-        help="For each raster file, configure its preprocess: rescaling method, weight, and capacity ratio",
+        help="A toml formatted file, with a section header for each raster [file_name], with items: 'value_rescaling', 'value_weight', 'capacity_sense' and 'capacity_ratio'",
         default="config.toml",
     )
     parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
@@ -168,7 +168,7 @@ def arg_parser(argv=None):
     )
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
-        "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
+        "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, -1)"
     )
     parser.add_argument(
         "-nw",
