@@ -402,6 +402,36 @@ def stack_rasters(
     print(stacked_array.shape)
     return stacked_array, layer_names
 
+def write_gtiff_from_rlayer(raster_layer: QgsRasterLayer, output_gtiff_path: str = ""):
+    from qgis.core import QgsRasterFileWriter,  QgsRasterPipe
+
+    # Check if the layer is valid
+    if not raster_layer.isValid():
+        return 0, f"Layer {raster_layer.name()} failed to load!"
+    
+    if output_gtiff_path == "":
+        output_gtiff_path = str(Path(raster_layer.publicSource()).parent / f"{raster_layer.name()}.tif")
+
+    file_writer = QgsRasterFileWriter(output_gtiff_path)
+    
+    # Step 4: Use the writeRaster method
+    crs = raster_layer.crs()
+    export_extent = raster_layer.extent()
+    width = raster_layer.width()
+    height = raster_layer.height()
+    pipe = QgsRasterPipe()
+    pipe.set(raster_layer.dataProvider().clone())
+    
+    error = file_writer.writeRaster(pipe,
+                                    width,
+                                    height,
+                                    export_extent,
+                                    crs)
+    
+    if error == QgsRasterFileWriter.NoError:
+        return 0, f"Layer {raster_layer.name()}, Conversion successful!"
+    else:
+        return 1, f"Layer {raster_layer.name()}, Conversion failed!"
 
 def write_raster(
     data,
