@@ -2,12 +2,13 @@
 # fmt: off
 """👋🌎 🌲🔥
 # MultiObjective Knapsack Rasters
-Select the best set of pixels maximizing the sum of several weighted rasters, minding capacity constraints.
+Select the best set of pixels maximizing the sum of several rescaled and weighted rasters, minding capacity constraints.
 ## Usage
 ### Overview
-1. Choose your raster files
-2. Configure, for values: scaling strategies and absolute weights in the `config.toml` file
-3. Configure, for capacites: capacity ratio in the `config.toml` file
+1. Choose your raster files (absolute path or relative to the script execution directory)
+2. Configure, for values: rescaling strategies (minmax, onehot, standard, robust or pass) and absolute weights (any real number)
+3. Configure, for capacites: capacity sense (lower or upper bound) and ratio (between -1 and 1)
+4. Set output options (raster, authid, geotransform, plots, ...)
 ### Command line execution
     ```bash
     # get interface help
@@ -19,43 +20,58 @@ Select the best set of pixels maximizing the sum of several weighted rasters, mi
 ### Script integration
     ```python
     from fire2a.knapasack import main
-    soln, m, instance, args = main(["config.toml"])
+    solution, model, instance, args = main(["--script","config.toml"])
     ```
 ### Preparation
 #### 1. Choose your raster files
 - Any [GDAL compatible](https://gdal.org/en/latest/drivers/raster/index.html) raster will be read
-- Place them all in the same directory where the script will be executed
+- Mind that any nodata value will exclude that pixel from the optimization (this can be overriden but not recommended, see `--exclude_nodata`, specially for weight constraining rasters)
+- A good practice is to place them all in the same directory where the script will be executed
 - "Quote them" if they have any non alphanumerical chars [a-zA-Z0-9]
 
 #### 2. Preprocessing configuration
 See the `config.toml` file for example of the configuration of the preprocessing steps. The file is structured as follows:
 
 ```toml
-["filename.tif"]
-scaling_strategy = "onehot"
+["a_filename.tif"]
+value_rescaling = "onehot"
 value_weight = 0.5
-capacity_ratio = -0.1
+
+["b_filename.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.1
 ```
 This example states the raster `filename.tif` values will be rescaled using the `OneHot` strategy, then multiplied by 0.5 in the sought objective; Also that at leat 10% of its weighted pixels must be selected. 
 
-1. __scaling_strategy__
-   - can be "minmax", "standard", "robust", "onehot"
-   - default is "minmax", notice: other strategies may not scale into [0,1)
+1. __value_rescaling__
+   - can be minmax, onehot, standard, robust or pass for no rescaling.
+   - minmax (default) and onehot scale into [0,1], standard and robust not, mix them adjusting the value_weight
    - [MinMax](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.MinMaxScaler.html): (x-min)/(max-min)
-   - [Standard](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): (x-mean)/stddev
-   - [Robust](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html): same but droping the tails of the distribution
-   - [OneHot](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html): __for CATEGORICAL DATA__
+   - [Standard Scaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): (x-mean)/stddev
+   - [Robust Scaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html): same but droping the tails of the distribution
+   - [OneHot Encoder](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html): __for CATEGORICAL DATA__
 
 2. __value_weight__
    - can be any real number, although zero does not make sense
    - positive maximizes, negative minimizes
 
-3. __capacity_ratio__
+3. __capacity_sense__
+    - can be >=, ≥, ge, geq, lb for lower bound, <=, ≤, le, leq, ub for upper bound
+    - default is upper bound
+
+4. __capacity_ratio__
    - can be any real number, between -1 and 1
-   - is proportional to the sum of the values of the pixels in the raster
-   - positive is upper bound (less or equal to), negative will be lower bound (greater or equal to the positive value)
-   - zero is no constraint
-   - for categorical data it does not make sense!
+   - is proportional to the sum of all values of the pixels in the raster, meaning if all values are the same it represents the proportion of pixels to be selected
+
+#### 3. Other options
+- __output_raster__ (default "")
+- __authid__ (default "EPSG:3857")
+- __geotransform__ (default "(0, 1, 0, 0, 0, -1)")
+- __plots__ (default False) saves 3 .png files to the same output than the raster, showing the data, the scaled data and the weighted scaled data. Great for debugging but Can really slow down the process.
+- __exclude_nodata__ (default "any") if "any" layer is nodata, it's excluded. It can be relaxed by setting "all" (layers must be nodata to be excluded) can cause great problems with the capacity rasters selecting pixels that weight 0.
+- __script__ (default False) only for integrating into other scripts
+- __no_write__ (default False)
+- __verbose__ (default 0)
 
 """
 # fmt: on
@@ -148,19 +164,27 @@ def arg_parser(argv=None):
     parser = ArgumentParser(
         description="MultiObjective Knapsack Rasters",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="More at https://fire2a.github.io/fire2a-lib",
+        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/knapsack.html",
     )
     parser.add_argument(
         "config_file",
         nargs="?",
         type=Path,
-        help="For each raster file, configure its preprocess: rescaling method, weight, and capacity ratio",
+        help="A toml formatted file, with a section header for each raster [file_name], with items: 'value_rescaling', 'value_weight', 'capacity_sense' and 'capacity_ratio'",
         default="config.toml",
     )
     parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
+    parser.add_argument(
+        "-e",
+        "--exclude_nodata",
+        type=str,
+        help="By default if 'any' layer is nodata, it's excluded. It can be relaxed by setting 'all' (layers must be nodata to be excluded)",
+        choices=["any", "all"],
+        default="any",
+    )
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
-        "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
+        "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, -1)"
     )
     parser.add_argument(
         "-nw",
@@ -285,6 +309,16 @@ def pre_solve(argv):
     a, b = list(config.keys()), list(config.values())
     config = [{"name": Path(a).name, "filename": Path(a), **b} for a, b in zip(a, b)]
     for itm in config:
+        if "value_rescaling" in itm:
+            itm["value_rescaling"] = itm["value_rescaling"].lower()
+            if itm["value_rescaling"] not in config_allowed["value_rescaling"]:
+                logger.critical("Wrong value for value_rescaling in %s", itm)
+                sys.exit(1)
+        if "capacity_sense" in itm:
+            itm["capacity_sense"] = itm["capacity_sense"].lower()
+            if itm["capacity_sense"] not in config_allowed["capacity_sense"]:
+                logger.critical("Wrong value for capacity_sense in %s", itm)
+                sys.exit(1)
         logger.debug(itm)
 
     # 2.1 CHECK PAIRS + defaults
@@ -294,10 +328,6 @@ def pre_solve(argv):
     # cs : capacity_sense
     for itm in config:
         if vr := itm.get("value_rescaling"):
-            # !vr? =>!<=
-            if vr not in config_allowed["value_rescaling"]:
-                logger.critical("Wrong value for value_rescaling in %s", itm)
-                sys.exit(1)
             # vr & !vw => vw = 1
             if "value_weight" not in itm:
                 logger.warning(
@@ -341,15 +371,20 @@ def pre_solve(argv):
     # 5. lista[mapas] -> OBSERVACIONES
     all_observations = np.column_stack([data.ravel() for data in data_list])
 
-    # 6. if all rasters are nodata then mask out
+    # 6. if all|any rasters are nodata then mask out
     nodatas = [item["NoDataValue"] for item in config]
-    nodata_mask = np.all(all_observations == nodatas, axis=1)
-    logger.info("All rasters NoData: %s pixels", nodata_mask.sum())
+    if args.exclude_nodata == "any":
+        nodata_mask = np.any(all_observations == nodatas, axis=1)
+    if args.exclude_nodata == "all":
+        nodata_mask = np.all(all_observations == nodatas, axis=1)
+
+    logger.info("Sum of all rasters NoData: %s pixels", nodata_mask.sum())
     observations = all_observations[~nodata_mask]
 
     # 7. nodata -> 0
-    for col, nd in zip(observations.T, nodatas):
-        col[col == nd] = 0
+    if args.exclude_nodata == "all":
+        for col, nd in zip(observations.T, nodatas):
+            col[col == nd] = 0
 
     if args.plots:
         aplot(
@@ -473,12 +508,12 @@ def post_solve(
     **kwargs,
 ):
     soln = np.array([pyo.value(m.X[i], exception=False) for i in m.X], dtype=np.float32)
-    logger.info("solution pseudo-histogram: ", np.unique(soln, return_counts=True))
+    logger.info("solution pseudo-histogram: %s", np.unique(soln, return_counts=True))
     soln[~soln.astype(bool)] = 0
 
     try:
         slacks = m.capacity[:].slack()
-        logger.info("objective", m.obj())
+        logger.info("objective: %s", m.obj(exception=False))
     except Exception as e:
         logger.error(e)
         slacks = [0] * len(cap_cfg)
