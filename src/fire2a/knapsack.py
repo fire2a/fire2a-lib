@@ -158,6 +158,14 @@ def arg_parser(argv=None):
         default="config.toml",
     )
     parser.add_argument("-or", "--output_raster", help="Output raster file, warning overwrites!", default="")
+    parser.add_argument(
+        "-e",
+        "--exclude_nodata",
+        type=str,
+        help="By default if 'any' layer is nodata, it's excluded. It can be relaxed by setting 'all' (layers must be nodata to be excluded)",
+        choices=["any", "all"],
+        default="any",
+    )
     parser.add_argument("-a", "--authid", type=str, help="Output raster authid", default="EPSG:3857")
     parser.add_argument(
         "-g", "--geotransform", type=str, help="Output raster geotransform", default="(0, 1, 0, 0, 0, 1)"
@@ -347,15 +355,20 @@ def pre_solve(argv):
     # 5. lista[mapas] -> OBSERVACIONES
     all_observations = np.column_stack([data.ravel() for data in data_list])
 
-    # 6. if all rasters are nodata then mask out
+    # 6. if all|any rasters are nodata then mask out
     nodatas = [item["NoDataValue"] for item in config]
-    nodata_mask = np.all(all_observations == nodatas, axis=1)
-    logger.info("All rasters NoData: %s pixels", nodata_mask.sum())
+    if args.exclude_nodata == "any":
+        nodata_mask = np.any(all_observations == nodatas, axis=1)
+    if args.exclude_nodata == "all":
+        nodata_mask = np.all(all_observations == nodatas, axis=1)
+
+    logger.info("Sum of all rasters NoData: %s pixels", nodata_mask.sum())
     observations = all_observations[~nodata_mask]
 
     # 7. nodata -> 0
-    for col, nd in zip(observations.T, nodatas):
-        col[col == nd] = 0
+    if args.exclude_nodata == "all":
+        for col, nd in zip(observations.T, nodatas):
+            col[col == nd] = 0
 
     if args.plots:
         aplot(
