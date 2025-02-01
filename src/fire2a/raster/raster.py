@@ -16,7 +16,7 @@ import numpy as np
 from osgeo import gdal, ogr
 from qgis.core import QgsRasterLayer
 
-from .utils import fprint, qgis2numpy_dtype
+from fire2a.utils import fprint, qgis2numpy_dtype
 
 logger = logging.getLogger(__name__)
 
