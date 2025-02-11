@@ -20,7 +20,7 @@ function osgeo_utils.gdal_calc.Calc(
     projwin: Union[Tuple, osgeo_utils.auxiliary.rectangle.GeoRectangle, NoneType] = None,
     user_namespace: Optional[Dict] = None,
     debug: bool = False,
-    quiet: bool = False, **input_files)
+    quiet: bool = False, **infile_files)
 
 from IPython.terminal.embed import InteractiveShellEmbed
 InteractiveShellEmbed()()
@@ -60,8 +60,8 @@ def get_projwin(
 
 def calc(
     func,
-    outfile="output.tif",
-    infile="input.tif",
+    outfile="outfile.tif",
+    infile="infile.tif",
     band=1,
     NoDataValue=-9999,
     overwrite=True,
@@ -127,12 +127,12 @@ def arg_parser(argv=None):
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="GDAL calc utility",
+        description="GDAL calc normalization utility",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_utility.html",
+        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html",
     )
-    parser.add_argument("-i", "--infile", help="Input file", type=Path, default="input.tif")
-    parser.add_argument("-o", "--outfile", help="Output file", type=Path, default="output.tif")
+    parser.add_argument("-i", "--infile", help="Input file", type=Path, default="infile.tif")
+    parser.add_argument("-o", "--outfile", help="Output file", type=Path, default="outfile.tif")
     parser.add_argument(
         "-m",
         "--method",

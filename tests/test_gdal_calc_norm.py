@@ -16,7 +16,7 @@ from osgeo.gdal_array import DatasetReadAsArray
 from pytest import MonkeyPatch
 
 # Define the path to the test assets directory
-ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc_utility"
+ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
 
 
 # Fixture to copy test assets to a temporary directory
@@ -48,26 +48,26 @@ def run_cli(args, tmp_path=None):
 )
 def test_cli(method, setup_test_assets):
     """
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m minmax
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m maxmin
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m stepup 30
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m stepdown 30
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m bipiecewiselinear 30 60
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m bipiecewiselinear_percent 30 60
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m stepdown_percent 30
-    python -m fire2a.raster.gdal_calc_utility -i fuels.tif -m stepup_percent 30
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m minmax
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m maxmin
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m stepup 30
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m stepdown 30
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m bipiecewiselinear 30 60
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m bipiecewiselinear_percent 30 60
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m stepdown_percent 30
+    python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m stepup_percent 30
 
     """
     with MonkeyPatch.context() as mp:
         mp.chdir(setup_test_assets)
 
         infile = setup_test_assets / "fuels.tif"
-        outfile = setup_test_assets / f"output_{method}.tif"
+        outfile = setup_test_assets / f"outfile_{method}.tif"
 
         cmd = [
             "python",
             "-m",
-            "fire2a.raster.gdal_calc_utility",
+            "fire2a.raster.gdal_calc_norm",
             "-i",
             str(infile),
             "-o",
@@ -103,13 +103,13 @@ def test_cli(method, setup_test_assets):
     ],
 )
 def test_main(method, setup_test_assets):
-    from fire2a.raster.gdal_calc_utility import main
+    from fire2a.raster.gdal_calc_norm import main
 
     with MonkeyPatch.context() as mp:
         mp.chdir(setup_test_assets)
 
         infile = setup_test_assets / "fuels.tif"
-        outfile = setup_test_assets / f"output_{method}.tif"
+        outfile = setup_test_assets / f"outfile_{method}.tif"
 
         cmd = ["-i", str(infile), "-o", str(outfile), "-m", method, "--return_dataset"]
         if "step" in method:
