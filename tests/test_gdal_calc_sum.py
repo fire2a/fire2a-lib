@@ -9,11 +9,14 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import numpy as np
 import pytest
-from numpy import ndarray
-from osgeo.gdal import Dataset, Open
-from osgeo.gdal_array import DatasetReadAsArray
+from numpy import array, ndarray
+from osgeo.gdal import Dataset
+from osgeo.gdal_array import DatasetReadAsArray, LoadFile
 from pytest import MonkeyPatch
+
+from fire2a.raster.gdal_calc_sum import main
 
 # Define the path to the test assets directory
 ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
@@ -28,120 +31,54 @@ def setup_test_assets(tmp_path):
     return tmp_path
 
 
-def run_cli(args, tmp_path=None):
-    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=tmp_path)
-    return result
-
-
-@pytest.mark.parametrize("outfile", [None, "outfile.tif"])
+@pytest.mark.parametrize("infiles", [["fuels.tif"], ["fuels.tif", "elevation.tif"]])
 @pytest.mark.parametrize(
     "weights",
-    [[1.0, 2.0], [1.0, -1.0], [0.0, 0.0], None],
+    [[2.0], [1.0, -1.0], [0.0, 0.0], None],
 )
-def test_cli(weights, outfile, setup_test_assets):
-    """
-    python -m fire2a.raster.gdal_calc_sum -w 1.0 2.0 -- fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -w 1.0 2.0 -o outfile.tif fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -w 1.0 -1.0 -- fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -w 1.0 -1.0 -o outfile.tif fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -w 0.0 0.0 -- fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -w 0.0 0.0 -o outfile.tif fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum fuels.tif fuels.tif
-    python -m fire2a.raster.gdal_calc_sum -o outfile.tif fuels.tif fuels.tif
-    """
-    with MonkeyPatch.context() as mp:
-        mp.chdir(setup_test_assets)
-        # assert setup_test_assets == Path().cwd()
+def test_main(weights, infiles, setup_test_assets):
+    """ """
+    if weights:
+        if len(infiles) != len(weights):
+            print("Invalid input")
+            return
+        def_weights = weights
+    else:
+        def_weights = [1.0] * len(infiles)
 
-        infile = "fuels.tif"
-        infile2 = "fuels.tif"
-
-        cmd = [
-            "python",
-            "-m",
-            "fire2a.raster.gdal_calc_sum",
-        ]
-        if weights:
-            cmd += [
-                "-w",
-                *map(str, weights),
-            ]
-        if outfile:
-            cmd += [
-                "-o",
-                outfile,
-            ]
-        elif weights:
-            cmd += [
-                "--",
-            ]
-        cmd += [
-            infile,
-            infile2,
-        ]
-        print("command:", " ".join(cmd))
-        result = run_cli(cmd)
-        # print(cmd, result.stdout, result.stderr, sep="\n")
-        assert result.returncode == 0, print(result.stdout, result.stderr)
-        if outfile:
-            assert Path(outfile).exists(), f"{outfile=} does not exist.\n{result.stdout=}\n{result.stderr=}"
-            ds = Open(str(outfile))
-        else:
-            assert Path("outfile.tif").exists(), f"outfile.tif does not exist.\n{result.stdout=}\n{result.stderr=}"
-            ds = Open(str("outfile.tif"))
-        assert isinstance(ds, Dataset), f"{ds=}"
-        assert isinstance(DatasetReadAsArray(ds), ndarray), f"{DatasetReadAsArray(ds)=}"
-
-
-@pytest.mark.parametrize("outfile", [None, "outfile.tif"])
-@pytest.mark.parametrize(
-    "weights",
-    [[1.0, 2.0], [1.0, -1.0], [0.0, 0.0], None],
-)
-def test_main(weights, outfile, setup_test_assets):
-    """
-    ['-r', '-w', '1.0', '2.0', '--', 'fuels.tif', 'fuels.tif']
-    ['-r', '-w', '1.0', '2.0', '-o', 'outfile.tif', 'fuels.tif', 'fuels.tif']
-    ['-r', '-w', '1.0', '-1.0', '--', 'fuels.tif', 'fuels.tif']
-    ['-r', '-w', '1.0', '-1.0', '-o', 'outfile.tif', 'fuels.tif', 'fuels.tif']
-    ['-r', '-w', '0.0', '0.0', '--', 'fuels.tif', 'fuels.tif']
-    ['-r', '-w', '0.0', '0.0', '-o', 'outfile.tif', 'fuels.tif', 'fuels.tif']
-    ['-r', 'fuels.tif', 'fuels.tif']
-    ['-r', '-o', 'outfile.tif', 'fuels.tif', 'fuels.tif']
-    """
-    from fire2a.raster.gdal_calc_sum import main
+    print(f"{infiles=}, {weights=}, {def_weights=}")
 
     with MonkeyPatch.context() as mp:
         mp.chdir(setup_test_assets)
         # assert setup_test_assets == Path().cwd()
 
-        infile = "fuels.tif"
-        infile2 = "fuels.tif"
+        # from IPython.terminal.embed import InteractiveShellEmbed
+        # InteractiveShellEmbed()()
+        # numpy result
+        data = np.array([LoadFile(infile) for infile in infiles])
+        np_shape = data.shape[1:]
+        data = data.reshape(data.shape[0], -1)
+        np_result = np.dot(def_weights, data)
+        print(f"{np_result.shape=}, {np_shape=}")
 
+        # gdal result
         cmd = ["-r"]
         if weights:
             cmd += [
                 "-w",
                 *map(str, weights),
-            ]
-        if outfile:
-            cmd += [
-                "-o",
-                outfile,
-            ]
-        elif weights:
-            cmd += [
                 "--",
             ]
-        cmd += [
-            infile,
-            infile2,
-        ]
-        # print("command:", " ".join(cmd))
+        cmd += infiles
         print(f"{cmd=}")
         ds = main(cmd)
         assert isinstance(ds, Dataset)
-        assert isinstance(DatasetReadAsArray(ds), ndarray)
+        gdal_result = DatasetReadAsArray(ds)
+        assert gdal_result.shape == np_shape
+        print(f"{gdal_result.shape=}")
+        assert isinstance(gdal_result, np.ndarray)
+        gdal_result = gdal_result.flatten()
+        # gdal_result = gdal_result.reshape(-1)
 
-        #    func = lambda minimum, maximum: f"(A-{minimum})/({maximum} - {minimum})"
-        #    ds = calc(func, **vars(args))
+        # compare results
+        assert np.allclose(np_result[gdal_result != -9999], gdal_result[gdal_result != -9999])

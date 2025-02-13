@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from osgeo import gdal, ogr
-from qgis.core import QgsRasterLayer
+from qgis.core import QgsRasterLayer, QgsRectangle
 
 from fire2a.utils import fprint, qgis2numpy_dtype
 
@@ -462,6 +462,52 @@ def write_raster(
     ds.FlushCache()
     ds = None
     return True
+
+
+def get_projwin(
+    transform: Tuple[float, float, float, float, float, float],
+    width: int,
+    height: int,
+):
+    """
+    Calculate the projwin from the raster transform and size.
+    Args:
+        transform: geotransform parameters
+        width :  of the raster
+        height : of the raster
+    Returns:
+        projwin: (min_x, max_y, max_x, min_y)
+        geo_rectangle: GeoRectangle object
+
+    transform = (325692.3826, 20.0, 0.0, 4569655.6528, 0.0, -20.0)
+    raster_x_size = 658
+    raster_y_size = 597
+    """
+    from osgeo_utils.auxiliary.rectangle import GeoRectangle
+
+    min_x = transform[0]
+    max_x = transform[0] + width * transform[1]
+    max_y = transform[3]
+    min_y = transform[3] + height * transform[5]
+
+    projwin = (min_x, max_y, max_x, min_y)
+    geo_rectangle = GeoRectangle(*projwin)
+    # print(projwin)
+    # print(geo_rectangle)
+    return projwin, geo_rectangle
+
+
+def extent_to_projwin(extent: QgsRectangle) -> Tuple[float, float, float, float]:
+    """Transform a QgsRectangle extent to a projwin format."""
+    # Extract the coordinates
+    min_x = extent.xMinimum()
+    max_x = extent.xMaximum()
+    min_y = extent.yMinimum()
+    max_y = extent.yMaximum()
+
+    # Convert to projwin format (min_x, max_y, max_x, min_y)
+    projwin = (min_x, max_y, max_x, min_y)
+    return projwin
 
 
 if __name__ == "__main__":

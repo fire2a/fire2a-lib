@@ -31,31 +31,7 @@ from pathlib import Path
 from osgeo.gdal import Dataset
 from osgeo_utils.gdal_calc import Calc
 
-from fire2a.raster import read_raster
-
-
-def get_projwin(
-    transform=(325692.3826, 20.0, 0.0, 4569655.6528, 0.0, -20.0),
-    raster_x_size=658,
-    raster_y_size=597,
-):
-    """
-    transform = (325692.3826, 20.0, 0.0, 4569655.6528, 0.0, -20.0)
-    raster_x_size = 658
-    raster_y_size = 597
-    """
-    from osgeo_utils.auxiliary.rectangle import GeoRectangle
-
-    min_x = transform[0]
-    max_x = transform[0] + raster_x_size * transform[1]
-    max_y = transform[3]
-    min_y = transform[3] + raster_y_size * transform[5]
-
-    projwin = (min_x, max_y, max_x, min_y)
-    geo_rectangle = GeoRectangle(*projwin)
-    # print(projwin)
-    # print(geo_rectangle)
-    return projwin, geo_rectangle
+from fire2a.raster import get_projwin, read_raster
 
 
 def calc(
@@ -63,7 +39,7 @@ def calc(
     outfile="outfile.tif",
     infile="infile.tif",
     band=1,
-    NoDataValue=-9999,
+    NoDataValue=None,
     overwrite=True,
     type="Float32",
     format="GTiff",
@@ -127,16 +103,22 @@ def arg_parser(argv=None):
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="GDAL calc normalization utility",
+        description="Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods. Run `gdal_calc.py --help` for more information.",
         formatter_class=ArgumentDefaultsHelpFormatter,
         epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html",
+    )
+    parser.add_argument(
+        "params",
+        nargs="*",
+        type=float,
+        help="Float numbers according to the normalizing method. None: for minmax, maxmin; One for stepup, stepdown; Two for bipiecewiselinear, bipiecewiselinear_percent, see also method",
     )
     parser.add_argument("-i", "--infile", help="Input file", type=Path, default="infile.tif")
     parser.add_argument("-o", "--outfile", help="Output file", type=Path, default="outfile.tif")
     parser.add_argument(
         "-m",
         "--method",
-        help="Method",
+        help="Method to normalize the input, see also params",
         type=str,
         choices=[
             "minmax",
@@ -148,17 +130,32 @@ def arg_parser(argv=None):
             "stepdown_percent",
             "stepup_percent",
         ],
+        default="minmax",
     )
     parser.add_argument(
-        "-r", "--return_dataset", help="Return dataset without flushing/writing to disk", action="store_true"
-    )
-    parser.add_argument(
-        "params",
-        nargs="*",
+        "-p",
+        "--projwin",
+        nargs=4,
         type=float,
-        help="Float numbers according to the Method parameters None for minmax, maxmin; one for stepup, stepdown; two for bipiecewiselinear, bipiecewiselinear_percent",
+        metavar=("min_x", "max_y", "max_x", "min_y"),
+        help="An optional list of 4 coordinates defining the projection window, if not provided the whole raster is calculated",
+    )
+    parser.add_argument(
+        "-n",
+        "--NoDataValue",
+        help="output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`)",
+        type=float,
+        nargs="?",
+        default=-9999,
+    )
+    parser.add_argument(
+        "-r",
+        "--return_dataset",
+        help="Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code",
+        action="store_true",
     )
     args = parser.parse_args(argv)
+    args.projwin = tuple(args.projwin) if args.projwin else None
     return args
 
 

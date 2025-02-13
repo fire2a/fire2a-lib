@@ -32,38 +32,14 @@ from pathlib import Path
 from osgeo.gdal import Dataset
 from osgeo_utils.gdal_calc import Calc
 
-from fire2a.raster import read_raster
-
-
-def get_projwin(
-    transform=(325692.3826, 20.0, 0.0, 4569655.6528, 0.0, -20.0),
-    raster_x_size=658,
-    raster_y_size=597,
-):
-    """
-    transform = (325692.3826, 20.0, 0.0, 4569655.6528, 0.0, -20.0)
-    raster_x_size = 658
-    raster_y_size = 597
-    """
-    from osgeo_utils.auxiliary.rectangle import GeoRectangle
-
-    min_x = transform[0]
-    max_x = transform[0] + raster_x_size * transform[1]
-    max_y = transform[3]
-    min_y = transform[3] + raster_y_size * transform[5]
-
-    projwin = (min_x, max_y, max_x, min_y)
-    geo_rectangle = GeoRectangle(*projwin)
-    # print(projwin)
-    # print(geo_rectangle)
-    return projwin, geo_rectangle
+from fire2a.raster import get_projwin, read_raster
 
 
 def calc(
     outfile="outfile.tif",
     infiles=["infile.tif", "infile2.tif"],
     weights=None,
-    NoDataValue=-9999,
+    NoDataValue=None,
     overwrite=True,
     type="Float32",
     format="GTiff",
@@ -75,12 +51,10 @@ def calc(
             infiles[i] = str(infile)
     if isinstance(outfile, Path):
         outfile = str(outfile)
-    if not projwin:
-        info = locals().get("info", read_raster(infiles[0], data=False)[1])
-        projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
-        print(f"{projwin=}")
-    if not NoDataValue:
-        NoDataValue = info["NoDataValue"]
+    # if not projwin:
+    #     info = locals().get("info", read_raster(infiles[0], data=False)[1])
+    #     projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
+    #     print(f"{projwin=}")
 
     letter_file = {}
     letter_calc = ""
@@ -118,20 +92,9 @@ def arg_parser(argv=None):
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
-        description="GDAL calc summation utility",
+        description="Raster (weighted) summation utility, wrapping osgeo_utils.gdal_calc for sum(weights*rasters). Run `gdal_calc.py --help` for more information.",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_summation.html",
-    )
-    parser.add_argument("-o", "--outfile", help="Output file", type=Path, default="outfile.tif")
-    parser.add_argument(
-        "-w",
-        "--weights",
-        nargs="*",
-        type=float,
-        help="An optional list of weights to ponder the summation",
-    )
-    parser.add_argument(
-        "-r", "--return_dataset", help="Return dataset without flushing/writing to disk", action="store_true"
+        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_sum.html",
     )
     parser.add_argument(
         "infiles",
@@ -139,7 +102,38 @@ def arg_parser(argv=None):
         type=Path,
         help="List of rasters to sum up to 52",
     )
+    parser.add_argument("-o", "--outfile", help="Output file", type=Path, default="outfile.tif")
+    parser.add_argument(
+        "-w",
+        "--weights",
+        nargs="*",
+        type=float,
+        help="An optional list of weights to ponder the summation (else 1's)",
+    )
+    parser.add_argument(
+        "-p",
+        "--projwin",
+        nargs=4,
+        type=float,
+        metavar=("min_x", "max_y", "max_x", "min_y"),
+        help="An optional list of 4 coordinates defining the projection window, if not provided the 1st raster projwin is used",
+    )
+    parser.add_argument(
+        "-n",
+        "--NoDataValue",
+        help="output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`)",
+        type=float,
+        nargs="?",
+        default=-9999,
+    )
+    parser.add_argument(
+        "-r",
+        "--return_dataset",
+        help="Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code",
+        action="store_true",
+    )
     args = parser.parse_args(argv)
+    args.projwin = tuple(args.projwin) if args.projwin else None
     if len(args.infiles) > 52:
         parser.error("Number of input rasters must be less than 53")
     if args.weights:
@@ -150,7 +144,9 @@ def arg_parser(argv=None):
 
 def main(argv=None):
     """
-    args = arg_parser([])
+    args = arg_parser(["/tmp/fuels.tif"])
+    args = arg_parser(["-p","326555.21700972149847075","4562711.76232888735830784", "334617.04166780092054978", "4566058.28178922645747662","/tmp/fuels.tif"])
+    args = arg_parser(["fuels.tif"])
     args = arg_parser(["-i","fuels.tif", "-m", "minmax"])
     args = arg_parser(["-i","cbh.tif", "-m", "minmax", "30"])
 

@@ -10,9 +10,10 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from numpy import all as np_all
 from numpy import ndarray
 from osgeo.gdal import Dataset, Open
-from osgeo.gdal_array import DatasetReadAsArray
+from osgeo.gdal_array import DatasetReadAsArray, LoadFile
 from pytest import MonkeyPatch
 
 # Define the path to the test assets directory
@@ -86,7 +87,9 @@ def test_cli(method, setup_test_assets):
         assert outfile.exists()
         ds = Open(str(outfile))
         assert isinstance(ds, Dataset)
-        assert isinstance(DatasetReadAsArray(ds), ndarray)
+        array = DatasetReadAsArray(ds)
+        assert isinstance(array, ndarray)
+        assert np_all((0 <= array[array != -9999]) & (array[array != -9999] <= 1))
 
 
 @pytest.mark.parametrize(
@@ -109,6 +112,7 @@ def test_main(method, setup_test_assets):
         mp.chdir(setup_test_assets)
 
         infile = setup_test_assets / "fuels.tif"
+        # inarray = LoadFile(infile)
         outfile = setup_test_assets / f"outfile_{method}.tif"
 
         cmd = ["-i", str(infile), "-o", str(outfile), "-m", method, "--return_dataset"]
@@ -119,7 +123,10 @@ def test_main(method, setup_test_assets):
         print(f"{cmd=}")
         ds = main(cmd)
         assert isinstance(ds, Dataset)
-        assert isinstance(DatasetReadAsArray(ds), ndarray)
+        array = DatasetReadAsArray(ds)
+        assert isinstance(array, ndarray)
+        assert np_all((0 <= array[array != -9999]) & (array[array != -9999] <= 1))
 
+        # if method == "stepup"
         #    func = lambda minimum, maximum: f"(A-{minimum})/({maximum} - {minimum})"
         #    ds = calc(func, **vars(args))
