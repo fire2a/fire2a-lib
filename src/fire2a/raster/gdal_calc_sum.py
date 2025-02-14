@@ -1,7 +1,29 @@
-#!python3
+#!python
 """
-/usr/bin/gdal_calc.py
-/usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
+Raster (weighted) summation utility, wrapping osgeo_utils.gdal_calc for sum(weights*rasters).
+Run `gdal_calc.py --help` for more information.
+
+Usage:
+    python -m fire2a.raster.gdal_calc_sum.py [-h] [-o OUTFILE] [-w [WEIGHTS ...]] [-p min_x max_y max_x min_y] [-n [NODATAVALUE]] [-r] infiles [infiles ...]
+
+positional arguments:
+  infiles               List of rasters to sum up to 52
+
+options:
+  -h, --help            show this help message and exit
+  -o OUTFILE, --outfile OUTFILE
+                        Output file (default: outfile.tif)
+  -w [WEIGHTS ...], --weights [WEIGHTS ...]
+                        An optional list of weights to ponder the summation (else 1's) (default: None)
+  -p ... --projwin min_x max_y max_x min_y
+                        An optional list of 4 coordinates defining the projection window, if not provided the 1st raster projwin is used (default: None)
+  -n [NODATAVALUE], --NoDataValue [NODATAVALUE]
+                        output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`) (default: -9999)
+  -r, --return_dataset  Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code (default: False)
+
+Sample script usage:
+    from fire2a.raster.gdal_calc_sum import main
+    ds = main(["-r", ... other keyword arguments are passed to gdal_calc.Calc
 
 function osgeo_utils.gdal_calc.Calc(
     calc: Union[str, Sequence[str]],
@@ -20,10 +42,10 @@ function osgeo_utils.gdal_calc.Calc(
     projwin: Union[Tuple, osgeo_utils.auxiliary.rectangle.GeoRectangle, NoneType] = None,
     user_namespace: Optional[Dict] = None,
     debug: bool = False,
-    quiet: bool = False, **input_files)
+    quiet: bool = False, **infile_files)
 
-from IPython.terminal.embed import InteractiveShellEmbed
-InteractiveShellEmbed()()
+/usr/bin/gdal_calc.py
+/usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
 """
 import string
 import sys

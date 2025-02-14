@@ -1,7 +1,42 @@
-#!python3
+#!python
 """
-/usr/bin/gdal_calc.py
-/usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
+Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods:
+
+    - minmax : (A-min)/(max-min)
+    - maxmin : (A-max)/(min-max)
+    - stepup : 0*(A<threshold)+1*(A>=threshold)
+    - stepdown : 1*(A<threshold)+0*(A>=threshold)
+    - bipiecewiselinear : (A-a)/(b-a)
+    - bipiecewiselinear_percent : (A-a*r)/(b*r-a*r)
+    - stepdown_percent : 1*(A<threshold*r)+0*(A>=threshold*r)
+    - stepup_percent : 0*(A<threshold*r)+1*(A>=threshold*r)
+
+Run `gdal_calc.py --help` for more information.
+
+Usage:
+    python -m fire2a.raster.gdal_calc_norm.py [-h] [-i INFILE] [-o OUTFILE] [-m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}] [-p min_x max_y max_x min_y] [-n [NODATAVALUE]] [-r] [params ...]
+
+
+positional arguments:
+  params                Float numbers according to the normalizing method. None: for minmax, maxmin; One for stepup, stepdown; Two for bipiecewiselinear, bipiecewiselinear_percent, see also method (default: None)
+
+options:
+  -h, --help            show this help message and exit
+  -i INFILE, --infile INFILE
+                        Input file (default: infile.tif)
+  -o OUTFILE, --outfile OUTFILE
+                        Output file (default: outfile.tif)
+  -m {...} --method {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}
+                        Method to normalize the input, see also params (default: minmax)
+  -p ... --projwin min_x max_y max_x min_y
+                        An optional list of 4 coordinates defining the projection window, if not provided the whole raster is calculated (default: None)
+  -n [NODATAVALUE], --NoDataValue [NODATAVALUE]
+                        output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`) (default: -9999)
+  -r, --return_dataset  Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code (default: False)
+
+Sample script usage:
+    from fire2a.raster.gdal_calc_norm import main
+    ds = main(["-r", ... other keyword arguments are passed to gdal_calc.Calc
 
 function osgeo_utils.gdal_calc.Calc(
     calc: Union[str, Sequence[str]],
@@ -20,10 +55,10 @@ function osgeo_utils.gdal_calc.Calc(
     projwin: Union[Tuple, osgeo_utils.auxiliary.rectangle.GeoRectangle, NoneType] = None,
     user_namespace: Optional[Dict] = None,
     debug: bool = False,
-    quiet: bool = False, **infile_files)
+    quiet: bool = False, **input_files)
 
-from IPython.terminal.embed import InteractiveShellEmbed
-InteractiveShellEmbed()()
+/usr/bin/gdal_calc.py
+/usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
 """
 import sys
 from pathlib import Path
