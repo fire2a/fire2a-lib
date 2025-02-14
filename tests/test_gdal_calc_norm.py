@@ -111,9 +111,41 @@ def test_main(method, setup_test_assets):
     with MonkeyPatch.context() as mp:
         mp.chdir(setup_test_assets)
 
-        infile = setup_test_assets / "fuels.tif"
-        # inarray = LoadFile(infile)
-        outfile = setup_test_assets / f"outfile_{method}.tif"
+        infile = "fuels.tif"
+        outfile = f"outfile_{method}.tif"
+
+        # numpy result
+        data = LoadFile(infile)
+        mask = data != -9999
+        if method == "minmax":
+            data[mask] = (data[mask] - data[mask].min()) / (data[mask].max() - data[mask].min())
+        elif method == "maxmin":
+            data[mask] = (data[mask] - data[mask].max()) / (data[mask].min() - data[mask].max())
+        elif method == "stepup":
+            threshold = 30
+            data[mask] = 0 * (data[mask] < threshold) + 1 * (data[mask] >= threshold)
+        elif method == "stepdown":
+            threshold = 30
+            data[mask] = 1 * (data[mask] < threshold) + 0 * (data[mask] >= threshold)
+        elif method == "bipiecewiselinear":
+            a = 30
+            b = 60
+            data[mask] = (data[mask] - a) / (b - a)
+            data[mask] = 0 * (data[mask] < 0) + 1 * (data[mask] > 1)
+        elif method == "bipiecewiselinear_percent":
+            a = 30
+            b = 60
+            rela_delta = (data[mask].max() - data[mask].min()) / 100
+            real_a = rela_delta * a
+            real_b = rela_delta * b
+            data[mask] = (data[mask] - real_a) / (real_b - real_a)
+            data[mask] = 0 * (data[mask] < 0) + 1 * (data[mask] > 1)
+        elif method == "stepdown_percent":
+            threshold = 30
+            data[mask] = 1 * (data[mask] < threshold) + 0 * (data[mask] >= threshold)
+        elif method == "stepup_percent":
+            threshold = 30
+            data[mask] = 0 * (data[mask] < threshold) + 1 * (data[mask] >= threshold)
 
         cmd = ["-i", str(infile), "-o", str(outfile), "-m", method, "--return_dataset"]
         if "step" in method:
@@ -125,8 +157,6 @@ def test_main(method, setup_test_assets):
         assert isinstance(ds, Dataset)
         array = DatasetReadAsArray(ds)
         assert isinstance(array, ndarray)
+        assert data.shape == array.shape, f"{data.shape=} {array.shape=}"
         assert np_all((0 <= array[array != -9999]) & (array[array != -9999] <= 1))
-
-        # if method == "stepup"
-        #    func = lambda minimum, maximum: f"(A-{minimum})/({maximum} - {minimum})"
-        #    ds = calc(func, **vars(args))
+        assert np_allclose(data[array != -9999], array[array != -9999], equal_nan=True)
