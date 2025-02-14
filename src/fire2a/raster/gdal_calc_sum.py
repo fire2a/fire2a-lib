@@ -32,7 +32,7 @@ from pathlib import Path
 from osgeo.gdal import Dataset
 from osgeo_utils.gdal_calc import Calc
 
-from fire2a.raster import get_projwin, read_raster
+# from fire2a.raster import get_projwin, read_raster
 
 
 def calc(

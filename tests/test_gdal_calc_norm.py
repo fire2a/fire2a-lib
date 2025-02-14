@@ -5,36 +5,37 @@ pytest
 
     InteractiveShellEmbed()()
 """
-import shutil
-import subprocess
 from pathlib import Path
+from shutil import copy as shutil_copy
+from subprocess import PIPE, STDOUT
+from subprocess import run as subprocess_run
 
-import pytest
 from numpy import all as np_all
+from numpy import allclose as np_allclose
 from numpy import ndarray
 from osgeo.gdal import Dataset, Open
 from osgeo.gdal_array import DatasetReadAsArray, LoadFile
-from pytest import MonkeyPatch
+from pytest import MonkeyPatch, fixture, mark
 
 # Define the path to the test assets directory
 ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
 
 
 # Fixture to copy test assets to a temporary directory
-@pytest.fixture
+@fixture
 def setup_test_assets(tmp_path):
     # Copy the test assets to the temporary directory
     for asset in ASSETS_DIR.iterdir():
-        shutil.copy(asset, tmp_path)
+        shutil_copy(asset, tmp_path)
     return tmp_path
 
 
 def run_cli(args, tmp_path=None):
-    result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=tmp_path)
+    result = subprocess_run(args, stdout=PIPE, stderr=PIPE, text=True, cwd=tmp_path)
     return result
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "method",
     [
         "minmax",
@@ -92,7 +93,7 @@ def test_cli(method, setup_test_assets):
         assert np_all((0 <= array[array != -9999]) & (array[array != -9999] <= 1))
 
 
-@pytest.mark.parametrize(
+@mark.parametrize(
     "method",
     [
         "minmax",

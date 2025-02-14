@@ -5,16 +5,15 @@ pytest
 
     InteractiveShellEmbed()()
 """
-import shutil
-import subprocess
 from pathlib import Path
+from shutil import copy as shutil_copy
+from subprocess import PIPE, STDOUT
+from subprocess import run as subprocess_run
 
-import numpy as np
-import pytest
-from numpy import array, ndarray
+from numpy import allclose, array, dot, ndarray
 from osgeo.gdal import Dataset
 from osgeo.gdal_array import DatasetReadAsArray, LoadFile
-from pytest import MonkeyPatch
+from pytest import MonkeyPatch, fixture, mark
 
 from fire2a.raster.gdal_calc_sum import main
 
@@ -23,16 +22,16 @@ ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
 
 
 # Fixture to copy test assets to a temporary directory
-@pytest.fixture
+@fixture
 def setup_test_assets(tmp_path):
     # Copy the test assets to the temporary directory
     for asset in ASSETS_DIR.iterdir():
-        shutil.copy(asset, tmp_path)
+        shutil_copy(asset, tmp_path)
     return tmp_path
 
 
-@pytest.mark.parametrize("infiles", [["fuels.tif"], ["fuels.tif", "elevation.tif"]])
-@pytest.mark.parametrize(
+@mark.parametrize("infiles", [["fuels.tif"], ["fuels.tif", "elevation.tif"]])
+@mark.parametrize(
     "weights",
     [[2.0], [1.0, -1.0], [0.0, 0.0], None],
 )
@@ -55,10 +54,10 @@ def test_main(weights, infiles, setup_test_assets):
         # from IPython.terminal.embed import InteractiveShellEmbed
         # InteractiveShellEmbed()()
         # numpy result
-        data = np.array([LoadFile(infile) for infile in infiles])
+        data = array([LoadFile(infile) for infile in infiles])
         np_shape = data.shape[1:]
         data = data.reshape(data.shape[0], -1)
-        np_result = np.dot(def_weights, data)
+        np_result = dot(def_weights, data)
         print(f"{np_result.shape=}, {np_shape=}")
 
         # gdal result
@@ -76,9 +75,9 @@ def test_main(weights, infiles, setup_test_assets):
         gdal_result = DatasetReadAsArray(ds)
         assert gdal_result.shape == np_shape
         print(f"{gdal_result.shape=}")
-        assert isinstance(gdal_result, np.ndarray)
+        assert isinstance(gdal_result, ndarray)
         gdal_result = gdal_result.flatten()
         # gdal_result = gdal_result.reshape(-1)
 
         # compare results
-        assert np.allclose(np_result[gdal_result != -9999], gdal_result[gdal_result != -9999])
+        assert allclose(np_result[gdal_result != -9999], gdal_result[gdal_result != -9999])

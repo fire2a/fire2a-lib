@@ -31,7 +31,7 @@ from pathlib import Path
 from osgeo.gdal import Dataset
 from osgeo_utils.gdal_calc import Calc
 
-from fire2a.raster import get_projwin, read_raster
+from fire2a.raster import read_raster  # get_projwin
 
 
 def calc(
@@ -64,10 +64,10 @@ def calc(
         info = locals().get("info", read_raster(infile, data=False)[1])
         maximum = info["Maximum"]
         print(f"{maximum=}")
-    if not projwin:
-        info = locals().get("info", read_raster(infile, data=False)[1])
-        projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
-        print(f"{projwin=}")
+    # if not projwin:
+    #     info = locals().get("info", read_raster(infile, data=False)[1])
+    #     projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
+    #     print(f"{projwin=}")
 
     # get a the parameter values of the calc function
     code_obj = func.__code__
