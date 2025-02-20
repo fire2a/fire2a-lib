@@ -1,10 +1,13 @@
 #!python
 """
-Raster (weighted) summation utility, wrapping osgeo_utils.gdal_calc for sum(weights*rasters).
-Run `gdal_calc.py --help` for more information.
+<!-- BEGIN_ARGPARSE_DOCSTRING -->
+usage: gdal_calc_sum.py [-h] [-o OUTFILE] [-w [WEIGHTS ...]] [-f FORMAT]
+                        [-t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}]
+                        [-p min_x max_y max_x min_y] [-n [NODATAVALUE]] [-r]
+                        infiles [infiles ...]
 
-Usage:
-    python -m fire2a.raster.gdal_calc_sum.py [-h] [-o OUTFILE] [-w [WEIGHTS ...]] [-p min_x max_y max_x min_y] [-n [NODATAVALUE]] [-r] infiles [infiles ...]
+Raster (weighted) summation utility, wrapping osgeo_utils.gdal_calc for
+sum(weights*rasters). Run `gdal_calc.py --help` for more information.
 
 positional arguments:
   infiles               List of rasters to sum up to 52
@@ -14,12 +17,27 @@ options:
   -o OUTFILE, --outfile OUTFILE
                         Output file (default: outfile.tif)
   -w [WEIGHTS ...], --weights [WEIGHTS ...]
-                        An optional list of weights to ponder the summation (else 1's) (default: None)
-  -p ... --projwin min_x max_y max_x min_y
-                        An optional list of 4 coordinates defining the projection window, if not provided the 1st raster projwin is used (default: None)
+                        An optional list of weights to ponder the summation
+                        (else 1's) (default: None)
+  -f FORMAT, --format FORMAT
+                        Output format (default: GTiff)
+  -t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}, --type {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}
+                        Output datatype (default: Float32)
+  -p min_x max_y max_x min_y, --projwin min_x max_y max_x min_y
+                        An optional list of 4 coordinates defining the
+                        projection window, if not provided the 1st raster
+                        projwin is used (default: None)
   -n [NODATAVALUE], --NoDataValue [NODATAVALUE]
-                        output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`) (default: -9999)
-  -r, --return_dataset  Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code (default: False)
+                        output nodata value (send empty for default datatype
+                        specific, see `from osgeo_utils.gdal_calc import
+                        DefaultNDVLookup`) (default: -9999)
+  -r, --return_dataset  Return dataset (for scripting -additional keyword
+                        arguments are passed to gdal_calc.Calc) instead of
+                        return code (default: False)
+
+documentation at
+https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_sum.html
+<!-- END_ARGPARSE_DOCSTRING -->
 
 Sample script usage:
     from fire2a.raster.gdal_calc_sum import main
@@ -52,7 +70,8 @@ import sys
 from pathlib import Path
 
 from osgeo.gdal import Dataset
-from osgeo_utils.gdal_calc import Calc
+from osgeo_utils.auxiliary.util import GetOutputDriverFor
+from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
 
 # from fire2a.raster import get_projwin, read_raster
 
@@ -116,7 +135,7 @@ def arg_parser(argv=None):
     parser = ArgumentParser(
         description="Raster (weighted) summation utility, wrapping osgeo_utils.gdal_calc for sum(weights*rasters). Run `gdal_calc.py --help` for more information.",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_sum.html",
+        epilog="documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_sum.html",
     )
     parser.add_argument(
         "infiles",
@@ -131,6 +150,10 @@ def arg_parser(argv=None):
         nargs="*",
         type=float,
         help="An optional list of weights to ponder the summation (else 1's)",
+    )
+    parser.add_argument("-f", "--format", help="Output format", type=str, default="GTiff")
+    parser.add_argument(
+        "-t", "--type", help="Output datatype", type=str, default="Float32", choices=list(map(str, GDALDataTypeNames))
     )
     parser.add_argument(
         "-p",
@@ -158,9 +181,14 @@ def arg_parser(argv=None):
     args.projwin = tuple(args.projwin) if args.projwin else None
     if len(args.infiles) > 52:
         parser.error("Number of input rasters must be less than 53")
+    for infile in args.infiles:
+        if not infile.exists():
+            parser.error(f"Input raster {infile} does not exist")
     if args.weights:
         if len(args.weights) != len(args.infiles):
             parser.error("Number of weights must match the number of input rasters")
+    if args.format is None:
+        args.format = GetOutputDriverFor(args.outfile)
     return args
 
 

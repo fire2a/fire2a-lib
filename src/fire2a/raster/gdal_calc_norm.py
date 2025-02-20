@@ -1,24 +1,23 @@
 #!python
 """
-Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods:
+<!-- BEGIN_ARGPARSE_DOCSTRING -->
+usage: gdal_calc_norm.py [-h] [-i INFILE] [-o OUTFILE]
+                         [-m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}]
+                         [-min MINIMUM] [-max MAXIMUM] [-n [NODATAVALUE]]
+                         [-f FORMAT]
+                         [-t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}]
+                         [-p min_x max_y max_x min_y] [-r]
+                         [params ...]
 
-    - minmax : (A-min)/(max-min)
-    - maxmin : (A-max)/(min-max)
-    - stepup : 0*(A<threshold)+1*(A>=threshold)
-    - stepdown : 1*(A<threshold)+0*(A>=threshold)
-    - bipiecewiselinear : (A-a)/(b-a)
-    - bipiecewiselinear_percent : (A-a*r)/(b*r-a*r)
-    - stepdown_percent : 1*(A<threshold*r)+0*(A>=threshold*r)
-    - stepup_percent : 0*(A<threshold*r)+1*(A>=threshold*r)
-
-Run `gdal_calc.py --help` for more information.
-
-Usage:
-    python -m fire2a.raster.gdal_calc_norm.py [-h] [-i INFILE] [-o OUTFILE] [-m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}] [-p min_x max_y max_x min_y] [-n [NODATAVALUE]] [-r] [params ...]
-
+Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of
+predefined normalization methods. Run `gdal_calc.py --help` for more
+information.
 
 positional arguments:
-  params                Float numbers according to the normalizing method. None: for minmax, maxmin; One for stepup, stepdown; Two for bipiecewiselinear, bipiecewiselinear_percent, see also method (default: None)
+  params                Float numbers according to the normalizing method.
+                        None: for minmax, maxmin; One for stepup, stepdown;
+                        Two for bipiecewiselinear, bipiecewiselinear_percent,
+                        see also method (default: None)
 
 options:
   -h, --help            show this help message and exit
@@ -26,13 +25,38 @@ options:
                         Input file (default: infile.tif)
   -o OUTFILE, --outfile OUTFILE
                         Output file (default: outfile.tif)
-  -m {...} --method {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}
-                        Method to normalize the input, see also params (default: minmax)
-  -p ... --projwin min_x max_y max_x min_y
-                        An optional list of 4 coordinates defining the projection window, if not provided the whole raster is calculated (default: None)
+  -m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}, --method {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}
+                        Method to normalize the input, see also params
+                        (default: minmax)
+  -min MINIMUM, --minimum MINIMUM
+                        Minimun value for minmax/maxmin (else the value is
+                        calculated from the WHOLE input raster). (default:
+                        None)
+  -max MAXIMUM, --maximum MAXIMUM
+                        Maximum value for minmax/maxmin (else the value is
+                        calculated from the WHOLE input raster). (default:
+                        None)
   -n [NODATAVALUE], --NoDataValue [NODATAVALUE]
-                        output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`) (default: -9999)
-  -r, --return_dataset  Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return code (default: False)
+                        output nodata value (send null for default datatype
+                        specific, see `from osgeo_utils.gdal_calc import
+                        DefaultNDVLookup`) (default: -9999)
+  -f FORMAT, --format FORMAT
+                        Output format (send null to infer from file, see `from
+                        osgeo_utils.auxiliary.util import GetOutputDriverFor`)
+                        (default: GTiff)
+  -t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}, --type {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}
+                        Output datatype (default: Float32)
+  -p min_x max_y max_x min_y, --projwin min_x max_y max_x min_y
+                        An optional list of 4 coordinates defining the
+                        projection window, if not provided the whole raster is
+                        calculated (default: None)
+  -r, --return_dataset  Return dataset (for scripting -additional keyword
+                        arguments are passed to gdal_calc.Calc) instead of
+                        return code (default: False)
+
+documentation at
+https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html
+<!-- END_ARGPARSE_DOCSTRING -->
 
 Sample script usage:
     from fire2a.raster.gdal_calc_norm import main
@@ -64,7 +88,8 @@ import sys
 from pathlib import Path
 
 from osgeo.gdal import Dataset
-from osgeo_utils.gdal_calc import Calc
+from osgeo_utils.auxiliary.util import GetOutputDriverFor
+from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
 
 from fire2a.raster import read_raster  # get_projwin
 
@@ -91,14 +116,18 @@ def calc(
         infile = str(infile)
     if isinstance(outfile, Path):
         outfile = str(outfile)
-    if minimum is None:
-        info = locals().get("info", read_raster(infile, data=False)[1])
-        minimum = info["Minimum"]
-        print(f"{minimum=}")
-    if maximum is None:
-        info = locals().get("info", read_raster(infile, data=False)[1])
-        maximum = info["Maximum"]
-        print(f"{maximum=}")
+    if "method" in kwargs:
+        if kwargs["method"] in ["minmax", "maxmin", "bipiecewiselinear_percent", "stepup_percent", "stepdown_percent"]:
+            if minimum is None:
+                info = locals().get("info", read_raster(infile, data=False)[1])
+                minimum = info["Minimum"]
+                print(f"{minimum=}")
+            if maximum is None:
+                info = locals().get("info", read_raster(infile, data=False)[1])
+                maximum = info["Maximum"]
+                print(f"{maximum=}")
+        # drop before passing to Calc
+        del kwargs["method"]
     # if not projwin:
     #     info = locals().get("info", read_raster(infile, data=False)[1])
     #     projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
@@ -140,7 +169,7 @@ def arg_parser(argv=None):
     parser = ArgumentParser(
         description="Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods. Run `gdal_calc.py --help` for more information.",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="Full documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html",
+        epilog="documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html",
     )
     parser.add_argument(
         "params",
@@ -168,20 +197,43 @@ def arg_parser(argv=None):
         default="minmax",
     )
     parser.add_argument(
+        "-min",
+        "--minimum",
+        help="Minimun value for minmax/maxmin (else the value is calculated from the WHOLE input raster).",
+        type=float,
+    )
+    parser.add_argument(
+        "-max",
+        "--maximum",
+        help="Maximum value for minmax/maxmin (else the value is calculated from the WHOLE input raster).",
+        type=float,
+    )
+    parser.add_argument(
+        "-n",
+        "--NoDataValue",
+        help="output nodata value (send null for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`)",
+        type=float,
+        nargs="?",
+        default=-9999,
+    )
+    parser.add_argument(
+        "-f",
+        "--format",
+        help="Output format (send null to infer from file, see `from osgeo_utils.auxiliary.util import GetOutputDriverFor`)",
+        type=str,
+        default="GTiff",
+    )
+
+    parser.add_argument(
+        "-t", "--type", help="Output datatype", type=str, default="Float32", choices=list(map(str, GDALDataTypeNames))
+    )
+    parser.add_argument(
         "-p",
         "--projwin",
         nargs=4,
         type=float,
         metavar=("min_x", "max_y", "max_x", "min_y"),
         help="An optional list of 4 coordinates defining the projection window, if not provided the whole raster is calculated",
-    )
-    parser.add_argument(
-        "-n",
-        "--NoDataValue",
-        help="output nodata value (send empty for default datatype specific, see `from osgeo_utils.gdal_calc import DefaultNDVLookup`)",
-        type=float,
-        nargs="?",
-        default=-9999,
     )
     parser.add_argument(
         "-r",
@@ -191,13 +243,16 @@ def arg_parser(argv=None):
     )
     args = parser.parse_args(argv)
     args.projwin = tuple(args.projwin) if args.projwin else None
+    if not args.infile.is_file():
+        parser.error("Input file does not exist")
+    if args.format is None:
+        args.format = GetOutputDriverFor(args.outfile)
     return args
 
 
 def main(argv=None):
     """
-    args = arg_parser([])
-    args = arg_parser(["-i","fuels.tif", "-m", "minmax"])
+    args = arg_parser(["-i","/tmp/fuels.tif", "-m", "stepup"])
     args = arg_parser(["-i","cbh.tif", "-m", "minmax", "30"])
     _, info = read_raster(str(args.infile), data=False)
     """
@@ -208,41 +263,41 @@ def main(argv=None):
     print(f"{args=}")
 
     if args.method == "minmax":
-        del args.method, args.params
+        del args.params
         func = lambda minimum, maximum: f"(A-{minimum})/({maximum} - {minimum})"
         ds = calc(func, **vars(args))
     elif args.method == "maxmin":
-        del args.method, args.params
+        del args.params
         func = lambda minimum, maximum: f"(A-{maximum})/({minimum} - {maximum})"
         ds = calc(func, **vars(args))
     elif args.method == "stepup":
         threshold = args.params[0]
-        del args.method, args.params
+        del args.params
         func = lambda threshold: f"0*(A<{threshold})+1*(A>={threshold})"
-        ds = calc(func, **vars(args), threshold=threshold, minimum=False, maximum=False)
+        ds = calc(func, **vars(args), threshold=threshold)
     elif args.method == "stepdown":
         threshold = args.params[0]
-        del args.method, args.params
+        del args.params
         func = lambda threshold: f"1*(A<{threshold})+0*(A>={threshold})"
-        ds = calc(func, **vars(args), threshold=threshold, minimum=False, maximum=False)
+        ds = calc(func, **vars(args), threshold=threshold)
     elif args.method == "bipiecewiselinear":
         a = args.params[0]
         b = args.params[1]
-        del args.method, args.params
+        del args.params
 
         keep = args.outfile
         args.outfile = args.outfile.with_name("tmp.tif")
         print(f"{args=}")
 
         func = lambda a, b: f"(A-{a})/({b}-{a})"
-        ds = calc(func, **vars(args), a=a, b=b, minimum=False, maximum=False)
+        ds = calc(func, **vars(args), a=a, b=b)
 
         args.infile = args.outfile
         args.outfile = keep
         print(f"{args=}")
 
         func = lambda: "0*(A<0)+1*(A>1)"
-        ds = calc(func, **vars(args), minimum=False, maximum=False)
+        ds = calc(func, **vars(args))
     elif args.method == "bipiecewiselinear_percent":
         """
         rela_delta = data.max() - data.min() / 100
@@ -252,7 +307,7 @@ def main(argv=None):
         """
         a = args.params[0]
         b = args.params[1]
-        del args.method, args.params
+        del args.params
 
         keep = args.outfile
         args.outfile = args.outfile.with_name("tmp.tif")
@@ -266,15 +321,15 @@ def main(argv=None):
         print(f"{args=}")
 
         func = lambda: "0*(A<0)+1*(A>1)"
-        ds = calc(func, **vars(args), minimum=False, maximum=False)
+        ds = calc(func, **vars(args))
     elif args.method == "stepup_percent":
         threshold = args.params[0]
-        del args.method, args.params
+        del args.params
         func = lambda threshold, r: f"0*(A<{threshold*r})+1*(A>={threshold*r})"
         ds = calc(func, **vars(args), threshold=threshold, r=0)
     elif args.method == "stepdown_percent":
         threshold = args.params[0]
-        del args.method, args.params
+        del args.params
         func = lambda threshold, r: f"1*(A<{threshold*r})+0*(A>={threshold*r})"
         ds = calc(func, **vars(args), threshold=threshold, r=0)
     """
