@@ -86,12 +86,12 @@ function osgeo_utils.gdal_calc.Calc(
 """
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
+from fire2a.raster import read_raster  # get_projwin
 from osgeo.gdal import Dataset
 from osgeo_utils.auxiliary.util import GetOutputDriverFor
 from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
-
-from fire2a.raster import read_raster  # get_projwin
 
 
 def calc(
@@ -286,7 +286,7 @@ def main(argv=None):
         del args.params
 
         keep = args.outfile
-        args.outfile = args.outfile.with_name("tmp.tif")
+        args.outfile = Path(NamedTemporaryFile(suffix=".tif", delete=False).name)
         print(f"{args=}")
 
         func = lambda a, b: f"(A-{a})/({b}-{a})"
@@ -310,7 +310,7 @@ def main(argv=None):
         del args.params
 
         keep = args.outfile
-        args.outfile = args.outfile.with_name("tmp.tif")
+        args.outfile = Path(NamedTemporaryFile(suffix=".tif", delete=False).name)
         print(f"{args=}")
 
         func = lambda a, b, r: f"(A-{a*r})/({b*r}-{a*r})"
