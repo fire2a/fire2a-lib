@@ -33,10 +33,13 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m venv .venv --system-site-packages
+        python -m venv .venv
         . .venv/bin/activate
         pip install --no-cache-dir -r requirements.txt
         pip install --no-cache-dir pytest
+
+    - name: Add original system site packages
+      run: echo "PYTHONPATH=/usr/lib/python3/dist-packages" >> $GITHUB_ENV
 
     - name: Run tests
       run: |
