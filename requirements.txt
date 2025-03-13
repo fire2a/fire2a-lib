@@ -1,4 +1,5 @@
 pandas
+numpy <2
 networkx >=2.7
 pyomo
 scikit-learn
