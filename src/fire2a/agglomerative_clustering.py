@@ -363,7 +363,7 @@ def write(
         poly_driver = "ESRI Shapefile"
 
     # create raster output
-    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int32)
     src_ds.SetGeoTransform(geotransform)  # != 0 ?
     src_ds.SetProjection(authid)  # != 0 ?
     #  src_band = src_ds.GetRasterBand(1)
@@ -377,8 +377,8 @@ def write(
     sp_ref = osr.SpatialReference()
     sp_ref.SetFromUserInput(authid)  # != 0 ?
     dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
-    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger64))  # != 0 ?
-    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", ogr.OFTInteger64))
+    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger32))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", ogr.OFTInteger32))
     # dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
     # dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
 
@@ -430,7 +430,7 @@ def write(
     # RESTART RASTER
     # src_ds = None
     # src_band = None
-    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int32)
     # src_ds.SetGeoTransform(geotransform)  # != 0 ?
     # src_ds.SetProjection(authid)  # != 0 ?
     src_band = src_ds.GetRasterBand(1)
@@ -569,7 +569,7 @@ def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
     height, width = data.shape
     # fprint("antes", np.sort(np.unique(data, return_counts=True)), len(np.unique(data)), level="info", feedback=feedback, logger=logger)
     num_clusters = len(np.unique(data))
-    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, gdal.GDT_Int64)
+    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, gdal.GDT_Int32)
     src_band = src_ds.GetRasterBand(1)
     src_band.WriteArray(data)
     if 0 != gdal.SieveFilter(src_band, None, src_band, threshold, connectedness):
