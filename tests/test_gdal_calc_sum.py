@@ -5,6 +5,7 @@ pytest
 
     InteractiveShellEmbed()()
 """
+import sys
 from pathlib import Path
 from shutil import copy as shutil_copy
 from subprocess import PIPE, STDOUT
@@ -15,7 +16,8 @@ from osgeo.gdal import Dataset
 from osgeo.gdal_array import DatasetReadAsArray, LoadFile
 from pytest import MonkeyPatch, fixture, mark
 
-from fire2a.raster.gdal_calc_sum import main
+skip_if_python_lt_310 = mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher")
+
 
 # Define the path to the test assets directory
 ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
@@ -35,8 +37,11 @@ def setup_test_assets(tmp_path):
     "weights",
     [[2.0], [1.0, -1.0], [0.0, 0.0], None],
 )
+@mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher")
 def test_main(weights, infiles, setup_test_assets):
     """ """
+    from fire2a.raster.gdal_calc_sum import main
+
     if weights:
         if len(infiles) != len(weights):
             print("Invalid input")

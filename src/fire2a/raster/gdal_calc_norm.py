@@ -73,14 +73,37 @@ function osgeo_utils.gdal_calc.Calc(
 /usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
 </code></pre>
 """
-# fmt: on
 import sys
+
+if sys.version_info < (3, 10):
+    raise ImportError("This module requires Python 3.10 or higher")
+
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from osgeo.gdal import Dataset, GA_ReadOnly, Open
-from osgeo_utils.auxiliary.util import GetOutputDriverFor
-from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
+
+try:
+    from osgeo_utils.auxiliary.util import GetOutputDriverFor
+    from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
+except ImportError:
+    from osgeo.utils.gdal_calc import Calc, GetOutputDriverFor
+
+    GDALDataTypeNames = (
+        "Byte",
+        "UInt16",
+        "Int16",
+        "UInt32",
+        "Int32",
+        "UInt64",
+        "Int64",
+        "Float32",
+        "Float64",
+        "CInt16",
+        "CInt32",
+        "CFloat32",
+        "CFloat64",
+    )
 
 
 def calc(

@@ -5,6 +5,7 @@ pytest
 
     InteractiveShellEmbed()()
 """
+import sys
 from pathlib import Path
 from shutil import copy as shutil_copy
 from subprocess import PIPE, STDOUT
@@ -16,6 +17,8 @@ from numpy import ndarray
 from osgeo.gdal import Dataset, Open
 from osgeo.gdal_array import DatasetReadAsArray, LoadFile
 from pytest import MonkeyPatch, fixture, mark
+
+skip_if_python_lt_310 = mark.skipif(sys.version_info < (3, 10), reason="Requires Python 3.10 or higher")
 
 # Define the path to the test assets directory
 ASSETS_DIR = Path(__file__).parent / "assets_gdal_calc"
@@ -48,6 +51,7 @@ def run_cli(args, tmp_path=None):
         "stepup_percent",
     ],
 )
+@skip_if_python_lt_310
 def test_cli(method, setup_test_assets):
     """
     python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m minmax
@@ -107,6 +111,7 @@ def test_cli(method, setup_test_assets):
         "stepup_percent",
     ],
 )
+@skip_if_python_lt_310
 def test_main(method, setup_test_assets):
     from fire2a.raster.gdal_calc_norm import main
 
