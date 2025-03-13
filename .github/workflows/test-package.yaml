@@ -12,11 +12,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: qgis/qgis:latest
 
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    container:
+      image: qgis/qgis:latest
 
     steps:
     - name: Checkout code
@@ -31,7 +33,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python3 -m venv .venv --system-site-packages
+        python -m venv .venv --system-site-packages
         . .venv/bin/activate
         pip install --no-cache-dir -r requirements.txt
         pip install --no-cache-dir pytest
