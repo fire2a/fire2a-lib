@@ -1,3 +1,4 @@
+pandas
 networkx >=2.7
 pyomo
 scikit-learn
