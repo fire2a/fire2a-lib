@@ -12,6 +12,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    container: qgis/qgis:latest
 
     strategy:
       matrix:
