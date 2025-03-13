@@ -17,7 +17,7 @@ description = "Algorithms and tools python package for Forest Fire Research, Man
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["fire", "wildfires", "forest fires", "fire management", "fire analytics", "fire research", "fire modeling"]
-license = {text = "GPLv3"} # , file = "LICENSE.txt"
+license = {text = "GPLv3", file = "LICENSE.txt"}
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
