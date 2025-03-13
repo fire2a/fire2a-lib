@@ -43,6 +43,7 @@ jobs:
         . .venv/bin/activate
         python3 -m pip install --no-cache-dir -r requirements.txt
         python3 -c "import pandas; print(pandas.__file__)"
+        python3 -c "import sys; print(sys.prefix)"
         python3 -m pip install --no-cache-dir pytest
-        pytest
+        python3 -m pytest
       shell: bash
