@@ -39,11 +39,11 @@ jobs:
 
     - name: do it
       run: |
-        apt-get install -y python3-venv python3-pip
+        apt-get install -y python3-venv
         apt-get remove -y python3-pytest
         python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
+        python3 -m pip install --upgrade pip setuptools wheel pytest
         pip install --no-cache-dir -r requirements.txt
-        pip install --no-cache-dir pytest
-        python -m pytest
+        pytest
       shell: bash
