@@ -39,7 +39,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt-get install python3-numpy python3-pandas python3-pytest python3-matplotlib
+        apt-get install -y python3-numpy python3-pandas python3-pytest python3-matplotlib
         python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
         which python
