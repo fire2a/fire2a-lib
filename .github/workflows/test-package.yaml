@@ -34,8 +34,9 @@ jobs:
         python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
         pip install -r requirements.txt
-        pip install pytest
 
     - name: Run tests
       run: |
+        . .venv/bin/activate
+        pip install pytest
         pytest
