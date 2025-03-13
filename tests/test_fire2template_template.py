@@ -6,8 +6,9 @@ import pytest
 
 
 def test_calc():
-    from fire2template.template import calc
     from numpy.random import rand
+
+    from fire2template.template import calc
 
     # OJO: testing with random is not a good practice
     numbers = rand(10)
