@@ -18,10 +18,10 @@ git clean -dfX
 git tag
 
 # tag create locally & upload
-git tag -a v0.3.4 -m 'multi objective knapsack mvp + cell2fire statistics mean fix without non-fire scenarios' && git push origin v0.3.4
+git tag -a v0.3.8 -m 'py39 backward compatibility' && git push origin v0.3.8
 
 # delete tag locally & upstream
-git tag --delete v0.3.4 && git push --delete origin v0.3.4
+git tag --delete v0.3.8 && git push --delete origin v0.3.8
 
 # view calculated version to check is not dirty
 python -m setuptools_scm
