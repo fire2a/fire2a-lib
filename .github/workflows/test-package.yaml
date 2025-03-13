@@ -15,10 +15,15 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11', '3.12']
+        container: [
+          'qgis/qgis:release-3_28',
+          'qgis/qgis:release-3_30',
+          'qgis/qgis:3.40-noble',
+          'qgis/qgis:3.40-jammy'
+        ]
 
     container:
-      image: qgis/qgis:latest
+      image: ${{ matrix.container }}
 
     steps:
     - name: Checkout code
@@ -26,20 +31,22 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+    - name: Inspect
+      run: |
+        qgis --version
+        python3 -V
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip python3-venv
 
     - name: Install dependencies
       run: |
-        python -m venv .venv
+        python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
         pip install --no-cache-dir -r requirements.txt
         pip install --no-cache-dir pytest
-
-    - name: Add original system site packages
-      run: echo "PYTHONPATH=/usr/lib/python3/dist-packages" >> $GITHUB_ENV
 
     - name: Run tests
       run: |
