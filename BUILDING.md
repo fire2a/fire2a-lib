@@ -36,7 +36,7 @@ if directory exists remove, then build
 ```bash
 rm -rf doc/*
 touch doc/.gitkeep
-pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a fire2template
+pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 Then check the generated webpage
 ```bash

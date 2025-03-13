@@ -1,4 +1,4 @@
-python-lsp-server
+python-lsp-server[pylint,rope]
 python-lsp-ruff
 pylsp-mypy
 pylsp-rope
