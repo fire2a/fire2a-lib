@@ -125,7 +125,7 @@ def calc(
         del kwargs["method"]
     # if not projwin:
     #     info = locals().get("info", read_raster(infile, data=False)[1])
-    #     projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
+    #     projwin = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
     #     print(f"{projwin=}")
 
     # get a the parameter values of the calc function

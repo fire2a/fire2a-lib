@@ -94,7 +94,7 @@ def calc(
         outfile = str(outfile)
     # if not projwin:
     #     info = locals().get("info", read_raster(infiles[0], data=False)[1])
-    #     projwin, _ = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
+    #     projwin = get_projwin(info["Transform"], info["RasterXSize"], info["RasterYSize"])
     #     print(f"{projwin=}")
 
     letter_file = {}
