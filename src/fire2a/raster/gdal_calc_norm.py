@@ -78,11 +78,9 @@ import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from osgeo.gdal import Dataset
+from osgeo.gdal import Dataset, GA_ReadOnly, Open
 from osgeo_utils.auxiliary.util import GetOutputDriverFor
 from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
-
-from fire2a.raster import read_raster  # get_projwin
 
 
 def calc(
@@ -114,13 +112,14 @@ def calc(
         outfile = str(outfile)
     if "method" in kwargs:
         if kwargs["method"] in ["minmax", "maxmin", "bipiecewiselinear_percent", "stepup_percent", "stepdown_percent"]:
+            if minimum is None and maximum is None:
+                minimum, maximum = get_file_minmax(infile)
+                print(f"{minimum=}, {maximum=}")
             if minimum is None:
-                info = locals().get("info", read_raster(infile, data=False)[1])
-                minimum = info["Minimum"]
+                minimum, _ = get_file_minmax(infile)
                 print(f"{minimum=}")
             if maximum is None:
-                info = locals().get("info", read_raster(infile, data=False)[1])
-                maximum = info["Maximum"]
+                _, maximum = get_file_minmax(infile)
                 print(f"{maximum=}")
         # drop before passing to Calc
         del kwargs["method"]
@@ -350,6 +349,22 @@ def main(argv=None):
     if isinstance(ds, Dataset):
         return 0
     return 1
+
+
+def get_file_minmax(filename, force=True):
+    # try:
+    dataset = Open(filename, GA_ReadOnly)
+    # except RuntimeError as e:
+    #     if "not recognized as a supported file format" in str(e):
+    #         raise FileNotFoundError("not recognized as a supported file format " + filename)
+    if dataset is None:
+        raise FileNotFoundError(filename)
+    raster_band = dataset.GetRasterBand(1)
+    rmin = raster_band.GetMinimum()
+    rmax = raster_band.GetMaximum()
+    if not rmin or not rmax or force:
+        (rmin, rmax) = raster_band.ComputeRasterMinMax(True)
+    return rmin, rmax
 
 
 if __name__ == "__main__":
