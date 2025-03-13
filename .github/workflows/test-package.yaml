@@ -18,7 +18,7 @@ jobs:
         container: [
           'qgis/qgis:latest_disco',
           'qgis/qgis:ltr-lunar',
-          'qgis/qgis:ltr-focal',
+          # 'qgis/qgis:ltr-focal', 3.8
           'qgis/qgis:ltr-noble',
           'qgis/qgis:ltr-jammy'
         ]
