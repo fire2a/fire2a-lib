@@ -17,20 +17,21 @@ from pandas import DataFrame
 
 
 def re_size_durations(scenario_lengths: List[int], n_samples: int = 100) -> List[int]:
-    """Resize a list of scenario durations to generate a new list maintaining representation
-    while considering outliers.
+    """Resize a list of scenario durations to generate a new list maintaining representation while considering outliers.
 
     Args:
+
         scenario_lengths (List[int]): A list of integers representing desired lengths (in hours) for each weather scenario.
         n_samples (int): Optional integer indicating how many weather files (scenarios) will be created following the distribution of 'scenario_lengths'. If not provided, defaults to 100.
 
     Returns:
-        List[int]
-        A new list of durations, preserving the representation of the original list.
+
+        List[int] : A new list of durations, preserving the representation of the original list.
 
     Raises:
+
         ValueError: If 'scenario_lengths' is not a list of integers.
-        ValueError: If 'n_samples' is provided but not an integer.
+        ValueError: If 'n_samples' is not an integer.
     """
     # Check if input is a list of integers
     if not all(isinstance(length, int) for length in scenario_lengths):
@@ -70,34 +71,34 @@ def re_size_durations(scenario_lengths: List[int], n_samples: int = 100) -> List
 def cut_weather_scenarios(
     weather_records: DataFrame,
     scenario_lengths: List[int],
-    output_folder: Union[Path, str] = None,
-    n_output_files: Union[int,None] = None,
+    output_folder: Union[Path, str] = Path("Weathers"),
+    n_output_files: Optional[int] = None,
 ) -> DataFrame:
     """Split weather records into smaller scenarios following specified scenario lengths. The
     number of output weather scenarios can be customized using the 'n_output_files' parameter.
 
     Args:
+
         weather_records (DataFrame): weather records where each row represents an hour of data.
         scenario_lengths (List[int]): desired lengths (in hours) for each weather scenario.
-    - output_folder : Union[Path,str], optional
-        A Path object or a string representing the folder path where the output will be stored.
-        If not provided, 'Weathers' directory will be used.
-    - n_output_files : integer, optional
-        An integer that indicates how many weather files (scenarios) will be created following the
-        distribution of 'weather_records'.
-        If not provided, will be set to 100.
+        output_folder : Union[Path,str], optional
+            A Path object or a string representing the folder path where the output will be stored.
+            If not provided, 'Weathers' directory will be used.
+        n_output_files : integer, optional
+            An integer that indicates how many weather files (scenarios) will be created following the
+            distribution of 'weather_records'.
+            If not provided, will be set to 100.
 
     Output:
     - write as many file as weather scenarios generated based on specified lengths.
 
-    Raises:
-    - ValueError
+    Raises ValueError:
+
         If input 'weather_records' is not a Pandas DataFrame.
         If input 'scenario_lengths' is not a List of integers.
         If input 'n_output_files' is not an integer.
         If any scenario length is greater than the total length of weather_records.
     """
-
     # Check if input is a Pandas DataFrame
     if not isinstance(weather_records, DataFrame):
         raise ValueError("Input 'weather_records' must be a Pandas DataFrame.")
@@ -107,10 +108,12 @@ def cut_weather_scenarios(
         raise ValueError("Input 'scenario_lengths' must be a list of integers.")
 
     # Create a representative sample
-    sample = re_size_durations(scenario_lengths, n_output_files)
+    if n_output_files:
+        sample = re_size_durations(scenario_lengths, n_output_files)
+    else:
+        sample = re_size_durations(scenario_lengths)
 
     # Define the output folder
-    output_folder = output_folder if output_folder else Path("Weathers")
     output_folder = Path(output_folder)  # Ensure output_folder is a Path object
     output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn't exist
 
@@ -120,7 +123,7 @@ def cut_weather_scenarios(
     if any(length > total_data_length for length in sample):
         raise ValueError("Scenario length cannot be greater than the total length of weather records")
 
-    scenarios : DataFrame = []  # List to store weather scenarios
+    scenarios: DataFrame = []  # List to store weather scenarios
 
     # Generate scenarios based on specified lengths
     for index, length in enumerate(sample, start=1):
@@ -147,32 +150,25 @@ def cut_weather_scenarios(
 
 def random_weather_scenario_generator(
     n_scenarios: int,
-    hr_limit: Optional[int] = None,
-    lambda_ws: Optional[float] = None,
-    lambda_wd: Optional[float] = None,
-    output_folder: Optional[Union[Path,str]] = None,
-):
-    """Generates random weather scenarios and saves them as CSV files.
+    hr_limit: int = 72,
+    lambda_ws: float = 0.5,
+    lambda_wd: float = 0.5,
+    output_folder: Union[Path, str] = Path("Weathers"),
+) -> None:
+    """Generates random weather scenarios and saves them as CSV files in the specified output folder.
 
-    Parameters:
-    - n_scenarios : int
-        Number of weather scenarios to generate.
-    - hr_limit : int, optional
-        Limit for the number of hours for each scenario (default is 72).
-    - lambda_ws : float, optional
-        Lambda parameter for wind speed variation (default is 0.5). If set to 0, all rows will have the same wind speed.
-    - lambda_wd : float, optional
-        Lambda parameter for wind direction variation (default is 0.5). If set to 0, all rows will have the same wind direction.
-    - output_folder : str, optional
-        Path to the folder where output files will be saved (default is 'Weathers').
+    Args:
 
-    Output:
-    - Saves generated weather scenarios as CSV files in the specified output folder.
+        n_scenarios (int): number of weather scenarios to generate.
+        hr_limit (int, optional): limit for the number of hours for each scenario (default is 72).
+        lambda_ws (float, optional): lambda parameter for wind speed variation (default is 0.5).
+        lambda_wd (float, optional): lambda parameter for wind direction variation (default is 0.5).
+        output_folder : Union[Path,str], optional
+
+    Returns:
+        None
     """
-    hr_limit = hr_limit if hr_limit else 72
-    lambda_ws = lambda_ws if lambda_ws else 0.5
-    lambda_wd = lambda_wd if lambda_wd else 0.5
-    output_folder = Path(output_folder) if output_folder else Path("Weathers")
+    output_folder = Path(output_folder)
     output_folder.mkdir(parents=True, exist_ok=True)  # Create the output directory if it doesn't exist
 
     for index, _ in enumerate(range(n_scenarios), start=1):
@@ -202,5 +198,5 @@ def random_weather_scenario_generator(
             vstack((instance, dt, wd, ws, fire_scenario)).T,
             columns=["Instance", "datetime", "WD", "WS", "FireScenario"],
         )
-        output_path = output_folder / f"weather{index}.csv"
+        output_path = output_folder / f"Weather{index}.csv"
         df.to_csv(output_path, index=False)
