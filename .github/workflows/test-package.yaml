@@ -40,7 +40,7 @@ jobs:
     - name: do it
       run: |
         apt-get install -y python3-numpy python3-pandas python3-matplotlib
-        apt-get uninstall -y python3-pytest
+        apt-get remove -y python3-pytest
         python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
         pip install --no-cache-dir -r requirements.txt
