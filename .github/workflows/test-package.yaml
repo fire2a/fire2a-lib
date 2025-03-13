@@ -45,3 +45,4 @@ jobs:
         python3 -c "import pandas; print(pandas.__file__)"
         python3 -m pip install --no-cache-dir pytest
         pytest
+      shell: bash
