@@ -33,17 +33,18 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Inspect
-      run: |
-        qgis --version
-        python3 -V
-        echo $SHELL
-
     - name: Install QGIS and GRASS (Debian only)
       if: matrix.container == 'debian:bullseye-slim'
       run: |
         apt-get update
         apt-get install -y qgis qgis-plugin-grass
+
+    - name: Inspect
+      run: |
+        qgis --version
+        python3 -V
+        python3 -c "import osgeo; print(osgeo.__version__)"
+        echo $SHELL
 
     - name: Install dependencies
       run: |
