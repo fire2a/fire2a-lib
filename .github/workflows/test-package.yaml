@@ -40,7 +40,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        apt-get update
         apt-get install -y python3-venv
         apt-get remove -y python3-pytest
         python3 -m venv .venv --system-site-packages
