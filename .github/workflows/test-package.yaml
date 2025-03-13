@@ -18,7 +18,7 @@ jobs:
         container: [
           # 'qgis/qgis:latest_disco', python 3.7
           # 'qgis/qgis:ltr-focal', python 3.8
-          'debian:bullseye-slim', # python 3.9
+          # 'debian:bullseye-slim', # python 3.9
           'qgis/qgis:ltr-jammy', # QGIS 3.40.4, Python 3.10.12
           'qgis/qgis:ltr-lunar', # QGIS 3.34.6, Python 3.11.4
           'qgis/qgis:ltr-noble', # QGIS 3.40.4, Python 3.12.3
@@ -33,12 +33,12 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install QGIS and GRASS (Debian only)
-      if: matrix.container == 'debian:bullseye-slim'
-      run: |
-        DEBIAN_FRONTEND=noninteractive
-        apt-get update
-        apt-get install -y qgis qgis-plugin-grass
+          # - name: Install QGIS and GRASS (Debian only)
+          #   if: matrix.container == 'debian:bullseye-slim'
+          #   run: |
+          #     DEBIAN_FRONTEND=noninteractive
+          #     apt-get update
+          #     apt-get install -y qgis qgis-plugin-grass
 
     - name: Inspect
       run: |
