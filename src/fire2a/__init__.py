@@ -1,24 +1,20 @@
 #!python3
-"""Hello World 👋🌎
-This is Forest Fire Analytics 🌲🔥🧠
+"""This is Wildfires/Forest Fire Advanced Analytics (fire2a) algorithms library 🌲🔥🧠📚 api documentation.
 
-When developing fire2a, AVOID writing code like this: 
-    
-    from fire2a.module import function 
+Get it from [PyPI](https://pypi.org/project/fire2a-lib/): `pip install fire2a-lib`
 
-Use this instead:
+Important links:
 
-    from .module import function
+End user documentation : https://fire2a.github.io/docs <font color="red">Use our tools with zero coding!</font>
 
-UNTIL WE CAN DISTRIBUTE ON PYPI!!
- 
-This is fire2a-lib distribution, fire2a package docstring
-More info on:
+Source code and development tips : https://github.com/fire2a/fire2a-lib Get help or contribute!
 
-    fire2a.github.io/fire2a-lib  
-    fire2a.github.io/docs  
-    www.fire2a.com  
-"""  # fmt: skip
+Public contact : <a href="mailto:[fire2a@fire2a.com]">e-mail</a>
+
+Public website : www.fire2a.com
+
+Please browse or search using the sidebar to the left!
+"""
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
 
@@ -28,6 +24,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 logger = logging.getLogger(__name__)
+"""@private"""
 
 try:
     __version__ = distribution("fire2a-lib").version
@@ -42,7 +39,6 @@ except PackageNotFoundError:
         version_from = "fallback"
 
 # logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
-
 
 
 def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None):

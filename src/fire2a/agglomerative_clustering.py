@@ -99,6 +99,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from osgeo import gdal, ogr, osr
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.compose import ColumnTransformer
@@ -108,6 +109,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, RobustScaler, StandardScaler
 
 from fire2a.utils import fprint, read_toml
+
+try:
+    GDT = gdal.GDT_Int64
+except:
+    GDT = gdal.GDT_Int32
+try:
+    OFT = ogr.OFTInteger64
+except:
+    OFT = ogr.OFTInteger
 
 logger = logging.getLogger(__name__)
 
@@ -345,7 +355,6 @@ def write(
     nodata=None,
     feedback=None,
 ):
-    from osgeo import gdal, ogr, osr
 
     from fire2a.processing_utils import get_output_raster_format, get_vector_driver_from_filename
 
@@ -363,7 +372,7 @@ def write(
         poly_driver = "ESRI Shapefile"
 
     # create raster output
-    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, GDT)
     src_ds.SetGeoTransform(geotransform)  # != 0 ?
     src_ds.SetProjection(authid)  # != 0 ?
     #  src_band = src_ds.GetRasterBand(1)
@@ -377,10 +386,10 @@ def write(
     sp_ref = osr.SpatialReference()
     sp_ref.SetFromUserInput(authid)  # != 0 ?
     dst_lyr = dst_ds.CreateLayer("clusters", srs=sp_ref, geom_type=ogr.wkbPolygon)
-    dst_lyr.CreateField(ogr.FieldDefn("DN", ogr.OFTInteger64))  # != 0 ?
-    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", ogr.OFTInteger64))
-    # dst_lyr.CreateField(ogr.FieldDefn("area", ogr.OFTInteger))
-    # dst_lyr.CreateField(ogr.FieldDefn("perimeter", ogr.OFTInteger))
+    dst_lyr.CreateField(ogr.FieldDefn("DN", OFT))  # != 0 ?
+    dst_lyr.CreateField(ogr.FieldDefn("pixel_count", OFT))
+    # dst_lyr.CreateField(ogr.FieldDefn("area", OFT))
+    # dst_lyr.CreateField(ogr.FieldDefn("perimeter", OFT))
 
     # 0 != gdal.Polygonize( srcband, maskband, dst_layer, dst_field, options, callback = gdal.TermProgress)
 
@@ -430,7 +439,7 @@ def write(
     # RESTART RASTER
     # src_ds = None
     # src_band = None
-    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, gdal.GDT_Int64)
+    # src_ds = gdal.GetDriverByName(raster_driver).Create(output_raster, width, height, 1, GDT)
     # src_ds.SetGeoTransform(geotransform)  # != 0 ?
     # src_ds.SetProjection(authid)  # != 0 ?
     src_band = src_ds.GetRasterBand(1)
@@ -564,12 +573,11 @@ def sieve_filter(data, threshold=2, connectedness=4, feedback=None):
         np.ndarray: The filtered data
     """
     logger.info("Applying sieve filter")
-    from osgeo import gdal
 
     height, width = data.shape
     # fprint("antes", np.sort(np.unique(data, return_counts=True)), len(np.unique(data)), level="info", feedback=feedback, logger=logger)
     num_clusters = len(np.unique(data))
-    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, gdal.GDT_Int64)
+    src_ds = gdal.GetDriverByName("MEM").Create("sieve", width, height, 1, GDT)
     src_band = src_ds.GetRasterBand(1)
     src_band.WriteArray(data)
     if 0 != gdal.SieveFilter(src_band, None, src_band, threshold, connectedness):

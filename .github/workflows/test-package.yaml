@@ -1,0 +1,56 @@
+name: Test Package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        container: [
+          # 'qgis/qgis:latest_disco', python 3.7
+          # 'qgis/qgis:ltr-focal', python 3.8
+          'qgis/qgis:release-3_28',
+          'qgis/qgis:ltr-jammy', # QGIS 3.40.4, Python 3.10.12
+          'qgis/qgis:ltr-lunar', # QGIS 3.34.6, Python 3.11.4
+          'qgis/qgis:ltr-noble', # QGIS 3.40.4, Python 3.12.3
+        ]
+
+    container:
+      image: ${{ matrix.container }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Inspect
+      run: |
+        qgis --version
+        python3 -V
+        echo $SHELL
+
+    - name: Install dependencies
+      run: |
+        apt-get install -y python3-venv
+        apt-get remove -y python3-pytest
+        python3 -m venv .venv --system-site-packages
+        . .venv/bin/activate
+        python3 -m pip install --upgrade pip setuptools wheel pytest
+        pip install --no-cache-dir -r requirements.txt
+      shell: bash
+
+    - name: Run tests
+      run: |
+        . .venv/bin/activate
+        pytest
+      shell: bash

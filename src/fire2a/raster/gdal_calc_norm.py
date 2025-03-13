@@ -1,23 +1,21 @@
 #!python
+# fmt: off
 """
+<pre><code>
 <!-- BEGIN_ARGPARSE_DOCSTRING -->
 usage: gdal_calc_norm.py [-h] [-i INFILE] [-o OUTFILE]
                          [-m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}]
-                         [-min MINIMUM] [-max MAXIMUM] [-n [NODATAVALUE]]
-                         [-f FORMAT]
+                         [-min MINIMUM] [-max MAXIMUM] [-n [NODATAVALUE]] [-f FORMAT]
                          [-t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}]
                          [-p min_x max_y max_x min_y] [-r]
                          [params ...]
 
-Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of
-predefined normalization methods. Run `gdal_calc.py --help` for more
-information.
+Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods. Run `gdal_calc.py
+--help` for more information.
 
 positional arguments:
-  params                Float numbers according to the normalizing method.
-                        None: for minmax, maxmin; One for stepup, stepdown;
-                        Two for bipiecewiselinear, bipiecewiselinear_percent,
-                        see also method (default: None)
+  params                Float numbers according to the normalizing method. None: for minmax, maxmin; One for stepup, stepdown; Two for
+                        bipiecewiselinear, bipiecewiselinear_percent, see also method (default: None)
 
 options:
   -h, --help            show this help message and exit
@@ -26,36 +24,26 @@ options:
   -o OUTFILE, --outfile OUTFILE
                         Output file (default: outfile.tif)
   -m {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}, --method {minmax,maxmin,stepup,stepdown,bipiecewiselinear,bipiecewiselinear_percent,stepdown_percent,stepup_percent}
-                        Method to normalize the input, see also params
-                        (default: minmax)
+                        Method to normalize the input, see also params (default: minmax)
   -min MINIMUM, --minimum MINIMUM
-                        Minimun value for minmax/maxmin (else the value is
-                        calculated from the WHOLE input raster). (default:
-                        None)
+                        Minimun value for minmax/maxmin (else the value is calculated from the WHOLE input raster). (default: None)
   -max MAXIMUM, --maximum MAXIMUM
-                        Maximum value for minmax/maxmin (else the value is
-                        calculated from the WHOLE input raster). (default:
-                        None)
+                        Maximum value for minmax/maxmin (else the value is calculated from the WHOLE input raster). (default: None)
   -n [NODATAVALUE], --NoDataValue [NODATAVALUE]
-                        output nodata value (send null for default datatype
-                        specific, see `from osgeo_utils.gdal_calc import
+                        output nodata value (send null for default datatype specific, see `from osgeo_utils.gdal_calc import
                         DefaultNDVLookup`) (default: -9999)
   -f FORMAT, --format FORMAT
-                        Output format (send null to infer from file, see `from
-                        osgeo_utils.auxiliary.util import GetOutputDriverFor`)
+                        Output format (send null to infer from file, see `from osgeo_utils.auxiliary.util import GetOutputDriverFor`)
                         (default: GTiff)
   -t {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}, --type {Byte,UInt16,Int16,UInt32,Int32,UInt64,Int64,Float32,Float64,CInt16,CInt32,CFloat32,CFloat64}
                         Output datatype (default: Float32)
   -p min_x max_y max_x min_y, --projwin min_x max_y max_x min_y
-                        An optional list of 4 coordinates defining the
-                        projection window, if not provided the whole raster is
+                        An optional list of 4 coordinates defining the projection window, if not provided the whole raster is
                         calculated (default: None)
-  -r, --return_dataset  Return dataset (for scripting -additional keyword
-                        arguments are passed to gdal_calc.Calc) instead of
-                        return code (default: False)
+  -r, --return_dataset  Return dataset (for scripting -additional keyword arguments are passed to gdal_calc.Calc) instead of return
+                        code (default: False)
 
-documentation at
-https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html
+documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_norm.html
 <!-- END_ARGPARSE_DOCSTRING -->
 
 Sample script usage:
@@ -83,13 +71,14 @@ function osgeo_utils.gdal_calc.Calc(
 
 /usr/bin/gdal_calc.py
 /usr/lib/python3/dist-packages/osgeo_utils/gdal_calc.py
+</code></pre>
 """
+# fmt: on
 import sys
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from fire2a.raster import read_raster  # get_projwin
-from osgeo.gdal import Dataset
+from osgeo.gdal import Dataset, GA_ReadOnly, Open
 from osgeo_utils.auxiliary.util import GetOutputDriverFor
 from osgeo_utils.gdal_calc import Calc, GDALDataTypeNames
 
@@ -111,20 +100,26 @@ def calc(
     b=None,
     r=None,
     **kwargs,
-):
+) -> Dataset:
+    """This is the wrapper function for the gdal_calc.Calc utility.
+
+    Although the normalization functions are symbolic strings defined in the main, passed as the `func` argument. Make sure to check them before using this function directly.
+
+    All extra keyword arguments are passed to the gdal_calc.Calc function."""
     if isinstance(infile, Path):
         infile = str(infile)
     if isinstance(outfile, Path):
         outfile = str(outfile)
     if "method" in kwargs:
         if kwargs["method"] in ["minmax", "maxmin", "bipiecewiselinear_percent", "stepup_percent", "stepdown_percent"]:
+            if minimum is None and maximum is None:
+                minimum, maximum = get_file_minmax(infile)
+                print(f"{minimum=}, {maximum=}")
             if minimum is None:
-                info = locals().get("info", read_raster(infile, data=False)[1])
-                minimum = info["Minimum"]
+                minimum, _ = get_file_minmax(infile)
                 print(f"{minimum=}")
             if maximum is None:
-                info = locals().get("info", read_raster(infile, data=False)[1])
-                maximum = info["Maximum"]
+                _, maximum = get_file_minmax(infile)
                 print(f"{maximum=}")
         # drop before passing to Calc
         del kwargs["method"]
@@ -163,13 +158,13 @@ def calc(
 
 
 def arg_parser(argv=None):
-    """Parse command line arguments."""
+    """Parse arguments list"""
     from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 
     parser = ArgumentParser(
         description="Raster normalization utility, wrapping on osgeo_utils.gdal_calc with a set of predefined normalization methods. Run `gdal_calc.py --help` for more information.",
         formatter_class=ArgumentDefaultsHelpFormatter,
-        epilog="documentation at https://fire2a.github.io/fire2a-lib/fire2a/gdal_calc_norm.html",
+        epilog="documentation at https://fire2a.github.io/fire2a-lib/fire2a/raster/gdal_calc_norm.html",
     )
     parser.add_argument(
         "params",
@@ -252,9 +247,18 @@ def arg_parser(argv=None):
 
 def main(argv=None):
     """
-    args = arg_parser(["-i","/tmp/fuels.tif", "-m", "stepup"])
-    args = arg_parser(["-i","cbh.tif", "-m", "minmax", "30"])
-    _, info = read_raster(str(args.infile), data=False)
+    <pre><code>
+    minmax: (A-minimum)/(maximum - minimum)
+    maxmin: (A-maximum)/(minimum - maximum)
+    stepup: 0*(A<threshold)+1*(A>=threshold)
+    stepdown: 1*(A<threshold)+0*(A>=threshold)
+    bipiecewiselinear: (A-a)/(b-a) then "0*(A<0)+1*(A>1)"
+    bipiecewiselinear_percent: (A-a*r)/(b*r-a*r) then "0*(A<0)+1*(A>1)"
+    stepup_percent: 0*(A<threshold*r)+1*(A>=threshold*r)
+    stepdown_percent: 1*(A<threshold*r)+0*(A>=threshold*r)
+
+    r : relative delta : data.max() - data.min() / 100
+    </code></pre>
     """
     if argv is sys.argv:
         argv = sys.argv[1:]
@@ -345,6 +349,22 @@ def main(argv=None):
     if isinstance(ds, Dataset):
         return 0
     return 1
+
+
+def get_file_minmax(filename, force=True):
+    # try:
+    dataset = Open(filename, GA_ReadOnly)
+    # except RuntimeError as e:
+    #     if "not recognized as a supported file format" in str(e):
+    #         raise FileNotFoundError("not recognized as a supported file format " + filename)
+    if dataset is None:
+        raise FileNotFoundError(filename)
+    raster_band = dataset.GetRasterBand(1)
+    rmin = raster_band.GetMinimum()
+    rmax = raster_band.GetMaximum()
+    if not rmin or not rmax or force:
+        (rmin, rmax) = raster_band.ComputeRasterMinMax(True)
+    return rmin, rmax
 
 
 if __name__ == "__main__":

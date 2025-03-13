@@ -60,6 +60,8 @@ def test_cli(method, setup_test_assets):
     python -m fire2a.raster.gdal_calc_norm -i fuels.tif -m stepup_percent 30
 
     """
+    from fire2a.raster import gdal_calc_norm
+
     with MonkeyPatch.context() as mp:
         mp.chdir(setup_test_assets)
 
@@ -68,8 +70,7 @@ def test_cli(method, setup_test_assets):
 
         cmd = [
             "python",
-            "-m",
-            "fire2a.raster.gdal_calc_norm",
+            gdal_calc_norm.__file__,
             "-i",
             str(infile),
             "-o",
