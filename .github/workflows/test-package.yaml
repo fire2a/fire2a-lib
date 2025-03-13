@@ -41,6 +41,7 @@ jobs:
       run: |
         python3 -m venv .venv --system-site-packages
         . .venv/bin/activate
-        pip install --no-cache-dir -r requirements.txt
-        pip install --no-cache-dir pytest
+        python3 -c "import pandas; print(pandas.__file__)"
+        python3 -m pip install --no-cache-dir -r requirements.txt
+        python3 -m pip install --no-cache-dir pytest
         pytest
