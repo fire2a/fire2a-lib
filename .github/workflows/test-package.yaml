@@ -16,10 +16,11 @@ jobs:
     strategy:
       matrix:
         container: [
-          'qgis/qgis:release-3_28',
-          'qgis/qgis:release-3_30',
-          'qgis/qgis:3.40-noble',
-          'qgis/qgis:3.40-jammy'
+          'qgis/qgis:ltr-disco',
+          'qgis/qgis:ltr-lunar',
+          'qgis/qgis:ltr-focal',
+          'qgis/qgis:ltr-noble',
+          'qgis/qgis:ltr-jammy'
         ]
 
     container:
@@ -37,7 +38,7 @@ jobs:
         python3 -V
         echo $SHELL
 
-    - name: do it
+    - name: Install dependencies
       run: |
         apt-get update
         apt-get install -y python3-venv
@@ -46,5 +47,10 @@ jobs:
         . .venv/bin/activate
         python3 -m pip install --upgrade pip setuptools wheel pytest
         pip install --no-cache-dir -r requirements.txt
+      shell: bash
+
+    - name: Run tests
+      run: |
+        . .venv/bin/activate
         pytest
       shell: bash
