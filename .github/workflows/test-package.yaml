@@ -21,6 +21,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+        fetch-depth: 0
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -30,7 +31,7 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m venv .venv --system-site-packages
-        source .venv/bin/activate
+        . .venv/bin/activate
         pip install -r requirements.txt
         pip install pytest
 
