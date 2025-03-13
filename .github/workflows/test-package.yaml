@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         container: [
-          'qgis/qgis:ltr-disco',
+          'qgis/qgis:latest_disco',
           'qgis/qgis:ltr-lunar',
           'qgis/qgis:ltr-focal',
           'qgis/qgis:ltr-noble',
