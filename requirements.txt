@@ -1,7 +1,8 @@
 matplotlib
 networkx >=2.7
-numpy <2.0.0 # keep until pyomo release
+numpy
 pandas
 pyomo
 scikit-learn
 scipy
+toml; python_version < '3.11'
