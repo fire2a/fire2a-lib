@@ -33,9 +33,21 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Cache apt packages & lists
+      if: matrix.container == 'debian:bullseye-slim'
+      uses: actions/cache@v4
+      with:
+        path: |
+          /var/cache/apt
+          /var/lib/apt/lists
+        key: ${{ matrix.container }}-apt-${{ hashFiles('.github/workflows/apt-packages.txt') }}
+        restore-keys: |
+          ${{ matrix.container }}-apt-
+
     - name: Install QGIS and GRASS (Debian only)
       if: matrix.container == 'debian:bullseye-slim'
       run: |
+        DEBIAN_FRONTEND=noninteractive
         apt-get update
         apt-get install -y qgis qgis-plugin-grass
 
@@ -50,14 +62,14 @@ jobs:
       run: |
         apt-get install -y python3-venv
         apt-get remove -y python3-pytest
-        python3 -m venv .venv --system-site-packages
-        . .venv/bin/activate
+        python3 -m venv venv --system-site-packages
+        . venv/bin/activate
         python3 -m pip install --upgrade pip setuptools wheel pytest
         pip install --no-cache-dir -r requirements.txt
       shell: bash
 
     - name: Run tests
       run: |
-        . .venv/bin/activate
+        . venv/bin/activate
         pytest
       shell: bash
