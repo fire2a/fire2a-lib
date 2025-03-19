@@ -17,7 +17,7 @@ description = "Algorithms and tools python package for Forest Fire Research, Man
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["fire", "wildfires", "forest fires", "fire management", "fire analytics", "fire research", "fire modeling"]
-license = {file = "LICENSE.txt"}
+license = "GPL-3.0-or-later"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
@@ -31,7 +31,7 @@ dependencies = [
     "pyomo",
     "scikit-learn",
     "scipy",
-    "toml; python_version < '3.11'"
+    "toml"
 ]
 
 [tool.setuptools_scm]
