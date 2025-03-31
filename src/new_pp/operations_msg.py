@@ -72,3 +72,14 @@ def get_graph(msg_path):
                             data = [('time', float), ('ros', float)])
 
     return H
+
+def harvested(output,fbs): #funcion que pasa una lista de elementos a un archivo .csv que contiene a los cortafuegos
+    datos=[np.insert(fbs,0,1)] #inserto el elemento 1 que corresponde al ano que necesita el archivo 
+    if len(fbs)==0: #si no hay cortafuegos
+        cols=['Year'] #creo solamente una columna correspondiente al ano
+    else: #si hay cortafuegos
+        colu=['Year',"Ncell"] #creo 2 columnas
+        col2=[""]*(len(fbs)-1) #creo el resto de columnas correspondientes a los otros nodos
+        cols=colu+col2 #junto ambas columnas
+    df = pd.DataFrame(datos,columns=cols) #creo el dataframe
+    df.to_csv(output,index=False)

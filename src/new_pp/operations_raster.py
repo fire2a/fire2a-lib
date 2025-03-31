@@ -87,3 +87,18 @@ def sum_raster_values(raster_path):
         data = src.read(1)  # Read the first band (assuming single-band raster)
         total_sum = np.nansum(data)  # Sum all values, ignoring NaNs (if any)
     return float(total_sum)
+
+def raster_to_dict(raster_path):
+    with rasterio.open(raster_path) as src:
+        raster_data = src.read(1)  # Leer la primera banda
+        rows, cols = raster_data.shape
+
+        # Crear el diccionario con el ID de la celda como clave
+        raster_dict = {}
+        cell_id = 1
+
+        for row in range(rows):
+            for col in range(cols):
+                raster_dict[cell_id] = raster_data[row, col]
+                cell_id += 1
+    return raster_dict

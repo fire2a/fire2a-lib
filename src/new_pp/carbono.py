@@ -4,7 +4,6 @@ import numpy as np
 import networkx as nx
 import pandas as pd
 import gurobipy as gp
-from gurobipy import GRB
 import re
 import scipy.stats as st
 import matplotlib.pyplot as plt
@@ -13,77 +12,8 @@ import rasterio
 import subprocess as subp
 from statistics import mean
 from concurrent.futures import ProcessPoolExecutor
-
-def read_asc(file_path):
-    with open(file_path, 'r') as file:
-        # Leer las primeras seis líneas y almacenarlas
-        header = [next(file) for _ in range(6)]
-        # Leer los datos numéricos
-        data = np.loadtxt(file, dtype=np.float32)
-        xdim,ydim = np.shape(data)
-        nodos = int(xdim*ydim)
-    return header, data, nodos
-
-def raster_to_dict(raster_path):
-    with rasterio.open(raster_path) as src:
-        raster_data = src.read(1)  # Leer la primera banda
-        rows, cols = raster_data.shape
-
-        # Crear el diccionario con el ID de la celda como clave
-        raster_dict = {}
-        cell_id = 1
-
-        for row in range(rows):
-            for col in range(cols):
-                raster_dict[cell_id] = raster_data[row, col]
-                cell_id += 1
-
-    return raster_dict
-
-def generate_fc_map():
-    # 1. Read the CSV containing (fuel code -> fuel load)
-    fuel_load_csv = "/home/matias/Documents/Emisiones/fuel_values.csv"
-    fuel_column = "fuelType"
-    fuel_load_column = "fuelLoad"
-
-    df_fuel_load = pd.read_csv(fuel_load_csv)
-    print(df_fuel_load.columns)
-
-    # Create a dictionary {fuel_code: fuel_load}
-    code_to_fuel_load = dict(zip(df_fuel_load[fuel_column],
-                                df_fuel_load[fuel_load_column]))
-
-    # 2. Paths to input (fuel-code) raster and output (fuel-load) ASCII
-    input_raster = "/home/matias/Documents/Emisiones/dogrib-asc/fuels.asc"
-    output_raster = "/home/matias/Documents/Emisiones/fuel_load.asc"
-
-    # 3. Open the input raster
-    with rasterio.open(input_raster) as src:
-        raster_data = src.read(1)      # Read the first band as a NumPy array
-        profile = src.profile.copy()   # Copy the metadata (profile)
-
-    # 4. Create an empty array (float32) to store fuel loads
-    fuel_load_raster = np.zeros_like(raster_data, dtype=np.float32)
-
-    # 5. Replace each fuel code with the corresponding fuel load
-    for code, fuel_load in code_to_fuel_load.items():
-        # Where the raster_data equals "code", set the output to the fuel load
-        fuel_load_raster[raster_data == code] = fuel_load
-
-    # 6. Update the profile for ASCII output
-    #    - Specify driver='AAIGrid' so rasterio writes Arc/Info ASCII
-    #    - Make sure dtype and nodata are set appropriately
-    profile.update(
-        driver="AAIGrid",
-        dtype=rasterio.float32,
-        nodata=0
-    )
-
-    # 7. Write the output ASCII grid
-    with rasterio.open(output_raster, "w", **profile) as dst:
-        dst.write(fuel_load_raster, 1)
-
-    print(f"ASCII grid with fuel loads created: {output_raster}")
+from gurobipy import GRB
+from operations_raster import read_csv,raster_to_dict,sum_raster_values
 
 def get_top(dictionary,k):
     sorted_items = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
@@ -131,16 +61,7 @@ def model_opt(alpha,dpv,fuel_emissions):
 
     return fb_list
     
-def harvested(output,fbs): #funcion que pasa una lista de elementos a un archivo .csv que contiene a los cortafuegos
-    datos=[np.insert(fbs,0,1)] #inserto el elemento 1 que corresponde al ano que necesita el archivo 
-    if len(fbs)==0: #si no hay cortafuegos
-        cols=['Year'] #creo solamente una columna correspondiente al ano
-    else: #si hay cortafuegos
-        colu=['Year',"Ncell"] #creo 2 columnas
-        col2=[""]*(len(fbs)-1) #creo el resto de columnas correspondientes a los otros nodos
-        cols=colu+col2 #junto ambas columnas
-    df = pd.DataFrame(datos,columns=cols) #creo el dataframe
-    df.to_csv(output,index=False)
+
 
 def percentage_formatter(x, pos):
     return f"{x*100:.1f}%"
@@ -524,7 +445,7 @@ def process_results(args,zero_emissions_list):
     sem_list = []
     confidence_list = []
 
-    with ProcessPoolExecutor(max_workers=5) as executor:
+    with ProcessPoolExecutor(max_workers=20) as executor:
         futures = {executor.submit(process_single_percentage, perc, args,zero_emissions_list): perc for perc in percentages}
 
         for future in futures:
@@ -535,32 +456,7 @@ def process_results(args,zero_emissions_list):
 
     return mean_list, confidence_list
 
-def plot_results(mean_list, confidence, forest, percentages_list):
-
-    confidence_low = [i[0] for i in confidence]
-    confidence_up = [i[1] for i in confidence]
-
-    fig, ax = plt.subplots()
-    x = percentages_list
-
-    ax.plot(x, mean_list,linestyle='dashed')
-
-    for xi, yi in zip(x, mean_list):
-        plt.scatter(xi, yi, color = "#1a1a1a",s=30, zorder=5)
-
-    ax.fill_between(x, 
-                    confidence_low, 
-                    confidence_up, 
-                    color='b', 
-                    alpha=.15)
-
-    ax.set_title('CO2E Emissions')
-    ax.xaxis.set_major_formatter(mtick.FuncFormatter(percentage_formatter)) # Format you want the ticks, e.g. '40%'
-    plt.savefig(f'{forest}4.png')
-    plt.savefig(f'{forest}4.pdf')
-    plt.show()
-
-def plot_results2(mean_list,confidence,percentages_list,forest):
+def plot_results(mean_list,confidence,percentages_list,forest):
     # Simulated data
 
     confidence_low = [i[0] for i in confidence]
@@ -600,8 +496,8 @@ def plot_results2(mean_list,confidence,percentages_list,forest):
 
     # Tight layout for clean spacing
     #plt.tight_layout()
-    plt.savefig(f'{forest}5.png')
-    plt.savefig(f'{forest}5.pdf')
+    plt.savefig(f'{forest}.png')
+    plt.savefig(f'{forest}.pdf')
     plt.show()
 
 def multiply_rasters_extra(loads_raster_path, fraction_raster_path,raster_extra):
@@ -631,11 +527,9 @@ if __name__ == "__main__":
     #DATA
     #forest selection
     forest = "sub40"
-    #fuel raster
     fuels = f"/home/matias/Documents/Emisiones/{forest}/forest/fuels.asc"
     #directory of surf fraction burn rasters (in c2f output, the values are sfb x fuel load)
     sfb_directory = f"/home/matias/Documents/Emisiones/{forest}/results/preset/SurfFractionBurn/"
-    #dpv file path
     dpv_path = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_dpv.asc"
     #full emissions file path (emissions if sfb=1)
     fe_path = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe.asc"
@@ -643,9 +537,7 @@ if __name__ == "__main__":
     fe_file_total = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_total.asc"
     #gas factors raster path (raster of sum(gfe x ponderator))
     gf_path = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_gf.asc"
-    #percentages of firebreaks
 
-    
     #0. RUN PRESET SIMULATIONS
     c2f_preset(forest,nsims=10000)
     
@@ -676,7 +568,7 @@ if __name__ == "__main__":
     
     percentages_list = [0,0.01,0.03,0.05,0.07,0.1]
     #3. PLOT RESULTS
-   # plot_results2(mean_list,confidence,percentages_list,forest)
+   # plot_results(mean_list,confidence,percentages_list,forest)
     
     
     

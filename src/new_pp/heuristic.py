@@ -1,9 +1,9 @@
 import networkx as nx
 import os
-from calculator_dpv import *
 import rasterio
 import gc
 import time
+from calculator_dpv import *
 
 def get_graph(msg_path):
     H = nx.read_edgelist(path = msg_path,
@@ -82,6 +82,20 @@ def remove_node(G,node):
         return final_graph
     else:
         return None
+
+def update_dpv(graph,node,values_risk):
+    descendants = list(nx.descendants(graph, node))    
+    dpv_values = values_risk[np.array(descendants) - 1].sum()
+    new_value = values_risk[node - 1] + dpv_values
+    return new_value
+
+def update_var(graph,node):
+    parents = graph.in_degree(node)
+    if parents > 0:
+        value = values_risk[node-1]/int(parents)
+    else:
+        value = values_risk[node-1]
+    return value
 
 if __name__ == "__main__":
 

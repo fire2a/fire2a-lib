@@ -56,6 +56,50 @@ def create_map(gases):
 
     print(f"Raster único generado con la suma de los gases: {output_raster}")
 
+def generate_fc_map():
+    # 1. Read the CSV containing (fuel code -> fuel load)
+    fuel_load_csv = "/home/matias/Documents/Emisiones/fuel_values.csv"
+    fuel_column = "fuelType"
+    fuel_load_column = "fuelLoad"
+
+    df_fuel_load = pd.read_csv(fuel_load_csv)
+    print(df_fuel_load.columns)
+
+    # Create a dictionary {fuel_code: fuel_load}
+    code_to_fuel_load = dict(zip(df_fuel_load[fuel_column],
+                                df_fuel_load[fuel_load_column]))
+
+    # 2. Paths to input (fuel-code) raster and output (fuel-load) ASCII
+    input_raster = "/home/matias/Documents/Emisiones/dogrib-asc/fuels.asc"
+    output_raster = "/home/matias/Documents/Emisiones/fuel_load.asc"
+
+    # 3. Open the input raster
+    with rasterio.open(input_raster) as src:
+        raster_data = src.read(1)      # Read the first band as a NumPy array
+        profile = src.profile.copy()   # Copy the metadata (profile)
+
+    # 4. Create an empty array (float32) to store fuel loads
+    fuel_load_raster = np.zeros_like(raster_data, dtype=np.float32)
+
+    # 5. Replace each fuel code with the corresponding fuel load
+    for code, fuel_load in code_to_fuel_load.items():
+        # Where the raster_data equals "code", set the output to the fuel load
+        fuel_load_raster[raster_data == code] = fuel_load
+
+    # 6. Update the profile for ASCII output
+    #    - Specify driver='AAIGrid' so rasterio writes Arc/Info ASCII
+    #    - Make sure dtype and nodata are set appropriately
+    profile.update(
+        driver="AAIGrid",
+        dtype=rasterio.float32,
+        nodata=0
+    )
+
+    # 7. Write the output ASCII grid
+    with rasterio.open(output_raster, "w", **profile) as dst:
+        dst.write(fuel_load_raster, 1)
+
+    print(f"ASCII grid with fuel loads created: {output_raster}")
 
 def multiply_rasters(loads_raster_path, fraction_raster_path, output_raster_path):
     # 1. Read the fuel loads raster
