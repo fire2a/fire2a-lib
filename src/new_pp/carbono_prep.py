@@ -229,7 +229,7 @@ forest = "sub40"
 raster1 = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_gf.asc"
 raster2 = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fl_copa.asc"
 raster3 = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_copa.asc"
-multiply_rasters(raster1,raster2,raster3)
+#multiply_rasters(raster1,raster2,raster3)
 
 raster1 = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_copa.asc" 
 raster2 = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_mean_crown.asc"
@@ -238,7 +238,7 @@ multiply_rasters(raster1,raster2,raster3)
 
 #CREATE FULL EMISIONS FOREST_FE FILE
 raster1 = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_mean_sfb.asc"
-raster2 = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_bp.asc"
+raster2 = f"/home/matias/Documents/Emisiones/{forest}/results/preset/bp_{forest}.asc"
 output3 = f"/home/matias/Documents/Emisiones/{forest}/results/preset/var_fe_total.asc"
 raster_add = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_mean_cfb.asc"
 divide_rasters(raster1,raster2,output3,raster_add)

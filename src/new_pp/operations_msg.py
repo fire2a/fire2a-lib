@@ -2,7 +2,9 @@ import pandas as pd
 import os
 import heapq
 import re
-import networkx as nx   
+import networkx as nx
+import pickle
+import numpy as np
 
 def convert_csv_to_pickle(input_path, output_path):
     """
@@ -29,11 +31,12 @@ def convert_csv_to_pickle(input_path, output_path):
         except:
             continue
 
-def select_greater_msg(pickles_path,new_folder,select_n):
+def select_greater_msg(folder,select_n):
     """
     Selecciona un numero de messages y los cambia de carpeta (deben estar en formato pickle)
     """
-
+    pickles_path = folder+'Pickles/'
+    new_folder = folder+'Pickles_selected/'
     file_dic = {}
 
     for file in os.listdir(pickles_path):
@@ -44,12 +47,15 @@ def select_greater_msg(pickles_path,new_folder,select_n):
 
     n = select_n
     top_keys = heapq.nlargest(n, file_dic, key=file_dic.get)
-
+    os.mkdir(new_folder)
     for file in top_keys:
-        os.rename(f"{pickles_path}{file}",f"{new_folder}/selected/{file}")
+        os.rename(f"{pickles_path}{file}",f"{new_folder}{file}")
 
-def select_greater_stats(msg_folder,stat_folder,stat_filename,output_folder):
+def select_greater_stats(folder,stat_name,stat_filename):
 
+    msg_folder = folder+'Pickles_selected/'
+    stat_folder = folder+stat_name+'/'
+    output_folder = f'{folder}{stat_name}_selected/'
     filenames = os.listdir(msg_folder)
     numbers = [re.search(r'MessagesFile(\d+)\.pkl', f).group(1) for f in filenames]
     lista_stat = []
@@ -70,6 +76,21 @@ def get_graph(msg_path):
                             create_using = nx.DiGraph(),
                             nodetype = int,
                             data = [('time', float), ('ros', float)])
+
+    return H
+
+
+def get_graph_pkl(msg_path):
+    # Load pickle file
+    with open(msg_path, "rb") as f:
+        df = pickle.load(f)  # Expecting a list of (node1, node2, attributes)
+
+    # Crear un grafo dirigido
+    H = nx.DiGraph()
+
+    # Agregar aristas desde el DataFrame (con atributos)
+    for _, row in df.iterrows():
+        H.add_edge(row['source'], row['target'], time=row['time'], ros=row['ros'])
 
     return H
 

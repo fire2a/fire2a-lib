@@ -20,6 +20,9 @@ def calculate_value(graphs, values_risk,ncells):
         for u, v, attrs in graph.edges(data=True):
             attrs['weight'] = attrs['ros']  # Asigna el peso a partir de 'ros'
 
+        if len(graph.nodes()) == 0:
+            continue
+        
         root = [n for n,d in graph.in_degree() if d==0][0]
         shortest_paths = nx.single_source_dijkstra_path(graph, root, weight='weight')
 
@@ -83,7 +86,7 @@ def process_dpv(graphs, values_risk_file, n_threads,dpv_output):
     #dpv_final = dpv_final.reshape(shape)
 
     # Save DPV output
-    #write_asc(dpv_output, header, dpv_final)
+    write_asc(dpv_output, header, dpv_final)
     print("DPV calculation complete.")
     return (dpv_final)
 

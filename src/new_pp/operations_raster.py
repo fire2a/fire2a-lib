@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import rasterio
+import pandas as pd
 
 def read_asc(file_path):
     with open(file_path, 'r') as file:
@@ -8,7 +9,10 @@ def read_asc(file_path):
         header = [next(file) for _ in range(6)]
         # Leer los datos numéricos
         data = np.loadtxt(file, dtype=np.float32)
-    return header, data
+        xdim,ydim = np.shape(data)
+        nodos = int(xdim*ydim)
+        
+    return header, data, nodos
 
 def write_asc(file_path, header, array):
     with open(file_path, 'w') as file:
@@ -19,7 +23,7 @@ def write_asc(file_path, header, array):
 
 def write_asc_from_dict(fuels,dic,output_path):
 
-    header_file, data = read_asc(fuels)
+    header_file, data,nodos = read_asc(fuels)
     
     header = {}
     for line in header_file:
@@ -51,7 +55,7 @@ def average_asc_files(input_folder, output_file):
     
     # Leer el primer archivo para obtener el encabezado y la dimensión de los datos
     first_file = os.path.join(input_folder, files[0])
-    header, data = read_asc(first_file)
+    header, data,_ = read_asc(first_file)
     
     sum_array = np.zeros_like(data)
     count = 0
@@ -62,7 +66,7 @@ def average_asc_files(input_folder, output_file):
         print(count)
 
         file_path = os.path.join(input_folder, file)
-        _, data = read_asc(file_path)
+        _, data,_ = read_asc(file_path)
 
         minimo = data.min()
 
@@ -102,3 +106,24 @@ def raster_to_dict(raster_path):
                 raster_dict[cell_id] = raster_data[row, col]
                 cell_id += 1
     return raster_dict
+
+def remove_last_two_rows(directory):
+    """Remove the last two rows from all CSV files in a directory."""
+    for filename in os.listdir(directory):
+        if filename.endswith(".csv"):  # Only process CSV files
+            filepath = os.path.join(directory, filename)
+            df = pd.read_csv(filepath)
+            
+            if len(df) > 2:
+                df = df.iloc[:-2]  # Remove last two rows
+            else:
+                print(f"Skipping {filename}, not enough rows.")
+                continue
+            
+            df.to_csv(filepath, index=False)  # Save without index
+            print(f"Updated: {filename}")
+            
+
+input_folder = '/home/matias/Documents/Emisiones/sub40/results/preset/SurfFractionBurn/'
+output_folder =  '/home/matias/Documents/Emisiones/sub40/results/preset/sub40_mean_sfb.asc'
+average_asc_files(input_folder,output_folder)

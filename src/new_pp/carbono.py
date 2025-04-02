@@ -13,7 +13,8 @@ import subprocess as subp
 from statistics import mean
 from concurrent.futures import ProcessPoolExecutor
 from gurobipy import GRB
-from operations_raster import read_csv,raster_to_dict,sum_raster_values
+from operations_raster import read_asc,raster_to_dict,sum_raster_values
+from operations_msg import harvested
 
 def get_top(dictionary,k):
     sorted_items = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
@@ -296,7 +297,7 @@ def c2f_validation2(args,nsims):
         firebreaks_opt = f'--FirebreakCells {harvest_file_csv}'
         options = " ".join([input_folder,val_output_folder,nsims,nthreads,seed,extra,outputs,weather_opt,firebreaks_opt,ignitions])
         c2f_call = '/home/matias/source/C2F-W/Cell2Fire/Cell2Fire --sim C  '+options
-        subp.call(c2f_call, shell=True)#, stdout=subp.DEVNULL)
+        subp.call(c2f_call, shell=True, stdout=subp.DEVNULL)
 
 def c2f_preset(forest,nsims):    
     #PARAMETERS
@@ -314,74 +315,8 @@ def c2f_preset(forest,nsims):
     c2f_call = '/home/matias/source/C2F-W/Cell2Fire/Cell2Fire --sim C --ignitions-random '+options
     subp.call(c2f_call, shell=True, stdout=subp.DEVNULL)
 
-def process_results_uni(args):
-    print("processing results")
-    
-    #INITIALIZATION
-    forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages = args
-    mean_list = []
-    sem_list = []
-    confidence = []
-    zero_emissions_list = []
-    #RESULTS PROCESSING
-    for perc in percentages:
-        
-        #INITIALIZATION
-        print(perc)
-        emissions = []
-        results_path = f"/home/matias/Documents/Emisiones/{forest}/results"
-        harvest_file_csv = f"{results_path}/harvest/harvest{perc}.csv"
-        harvest_file_asc = f"{results_path}/harvest/harvest{perc}.asc"
-        harvest_emissions_asc = f"{results_path}/harvest/harvest_emissions{perc}.asc"
-        val_output_folder = f"{results_path}/validation/{perc}/"
-        val_sfb_folder = f"{val_output_folder}SurfFractionBurn_selected/"
-        val_crown_folder = f"{val_output_folder}CrownFire_selected/"
-        crown_fuel_load = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fl_copa.asc"
-        
-        #GENERATE EMISSIONS RASTER DATA
-        harvest_emissions_data = multiply_rasters_woo(fe_file_total,harvest_file_asc)
-        harvest_emissions = sum_data_values(harvest_emissions_data)
-        
-        #CALCULATE AND SAVE TOTAL EMISSIONS
-        for filename in os.listdir(val_sfb_folder):
 
-            #multiply sfb (it is sfb x fl in C2F) x gfe raster
-            sfb_file = val_sfb_folder+filename
-            wildfire_emissions_data = multiply_rasters_woo(gf_path,sfb_file)
-            
-            #multiply burned crown x crown fuel load
-            file_number = re.findall(r'\d+',filename)[0]
-            crown_file = f'{val_crown_folder}Crown{file_number}.asc'
-            crown_sfb_data = multiply_rasters_woo(crown_fuel_load,crown_file)
-            wildfire_crown_emissions_data = multiply_raster_data(gf_path,crown_sfb_data)
-            
-            #sum all emissions
-            wildfire_emissions = sum_data_values(wildfire_emissions_data)
-            wildfire_crown_emissions = sum_data_values(wildfire_crown_emissions_data)
-            total_emissions = wildfire_emissions + wildfire_crown_emissions + harvest_emissions
-            
-            if wildfire_emissions == 0 and perc == 0:
-                zero_emissions_list.append(filename)
-                continue
-            else:
-                emissions.append(total_emissions)
-
-        
-        #STATS GENERATING
-        
-        #calculate mean and sem
-        mean_co2 = np.mean(emissions)
-        sem_co2 = st.sem(emissions)
-        
-        #append to final results lists
-        mean_list.append(mean_co2)
-        sem_list.append (sem_co2)
-        confidence.append(st.norm.interval(0.95, loc=mean_co2, scale=sem_co2))
-    
-    print(mean_list)
-    return mean_list, confidence, zero_emissions_list
-
-def process_single_percentage(perc, args, zero_filenames):
+def process_single_percentage(perc, args):
     """
     Process a single percentage level in parallel.
     """
@@ -389,6 +324,8 @@ def process_single_percentage(perc, args, zero_filenames):
     print(f"Processing percentage: {perc}")
 
     emissions = []
+    elat_list = []
+    trc_list = []
     results_path = f"/home/matias/Documents/Emisiones/{forest}/results"
     harvest_file_asc = f"{results_path}/harvest/harvest{perc}.asc"
     val_output_folder = f"{results_path}/validation/{perc}/"
@@ -402,10 +339,6 @@ def process_single_percentage(perc, args, zero_filenames):
  
     # Process each wildfire simulation
     for filename in os.listdir(val_sfb_folder):
-        
-        if filename in zero_filenames:
-            print(f"skiped file {filename}")
-            continue
         
         sfb_file = os.path.join(val_sfb_folder, filename)
         wildfire_emissions_data = multiply_rasters_woo(gf_path, sfb_file)
@@ -421,16 +354,22 @@ def process_single_percentage(perc, args, zero_filenames):
         wildfire_emissions = sum_data_values(wildfire_emissions_data)
         wildfire_crown_emissions = sum_data_values(wildfire_crown_emissions_data)
         total_emissions = wildfire_emissions + wildfire_crown_emissions + harvest_emissions
+        elat = wildfire_emissions+wildfire_crown_emissions
+        trc = harvest_emissions
         emissions.append(total_emissions)
+        elat_list.append(elat)
+        trc_list.append(trc)
 
     # Compute statistics
     mean_co2 = np.mean(emissions)
     sem_co2 = st.sem(emissions)
+    mean_elat = np.mean(elat_list)
+    mean_trc = np.mean(trc_list)
     confidence = st.norm.interval(0.95, loc=mean_co2, scale=sem_co2)
 
-    return perc, mean_co2, sem_co2, confidence
+    return perc, mean_co2, sem_co2, confidence, mean_elat, mean_trc
 
-def process_results(args,zero_emissions_list):
+def process_results(args):
     """
     Parallelized version of process_results.
     """
@@ -444,17 +383,21 @@ def process_results(args,zero_emissions_list):
     mean_list = []
     sem_list = []
     confidence_list = []
+    elat_list = []
+    trc_list = []
 
     with ProcessPoolExecutor(max_workers=20) as executor:
-        futures = {executor.submit(process_single_percentage, perc, args,zero_emissions_list): perc for perc in percentages}
+        futures = {executor.submit(process_single_percentage, perc, args): perc for perc in percentages}
 
         for future in futures:
-            perc, mean_co2, sem_co2, confidence = future.result()
+            perc, mean_co2, sem_co2, confidence,mean_elat,mean_trc = future.result()
             mean_list.append(mean_co2)
             sem_list.append(sem_co2)
             confidence_list.append(confidence)
+            elat_list.append(mean_elat)
+            trc_list.append(mean_trc)
 
-    return mean_list, confidence_list
+    return mean_list, confidence_list,elat_list,trc_list
 
 def plot_results(mean_list,confidence,percentages_list,forest):
     # Simulated data
@@ -498,7 +441,51 @@ def plot_results(mean_list,confidence,percentages_list,forest):
     #plt.tight_layout()
     plt.savefig(f'{forest}.png')
     plt.savefig(f'{forest}.pdf')
+    #plt.show()
+
+def plot_line(lista,percentages_list,forest,label_name,output):
+
+    plt.rcParams.update({
+        "font.family": "serif",
+        "font.size": 14,
+        "axes.labelsize": 16,
+        "axes.titlesize": 18
+    })
+
+    # Simulated data
+    x = percentages_list
+
+    # Line 1: CO2 Emissions
+    y1 = np.array(lista)
+
+    # Line 2: CH4 Emissions
+    #y2 = np.array(trl_list)
+
+    # Set up figure
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot the two lines
+    ax.plot(x, y1, 'o--', color='black', markersize=6, label=label_name)  # Dashed line, circle markers
+    #ax.plot(x, y2, 's-', color='blue', markersize=6, label='TRL')    # Solid line, square markers
+
+    # Labels and legend
+    ax.set_ylabel(r'CO2E emissions tons ($\varepsilon_\alpha$)')
+    ax.set_xlabel(r'Percentage of firebreaks ($\alpha$)')
+    ax.legend(loc='upper left')
+
+    ax.text(-0.5, max(mean_list) + 1000, 'A', fontsize=20, fontweight='bold')
+    
+    # Customize ticks
+    ax.tick_params(direction='in', length=6, width=1, colors='black')
+    ax.set_xticks([0, 0.01, 0.03, 0.05, 0.07, 0.1])
+
+    # Optional: Add grid
+    ax.grid(False)
+
+    plt.savefig(f'{output}.pdf')
+    plt.savefig(f'{output}.png')
     plt.show()
+
 
 def multiply_rasters_extra(loads_raster_path, fraction_raster_path,raster_extra):
     # 1. Read the fuel loads raster
@@ -530,7 +517,7 @@ if __name__ == "__main__":
     fuels = f"/home/matias/Documents/Emisiones/{forest}/forest/fuels.asc"
     #directory of surf fraction burn rasters (in c2f output, the values are sfb x fuel load)
     sfb_directory = f"/home/matias/Documents/Emisiones/{forest}/results/preset/SurfFractionBurn/"
-    dpv_path = f"/home/matias/Documents/Emisiones/{forest}/results/preset/{forest}_dpv.asc"
+    dpv_path = f"/home/matias/Documents/Emisiones/{forest}/results/preset/dpv_{forest}.asc"
     #full emissions file path (emissions if sfb=1)
     fe_path = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe.asc"
     fe_path_copa = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_copa.asc"
@@ -541,34 +528,27 @@ if __name__ == "__main__":
     #0. RUN PRESET SIMULATIONS
     c2f_preset(forest,nsims=10000)
     
+    #0.b GET WEATHER REPLICATION FILE
     percentages = [0.1]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-    #1. RUN VALIDATION USING C2F
     #c2f_validation(args,nsims=10000)
-    #os.rename("/home/matias/Documents/Emisiones/dogrib/results/validation/0.1/IgnitionsHistory/replication.csv", "/home/matias/Documents/Emisiones/dogrib/results/validation/0.1/IgnitionsHistory/Ignitions.csv")
-    #os.replace("/home/matias/Documents/Emisiones/dogrib/results/validation/0.1/IgnitionsHistory/Ignitions.csv", "/home/matias/Documents/Emisiones/dogrib/forest/Ignitions.csv")
+    #os.rename(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/replication.csv", f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/Ignitions.csv")
+    #os.replace(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/Ignitions.csv", f"/home/matias/Documents/Emisiones/{forest}/forest/Ignitions.csv")
     
+    #1. RUN VALIDATION USING C2F
     percentages = [0,0.01,0.03,0.05,0.07]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-    #1. RUN VALIDATION USING C2F
     #c2f_validation2(args,nsims=10000)
 
-    #2. PROCESS RESULTS
-    percentages = [0]
+    #2. PROCESS RESULTS    
+    percentages = [0,0.01,0.03,0.05,0.07,0.1]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-   # mean_cero, confidence_cero, zero_emissions_list = process_results_uni(args)
-    
-    percentages = [0.01,0.03,0.05,0.07,0.1]
-    args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-   # mean_list, confidence = process_results(args,zero_emissions_list)
-    
-   # mean_list.insert(0,mean_cero[0])
-   # confidence.insert(0,confidence_cero[0])
-   # print(mean_list)
-    
-    percentages_list = [0,0.01,0.03,0.05,0.07,0.1]
+    #mean_list, confidence, elat_list, trl_list = process_results(args)
+
     #3. PLOT RESULTS
-   # plot_results(mean_list,confidence,percentages_list,forest)
+    #plot_results(mean_list,confidence,percentages,forest)
+    #plot_line(elat_list,percentages,forest,'ELAT',f'{forest}_elat')
+    #plot_line(trl_list,percentages,forest,'TRL',f'{forest}_trl')
     
     
     
