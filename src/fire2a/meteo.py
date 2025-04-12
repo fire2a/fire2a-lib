@@ -5,7 +5,7 @@ Some functions related to kitral weather scenario creation.
 __author__ = "Caro"
 __revision__ = "$Format:%H$"
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from pathlib import Path
 
 import numpy as np
@@ -47,7 +47,11 @@ def barlo_sota(a):
     return round((a + 180) % 360, 2)
 
 
-def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
+time_arg=datetime(1989,1,12,16,0,0)
+dir_arg=Path("./weather")
+
+
+def generate(x=-36.0, y=-73.2, start_datetime=time_arg, rowres=60, numrows=12, numsims=100, percn=0.5 ,outdir=dir_arg):
     """dummy generator function
     Args:
         x (float): x-coordinate of the ignition point, EPSG 4326
@@ -62,6 +66,9 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
         retval (int): 0 if successful, 1 otherwise, 2...
         outdict (dict): output dictionary at least 'filelist': list of filenames created
     """
+
+
+
     filelist = []
     try:
 
@@ -72,6 +79,7 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
         list_stn = pd.read_csv(ruta_data / "Estaciones.csv")
         list_stn["Distancia"] = list_stn.apply(distancia, args=(y, x), axis=1)  # calculo distancia
         stn = list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
+
 
         meteos = pd.DataFrame()
         for st in stn:
@@ -116,8 +124,8 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, percn ,outdir):
             # scenario name
             chosen_meteo.loc[:, "Scenario"] = scenario_name(i, numsims)
             # datetime format
-            #chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
-            chosen_meteo.loc[:, "datetime"] = [chosen_meteo["datetime"].iloc[0] + timedelta(hours=i) for i in range(numrows)]
+            chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
+            #chosen_meteo.loc[:, "datetime"] = [chosen_meteo["datetime"].iloc[0] + timedelta(hours=i) for i in range(numrows)]
             # reorder
             chosen_meteo = chosen_meteo[["Scenario", "datetime", "WS", "WD", "TMP", "RH"]]
             # write

@@ -11,18 +11,19 @@ numrows = 10
 numsims = 15
 x = -36
 y = -72
+percn = 0.5
 
 
 # Corrobora numero de archivos
 def test_create_weather(tmp_path):
-    print(generate(x, y, date, rowres, numrows, numsims, tmp_path))
+    print(generate(x, y, date, rowres, numrows, numsims, percn ,tmp_path))
     print(f"{tmp_path=}, {os.listdir(tmp_path)=}")
     assert len(os.listdir(tmp_path)) == numsims, "Numero de archivos incorrecto"
 
 
 # Corrobra filas en el archivo
 def test_weather_lenght(tmp_path):
-    print(generate(x, y, date, rowres, numrows, numsims, tmp_path))
+    print(generate(x, y, date, rowres, numrows, numsims, percn ,tmp_path))
     print(f"{tmp_path=}, {os.listdir(tmp_path)=}")
     for afile in tmp_path.iterdir():
         assert len(afile.read_text().splitlines()) - 1 == numrows, "Numero de filas incorrecto"
