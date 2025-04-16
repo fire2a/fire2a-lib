@@ -35,6 +35,17 @@ def distancia(fila, y_i, x_i):
     return np.sqrt((fila["lat"] - x_i) ** 2 + (fila["lon"] - y_i) ** 2)
 
 
+def distancia2(pt, lat, lon):
+    from qgis.core import QgsDistanceArea, QgsPointXY  # , QgsCoordinateReferenceSystem
+
+    dist = QgsDistanceArea()
+    dist.setEllipsoid("WGS84")
+    # dist.setSourceCrs(QgsCoordinateReferenceSystem("EPSG:4326"), QgsProject.instance().transformContext())
+    p1 = QgsPointXY(pt["lat"], pt["lat"])
+    p2 = QgsPointXY(lat, lon)
+    return dist.measureLine(p1, p2)
+
+
 def meteo_to_c2f(alfa):
     if alfa >= 0 and alfa < 180:
         return round(alfa + 180, 2)
@@ -70,6 +81,8 @@ def generate(x, y, start_datetime, rowres, numrows, numsims, outdir):
         dn = 3
         list_stn = pd.read_csv(ruta_data / "Estaciones.csv")
         list_stn["Distancia"] = list_stn.apply(distancia, args=(y, x), axis=1)  # calculo distancia
+        list_stn["Distancia2"] = list_stn.apply(distancia2, args=(y, x), axis=1)  # calculo distancia
+        print("list_stn", list_stn["Distancia"] - list_stn["Distancia2"])
         stn = list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
 
         meteos = pd.DataFrame()
