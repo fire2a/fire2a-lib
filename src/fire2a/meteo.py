@@ -124,8 +124,8 @@ def generate(x=-36.0, y=-73.2, start_datetime=time_arg, rowres=60, numrows=12, n
             # scenario name
             chosen_meteo.loc[:, "Scenario"] = scenario_name(i, numsims)
             # datetime format
-            chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
-            #chosen_meteo.loc[:, "datetime"] = [chosen_meteo["datetime"].iloc[0] + timedelta(hours=i) for i in range(numrows)]
+            #chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
+            chosen_meteo.loc[:, "datetime"] = [chosen_meteo["datetime"].iloc[0] + timedelta(hours=i) for i in range(numrows)]
             # reorder
             chosen_meteo = chosen_meteo[["Scenario", "datetime", "WS", "WD", "TMP", "RH"]]
             # write

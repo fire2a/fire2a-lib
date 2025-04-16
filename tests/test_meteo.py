@@ -1,9 +1,10 @@
 #!python3
 
 import os
+import pytest
 from datetime import datetime
-
 from fire2a.meteo import generate
+
 
 date = datetime.now()
 rowres = 60
