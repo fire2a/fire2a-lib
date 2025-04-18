@@ -1,20 +1,38 @@
 #!python3
-"""👋🌎
-Some functions related to kitral weather scenario creation.
+"""<b>Meteo Kitral</b> generates weather scenarios files for Cell2Fire-W Simulator using the Kitral fuel model standard.<br>
+Using real Chilean weather station data from the Valparaíso to the Araucanía region in summer; Defining the target area (32S to 40S)<br>
+<br>
+Usage:<br>
+- Selecting a point layer as <b>location</b> will pick the three nearest weather stations for sampling.<br>
+- <b>Start hour</b>: Time of day from where to start picking station data.<br>
+- <b>Temperature quantile</b>: A number greater than or equal to 0 and less than 1. It takes the daily maximum temperature values that are above the desired proportion. Example: quantile 0.75 takes the days when the daily maximum temperature is above the 75 &#37; <br>
+- <b>Length of each scenario </b>: Indicates the duration, in hours, of each scenario<br>
+- <b>Number_of_simulations</b>: files to generate<br>
+- <b>output_directory</b>: where the files are written containing Weather(+digit).csv numbered files with each weather scenario<br>
+<br>
+Future Roadmap:<br>
+- <b>step resolution</b>: Do other than hourly weather scenarios, to be used with the --Weather-Period-Length option (that defaults to 60)<br>
+- Draw an animated vector layer representing the weather scenarios as arrows<br>
 """
 __author__ = "Caro"
 __revision__ = "$Format:%H$"
 
-from datetime import datetime, timedelta, time
+import sys
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-# debug aqui = Path()
-aqui = Path(__file__).parent
+# debug
+try:
+    aqui = Path(__file__).parent
+except:
+    aqui = Path()
 # Ruta a los datos de estaciones
 ruta_data = aqui / "DB_DMC"
+assert len(list(ruta_data.glob("*.csv"))) > 1
+assert (ruta_data / "Estaciones.csv").is_file()
 
 
 def file_name(i, numsims):
