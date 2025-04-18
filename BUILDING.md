@@ -12,16 +12,16 @@
 ```bash
 # clean (-n is dry-run, remove to delete)
 git clean -dfX -n
+git clean -dfX
 
 # tags check
 git tag
-# tag create locally
-git tag -a v1.2.3 -m 'message'
-# tag upload
-git push origin v1.2.3
 
-# oops: revert tag
-git tag --delete v1.2.3 && git push --delete origin v1.2.3
+# tag create locally & upload
+git tag -a v0.3.8 -m 'py39 backward compatibility' && git push origin v0.3.8
+
+# delete tag locally & upstream
+git tag --delete v0.3.8 && git push --delete origin v0.3.8
 
 # view calculated version to check is not dirty
 python -m setuptools_scm
@@ -36,7 +36,7 @@ if directory exists remove, then build
 ```bash
 rm -rf doc/*
 touch doc/.gitkeep
-pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a fire2template
+pdoc --output-directory doc --math --show-source --logo https://www.fire2a.com/static/img/logo_1_.png --favicon https://www.fire2a.com/static/img/logo_1_.png fire2a
 ```
 Then check the generated webpage
 ```bash

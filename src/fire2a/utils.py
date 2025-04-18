@@ -5,15 +5,29 @@ Miscellaneous utility functions that simplify common tasks.
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
 import logging
+import sys
+from typing import Any, Union
 
 import numpy as np
 from qgis.core import Qgis, QgsProcessingFeedback
-from typing import Union, Any
 
 logger = logging.getLogger(__name__)
 
 
-def loadtxt_nodata(fname : str, no_data : int = -9999, dtype=np.float32, **kwargs) -> np.ndarray:
+def read_toml(config_toml="config.toml"):
+    if sys.version_info >= (3, 11):
+        import tomllib
+
+        with open(config_toml, "rb") as f:
+            config = tomllib.load(f)
+    else:
+        import toml
+
+        config = toml.load(config_toml)
+    return config
+
+
+def loadtxt_nodata(fname: str, no_data: int = -9999, dtype=np.float32, **kwargs) -> np.ndarray:
     """Load a text file into an array, casting safely to a specified data type, and replacing ValueError with a no_data value.
     Other arguments are passed to numpy.loadtxt. (delimiter=',' for example)
 
@@ -50,7 +64,7 @@ def loadtxt_nodata(fname : str, no_data : int = -9999, dtype=np.float32, **kwarg
     return np.loadtxt(fname, converters=conv, dtype=dtype, **kwargs)
 
 
-def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> Union[np.dtype[Any], None]:
+def qgis2numpy_dtype(qgis_dtype: Qgis.DataType) -> Union[np.dtype, None]:
     """Conver QGIS data type to corresponding numpy data type
     https://raw.githubusercontent.com/PUTvision/qgis-plugin-deepness/fbc99f02f7f065b2f6157da485bef589f611ea60/src/deepness/processing/processing_utils.py
     This is modified and extended copy of GDALDataType.
@@ -189,11 +203,11 @@ def count_header_lines(file, sep=" ", feedback=None):
                 header_count += 1
     if header_count == 0 or header_count > 6:
         fprint(
-            "Weird header count: %s found! (%s) Check %s file. Maybe replace commas, for periods.?".format(),
+            f"Weird header count: {header_count} found! ({found}) Check {file} file. Maybe replace commas, for periods.?",
             level="warning",
             feedback=feedback,
             logger=logger,
         )
-    fprint("First number found: %s".format(), level="debug", feedback=feedback, logger=logger)
-    fprint("Number headers lines: %s, in file %s".format(), level="info", feedback=feedback, logger=logger)
+    fprint(f"First number found: {found}", level="debug", feedback=feedback, logger=logger)
+    fprint(f"Number headers lines: {header_count}, in file {file}", level="info", feedback=feedback, logger=logger)
     return header_count

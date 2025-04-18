@@ -1,0 +1,29 @@
+# Configuration file for the model
+#
+# [filenames] are relative to the data directory 
+#
+# NODATA
+# no_data_strategy can be "mean", "median", "most_frequent", "constant" (default is mean)
+# fill_value is used when no_data_strategy is "constant" (default is 0)
+#
+# SCALING
+# scaling_strategy can be "standard", "robust", "onehot" (default is robust, onehot is categorical)
+
+
+["fuels.tif"]
+no_data_strategy = "most_frequent"
+scaling_strategy = "onehot"
+
+["elevation.tif"]
+no_data_strategy = "mean"
+scaling_strategy = "standard"
+
+["cbd.tif"]
+no_data_strategy = "constant"
+fill_value = 125
+scaling_strategy = "robust"
+
+["cbh.tif"]
+no_data_strategy = "median"
+scaling_strategy = "standard"
+

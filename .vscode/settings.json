@@ -1,14 +1,25 @@
 {
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+  },
+  "ruff.nativeServer": "on",
+  "python.defaultInterpreterPath": ".\\qgis-launchers\\python-qgis-path.bat",
+  "terminal.integrated.defaultProfile.windows": "QGIS Python CMD",
+  "terminal.integrated.profiles.windows": {
+    "QGIS Python CMD": {
+      "path": "cmd.exe",
+      "args": [
+        "/k",
+        "call .\\qgis-launchers\\activate-python-qgis.bat"
+      ]
     },
-    "terminal.integrated.profiles.windows": {
-        "Custom Init": {
-          "path": "cmd.exe",
-          "args": [
-             "/k",
-             "activate_qgis_python.bat",
-          ]
-        }
-      },
+    "QGIS Python +Path CMD": {
+      "path": "cmd.exe",
+      "args": [
+        "/k",
+        "call .\\qgis-launchers\\activate-python-qgis-path.bat"
+      ]
+    }
+  }
 }

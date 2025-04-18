@@ -15,6 +15,7 @@ __revision__ = "$Format:%H$"
 import logging
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
+from typing import Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -33,12 +34,12 @@ except PackageNotFoundError:
 logger.warning("%s Package version: %s, from %s", __name__, __version__, version_from)
 
 
-def setup_logger(name: str = None, verbosity: str | int = "INFO", logfile: Path | None = None):
+def setup_logger(name: Optional[str] = None, verbosity: Union[str, int] = "INFO", logfile: Optional[Path] = None):
     """ Users or developers not implementing their own logger should use this function to get enhanced program execution information.
     Capture the logger, setup its __name__ or root logger, verbosity, stream handler & rotating logfile.
 
     Args:
-        name (str, optional): Name of the logger. Defaults to \__name __ 
+        name (str, optional): Name of the logger. Defaults to `__name __`
         verbosity (str | int): Verbosity level, implemented, WARNING:1, INFO:2 (default), or DEBUG:3
         logfile (Path, optional): Create a -rotated- logfile (5 files, 25MB each).
     Returns:

@@ -1,0 +1,20 @@
+["v0.tif"]
+value_weight = 1.0
+
+["v1.tif"]
+value_weight = 1.2
+
+["v2.tif"]
+value_weight = 1.3
+
+["v3.tif"]
+value_rescaling = "onehot"
+value_weight = 1.4
+
+["w0.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.25
+
+["w1.tif"]
+capacity_sense = "<="
+capacity_ratio = 0.25

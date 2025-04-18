@@ -17,20 +17,22 @@ description = "Algorithms and tools python package for Forest Fire Research, Man
 readme = "README.md"
 requires-python = ">=3.9"
 keywords = ["fire", "wildfires", "forest fires", "fire management", "fire analytics", "fire research", "fire modeling"]
-license = {text = "GPLv3"} # , file = "LICENSE.txt"
+license = "GPL-3.0-or-later"
 classifiers = [
     "Programming Language :: Python :: 3",
 ]
+dynamic = ["version"]
 dependencies = [
     "matplotlib",
     "networkx>=2.7",
-    "numpy<2.0.0",
+    "numpy<2; python_version < '3.11'",
+    "numpy; python_version >= '3.11'",
     "pandas",
     "pyomo",
     "scikit-learn",
     "scipy",
+    "toml"
 ]
-dynamic = ["version"]
 
 [tool.setuptools_scm]
 version_file = "src/fire2a/_version.py"
@@ -40,9 +42,6 @@ minversion = "6.0"
 addopts = [
     "-ra",
     "--import-mode=importlib",
-]
-testpaths = [
-    "tests",
 ]
 pythonpath = [
   "src"
@@ -65,9 +64,13 @@ where = ["src"]
 # [tool.setuptools.package-data]
 # "fire2a" = ["src/fire2a/DB_DMC/*.csv"]
 
-# [project.scripts]
+
+[project.scripts]
+gdal_calc_norm = "fire2a.raster.gdal_calc_norm:main"
+gdal_calc_sum = "fire2a.raster.gdal_calc_sum:main"
+# FIXME What about using an extension ? gdal_calc_sum.py !
 # my-script = "mypkg.my_module:main"
- 
+
 # [project.gui-scripts]
 # spam-gui = "spam:main_gui"
  

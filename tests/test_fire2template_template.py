@@ -6,8 +6,11 @@ import pytest
 
 
 def test_calc():
-    from fire2template.template import calc
+    from math import isclose
+
     from numpy.random import rand
+
+    from fire2template.template import calc
 
     # OJO: testing with random is not a good practice
     numbers = rand(10)
@@ -21,10 +24,10 @@ def test_calc():
         subs -= num
         mult *= num
         div /= num if num != 0 else 1
-    assert calc("+", numbers) == summ
-    assert calc("-", numbers) == subs
-    assert calc("*", numbers) == mult
-    assert calc("/", numbers) == div
+    assert isclose(calc("+", numbers), summ)
+    assert isclose(calc("-", numbers), subs)
+    assert isclose(calc("*", numbers), mult)
+    assert isclose(calc("/", numbers), div)
 
 
 def test_help():

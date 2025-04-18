@@ -109,7 +109,7 @@ def arg_parser(argv):
     parser.add_argument(
         "-op",
         "--operation",
-        help="specify operation to perform (escape * to work: \*)",
+        help="specify operation to perform (escape * \\* to input: *)",
         default="+",
         type=str,
         choices=["+", "-", "*", "/"],
