@@ -47,10 +47,34 @@ def scenario_name(i, numsims):
     return "DMC"
 
 
-def distancia(fila, y_i, x_i):
-    if y_i == fila["lat"] and x_i == fila["lon"]:
-        return 0
-    return np.sqrt((fila["lat"] - x_i) ** 2 + (fila["lon"] - y_i) ** 2)
+ok = False
+try:
+    from qgis.core import QgsApplication  # type: ignore[import]
+    from qgis.core import QgsDistanceArea, QgsPointXY, QgsUnitTypes  # , QgsCoordinateReferenceSystem, QgsProject
+
+    if QgsApplication.instance():  # qgis is running
+
+        def distancia(fila, lat, lon):
+            dist = QgsDistanceArea()
+            dist.setEllipsoid("WGS84")
+            # dist.setSourceCrs(QgsCoordinateReferenceSystem("EPSG:4326"), QgsProject.instance().transformContext())
+            assert dist.lengthUnits() == QgsUnitTypes.DistanceMeters
+            p1 = QgsPointXY(fila["lon"], fila["lat"])
+            p2 = QgsPointXY(lon, lat)
+            d = dist.measureLine(p1, p2)
+            # return d
+            return dist.convertLengthMeasurement(d, QgsUnitTypes.DistanceDegrees)
+
+        ok = True
+except ModuleNotFoundError:
+    ok = False
+
+if not ok:
+
+    def distancia(fila, lat, lon):
+        if lat == fila["lat"] and lon == fila["lon"]:
+            return 0
+        return np.sqrt((fila["lat"] - lat) ** 2 + (fila["lon"] - lon) ** 2)
 
 
 def meteo_to_c2f(alfa):
@@ -95,7 +119,27 @@ def generate(x=-36.0, y=-73.2, start_datetime=time_arg, rowres=60, numrows=12, n
 
         dn = 3
         list_stn = pd.read_csv(ruta_data / "Estaciones.csv")
-        list_stn["Distancia"] = list_stn.apply(distancia, args=(y, x), axis=1)  # calculo distancia
+        # calcular distancia a input point
+        list_stn["Distancia"] = list_stn.apply(distancia, args=(lat, lon), axis=1)
+
+        #
+        # Vincenty’s formula >> euclidean distance
+        #
+        # list_stn["d1"] = list_stn.apply(distancia, args=(lat, lon), axis=1)
+        # list_stn["d2"] = list_stn.apply(distancia2, args=(lat, lon), axis=1)
+        # list_stn["dd"] = list_stn["d1"] - list_stn["d2"]
+        # list_stn[["dd","d1","d2"]]
+        # dd = list_stn[["dd","d1","d2"]].sort_values(by=["d1"], ascending=True)
+        # assert dd['d2'].is_monotonic_increasing
+        #           dd        d1        d2
+        # 0   0.006414  0.791903  0.785489
+        # 2   0.196967  1.302510  1.105544
+        # 1   0.094724  1.725775  1.631051
+        # 4   0.031122  1.868370  1.837248 <- !
+        # 3   0.305407  2.005146  1.699739
+        # 5   0.062915  2.387851  2.324937
+        # 6   0.029269  2.825473  2.796204 <- !
+        # 12  0.155427  2.830431  2.675004
         stn = list_stn.sort_values(by=["Distancia"]).head(dn)["nombre"].tolist()
 
 
