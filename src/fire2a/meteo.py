@@ -25,59 +25,68 @@ import numpy as np
 import pandas as pd
 
 # debug
-try:
-    aqui = Path(__file__).parent
-except:
-    aqui = Path()
+# try:
+#     aqui = Path(__file__).parent
+# except:
+#     aqui = Path()
 # Ruta a los datos de estaciones
+aqui = Path(__file__).parent
+"""@private"""
 ruta_data = aqui / "DB_DMC"
-assert len(list(ruta_data.glob("*.csv"))) > 1
-assert (ruta_data / "Estaciones.csv").is_file()
+"""@private"""
+
+# TODO test this:
+# assert len(list(ruta_data.glob("*.csv"))) > 1
+# assert (ruta_data / "Estaciones.csv").is_file()
 
 
-def file_name(i, numsims):
-    if numsims > 1:
-        return f"Weather{i+1}.csv"
-    return "Weather.csv"
+def is_qgis_running():
+    qgis = False
+    try:
+        from qgis.core import QgsApplication  # type: ignore[import]
+        from qgis.core import QgsDistanceArea, QgsPointXY, QgsUnitTypes  # , QgsCoordinateReferenceSystem, QgsProject
+
+        if QgsApplication.instance():  # qgis is running
+            qgis = True
+    except ModuleNotFoundError:
+        qgis = False
+    return qgis
 
 
-def scenario_name(i, numsims):
-    if numsims > 1:
-        return f"DMC_{i+1}"
-    return "DMC"
+qgis = is_qgis_running()
+"""@private"""
 
 
-ok = False
-try:
-    from qgis.core import QgsApplication  # type: ignore[import]
-    from qgis.core import QgsDistanceArea, QgsPointXY, QgsUnitTypes  # , QgsCoordinateReferenceSystem, QgsProject
+def qgis_distance(fila, lat, lon):
+    """Qgis distance calculation, used when QGIS is already running..."""
+    dist = QgsDistanceArea()
+    dist.setEllipsoid("WGS84")
+    # dist.setSourceCrs(QgsCoordinateReferenceSystem("EPSG:4326"), QgsProject.instance().transformContext())
+    assert dist.lengthUnits() == QgsUnitTypes.DistanceMeters
+    p1 = QgsPointXY(fila["lon"], fila["lat"])
+    p2 = QgsPointXY(lon, lat)
+    d = dist.measureLine(p1, p2)
+    # return d
+    return dist.convertLengthMeasurement(d, QgsUnitTypes.DistanceDegrees)
 
-    if QgsApplication.instance():  # qgis is running
 
-        def distancia(fila, lat, lon):
-            dist = QgsDistanceArea()
-            dist.setEllipsoid("WGS84")
-            # dist.setSourceCrs(QgsCoordinateReferenceSystem("EPSG:4326"), QgsProject.instance().transformContext())
-            assert dist.lengthUnits() == QgsUnitTypes.DistanceMeters
-            p1 = QgsPointXY(fila["lon"], fila["lat"])
-            p2 = QgsPointXY(lon, lat)
-            d = dist.measureLine(p1, p2)
-            # return d
-            return dist.convertLengthMeasurement(d, QgsUnitTypes.DistanceDegrees)
+def eucl_distance(fila, lat, lon):
+    """Euclidean distance calculation, used when QGIS is not running"""
+    if lat == fila["lat"] and lon == fila["lon"]:
+        return 0
+    return np.sqrt((fila["lat"] - lat) ** 2 + (fila["lon"] - lon) ** 2)
 
-        ok = True
-except ModuleNotFoundError:
-    ok = False
 
-if not ok:
-
-    def distancia(fila, lat, lon):
-        if lat == fila["lat"] and lon == fila["lon"]:
-            return 0
-        return np.sqrt((fila["lat"] - lat) ** 2 + (fila["lon"] - lon) ** 2)
+def distance(fila, lat, lon):
+    """Select distance calculation method whether QGIS is running or not"""
+    if qgis:
+        return qgis_distance(fila, lat, lon)
+    else:
+        return eucl_distance(fila, lat, lon)
 
 
 def meteo_to_c2f(alfa):
+    """@private"""
     if alfa >= 0 and alfa < 180:
         return round(alfa + 180, 2)
     elif alfa >= 180 and alfa <= 360:
@@ -86,6 +95,7 @@ def meteo_to_c2f(alfa):
 
 
 def barlo_sota(a):
+    """Leeward to Windward wind angle direction flip. Barlovento a sotavento. Downwind to upwind."""
     return round((a + 180) % 360, 2)
 
 
@@ -101,7 +111,9 @@ def generate(
     dn=3,
 ):
     """Carolina Lorem Ipsum Dolor Sit Amet Consectetur Adipiscing Elit
+
     Args:
+
         lat (float): latitude-coordinate of the ignition point, EPSG 4326
         lon (float): longitude-coordinate of the ignition point, EPSG 4326
         start_datetime (datetime): starting time of the weather scenario
@@ -111,7 +123,9 @@ def generate(
         percentile (float): daily maximum temperature quantil
         outdir (Path): output directory
         dn (int): number of closest stations to base the scenario on
+
     Return:
+
         retval (int): 0 if successful, 1 otherwise, 2...
         outdict (dict): output dictionary at least 'filelist': list of filenames created
     """
@@ -125,7 +139,7 @@ def generate(
         # leer estaciones
         list_stn = pd.read_csv(ruta_data / "Estaciones.csv")
         # calcular distancia a input point
-        list_stn["Distancia"] = list_stn.apply(distancia, args=(lat, lon), axis=1)
+        list_stn["Distancia"] = list_stn.apply(distance, args=(lat, lon), axis=1)
 
         #
         # Vincenty’s formula >> euclidean distance
@@ -183,7 +197,7 @@ def generate(
                     continue
                 day = np.random.choice(chosen_days.index)
                 # retroceder un dia cada vez que falta
-                start = datetime.combine(day - timedelta(days=ch), start_datetime.time())  
+                start = datetime.combine(day - timedelta(days=ch), start_datetime.time())
                 chosen_meteo = meteos[(meteos["datetime"] >= start) & (meteos["station"] == station)]
                 if len(chosen_meteo) < numrows:
                     if ch > len(meteos):
@@ -202,7 +216,7 @@ def generate(
             # wind direction
             chosen_meteo.loc[:, "WD"] = chosen_meteo["WD"].apply(barlo_sota)
             # scenario name
-            chosen_meteo.loc[:, "Scenario"] = scenario_name(i, numsims)
+            chosen_meteo.loc[:, "Scenario"] = "DMC" if numsims == 1 else f"DMC_{i+1}"
             # TODO sobra: datetime format
             # chosen_meteo.loc[:, "datetime"] = chosen_meteo["datetime"].dt.strftime("%Y-%m-%dT%H:%M:%S")
             # TODO no aplanar al mismo dia
@@ -217,7 +231,7 @@ def generate(
                 all_cols.remove(col)
             chosen_meteo = chosen_meteo[first_cols + all_cols]
             # write
-            tmpfile = outdir / file_name(i, numsims)
+            tmpfile = outdir / ("Weather.csv" if numsims == 1 else f"Weather{i + 1}.csv")
             filelist += [tmpfile.name]
             chosen_meteo.to_csv(tmpfile, header=True, index=False)
             # print(f"Writing {tmpfile.name} with {len(chosen_meteo)} rows")
