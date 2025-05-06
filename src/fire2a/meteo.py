@@ -44,7 +44,6 @@ def is_qgis_running():
     qgis = False
     try:
         from qgis.core import QgsApplication  # type: ignore[import]
-        from qgis.core import QgsDistanceArea, QgsPointXY, QgsUnitTypes  # , QgsCoordinateReferenceSystem, QgsProject
 
         if QgsApplication.instance():  # qgis is running
             qgis = True
@@ -59,6 +58,9 @@ qgis = is_qgis_running()
 
 def qgis_distance(fila, lat, lon):
     """Qgis distance calculation, used when QGIS is already running..."""
+    if qgis:
+        from qgis.core import QgsDistanceArea, QgsPointXY, QgsUnitTypes  # type: ignore[import] # , QgsCoordinateReferenceSystem, QgsProject
+        print("Import QgsDistance")
     dist = QgsDistanceArea()
     dist.setEllipsoid("WGS84")
     # dist.setSourceCrs(QgsCoordinateReferenceSystem("EPSG:4326"), QgsProject.instance().transformContext())
