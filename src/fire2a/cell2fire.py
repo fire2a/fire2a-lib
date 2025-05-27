@@ -366,7 +366,7 @@ def build_scars(
         if burn_prob:
             if np_any(data == -1):
                 mask = data != -1
-                burn_prob_arr[ mask ] += data[ mask ]
+                burn_prob_arr[mask] += data[mask]
             else:
                 burn_prob_arr += data
 
@@ -566,8 +566,7 @@ def build_stats(
     callback=None,
     feedback=None,
 ):
-    """Builds final statistics raster (1 band per-simulation) and summary raster (2 bands: mean against pixel burn count and stdev against total number of simulations) files
-    """
+    """Builds final statistics raster (1 band per-simulation) and summary raster (2 bands: mean against pixel burn count and stdev against total number of simulations) files"""
     from numpy import float32 as np_float32
     from numpy import loadtxt as np_loadtxt
     from numpy import sqrt as np_sqrt
@@ -635,7 +634,7 @@ def build_stats(
             mask = data != -9999
             tmp = data[mask]
             summed[mask] += tmp
-            sumsquared[mask] += tmp ** 2
+            sumsquared[mask] += tmp**2
             burncount[mask & (data != 0)] += 1
 
         if callback:
@@ -668,7 +667,7 @@ def build_stats(
         # std
         # from all simulations
         N = len(files)
-        stddev = np_sqrt(sumsquared / N - (summed/N)**2)
+        stddev = np_sqrt(sumsquared / N - (summed / N) ** 2)
         # beacause this is always zero:
         # stddev = np_zeros((H, W), dtype=np_float32) - 9999
         # zero_mask = burncount == 0
