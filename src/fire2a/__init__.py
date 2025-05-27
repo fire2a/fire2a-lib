@@ -17,8 +17,8 @@ Please browse or search using the sidebar to the left!
 """
 __author__ = "Fernando Badilla"
 __revision__ = "$Format:%H$"
-
 import logging
+import sys
 from importlib.metadata import PackageNotFoundError, distribution
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
@@ -69,16 +69,28 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None)
         # root logger
         logger = logging.getLogger()
 
-    # Create a stream handler
-    import sys
+    # Find or create StreamHandler
+    stream_handler = None
+    for h in logger.handlers:
+        if isinstance(h, logging.StreamHandler):
+            stream_handler = h
+            break
+    if stream_handler is None:
+        stream_handler = logging.StreamHandler(sys.stdout)
+        logger.addHandler(stream_handler)
 
-    stream_handler = logging.StreamHandler(sys.stdout)
-
-    # Create a rotating file handler
+    # Find or create RotatingFileHandler
+    rf_handler = None
     if logfile:
         from logging.handlers import RotatingFileHandler
 
-        rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
+        for h in logger.handlers:
+            if isinstance(h, RotatingFileHandler):
+                rf_handler = h
+                break
+        if rf_handler is None:
+            rf_handler = RotatingFileHandler(logfile, maxBytes=25 * 1024, backupCount=5)
+            logger.addHandler(rf_handler)
 
     # Set the logs level
     if verbosity in ["CRITICAL", "FATAL"] or verbosity == -1:
@@ -93,9 +105,11 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None)
         level = logging.DEBUG
     else:
         level = logging.DEBUG
+
     logger.setLevel(level)
-    stream_handler.setLevel(level)
-    if logfile:
+    if stream_handler:
+        stream_handler.setLevel(level)
+    if logfile and rf_handler:
         rf_handler.setLevel(level)
 
     # formatter
@@ -104,13 +118,15 @@ def setup_logger(name: str = __name__, verbosity: int = 0, logfile: Path = None)
         "%(asctime)s %(levelname)s %(name)s %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    stream_handler.setFormatter(formatter)
-    if logfile:
+    if stream_handler:
+        stream_handler.setFormatter(formatter)
+    if logfile and rf_handler:
         rf_handler.setFormatter(formatter)
 
     # Add the handlers to the logger
-    logger.addHandler(stream_handler)
-    if logfile:
+    if stream_handler:
+        logger.addHandler(stream_handler)
+    if logfile and rf_handler:
         logger.addHandler(rf_handler)
     logger.debug("Logger initialized @level %s", logging.getLevelName(level))
 
