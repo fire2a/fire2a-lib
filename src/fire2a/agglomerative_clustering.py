@@ -709,7 +709,7 @@ def main(argv=None):
         global logger
         from fire2a import setup_logger
 
-        logger = setup_logger(verbosity=args.verbose)
+        logger = setup_logger(name=__name__, verbosity=args.verbose)
 
     logger.info("args %s", args)
 

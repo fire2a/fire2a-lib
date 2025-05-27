@@ -143,7 +143,7 @@ def main(argv=None):
         global logger
         from fire2template import setup_logger
 
-        logger = setup_logger(verbosity=args.verbose, logfile=args.logfile)
+        logger = setup_logger(name=__name__, verbosity=args.verbose, logfile=args.logfile)
         # set other modules logging level
         logging.getLogger("asyncio").setLevel(logging.INFO)
 

@@ -450,7 +450,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
     args = argument_parser(argv)
-    logger = setup_logger(__name__, args.verbosity, args.logfile)
+    logger = setup_logger(name=__name__, args.verbosity, args.logfile)
     logger.info(f"{args=}")
     logger.debug("debugging...")
 
