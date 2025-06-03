@@ -133,7 +133,8 @@ class AClass:
 
 def main(argv):
     """This is a function docstring that describes a function"""
-    logger = setup_logger(__name__, 2, None)
+    name = __name__ if __name__ != "__main__" else "fire2a.documenting"
+    logger = setup_logger(name, 2, None)
     logger.info("Hello world!")
     logger.info(f"argv:{argv}")
     returns = b_method((1, "a"), "b", "c", an_optional_argument=2, d="e", f="g")
