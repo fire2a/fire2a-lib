@@ -709,7 +709,8 @@ def main(argv=None):
         global logger
         from fire2a import setup_logger
 
-        logger = setup_logger(name=__name__, verbosity=args.verbose)
+        name = __name__ if __name__ != "__main__" else "fire2a.agglomerative_clustering"
+        logger = setup_logger(name, verbosity=args.verbose)
 
     logger.info("args %s", args)
 

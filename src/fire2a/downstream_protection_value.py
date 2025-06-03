@@ -450,7 +450,8 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
     args = argument_parser(argv)
-    logger = setup_logger(name=__name__, args.verbosity, args.logfile)
+    name = __name__ if __name__ != "__main__" else "fire2a.downstream_protection_value"
+    logger = setup_logger(name, args.verbosity, args.logfile)
     logger.info(f"{args=}")
     logger.debug("debugging...")
 
