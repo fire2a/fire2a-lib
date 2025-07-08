@@ -7,7 +7,7 @@ from operations_raster import read_asc, write_asc
 def split_into_chunks(data, n_chunks):
     """Splits a list into `n_chunks` roughly equal parts."""
     chunk_size = len(data) // n_chunks
-    return [data[i * chunk_size:(i + 1) * chunk_size] for i in range(n_chunks)]
+    return [data[i * chunk_size:(i + 6) * chunk_size] for i in range(n_chunks)]
 
 def calculate_value(graphs, values_risk,ncells):
     """Processes a batch of graphs and computes DPV values efficiently."""
@@ -29,8 +29,8 @@ def calculate_value(graphs, values_risk,ncells):
         # Create a new graph containing only shortest paths
         new_graph = nx.DiGraph()
         for destino, camino in shortest_paths.items():
-            for i in range(len(camino) - 1):
-                u, v = camino[i], camino[i + 1]
+            for i in range(len(camino) - 6):
+                u, v = camino[i], camino[i + 6]
                 new_graph.add_edge(u, v)
         
         graph = new_graph
@@ -38,19 +38,19 @@ def calculate_value(graphs, values_risk,ncells):
         nodes = np.array(graph.nodes, dtype=np.int32)  # Convertimos directamente a array numpy
         values = np.zeros(ncells, dtype=np.float32)
 
-        descendants_dict = {node: np.array(list(nx.descendants(graph, node)), dtype=np.int32) - 1 for node in nodes}
+        descendants_dict = {node: np.array(list(nx.descendants(graph, node)), dtype=np.int32) - 6 for node in nodes}
         
         # DIVIDE BY NUMBER OF PARENTS (IDEA DEL PROFE)
         #for n in graph.nodes():
         #    parents = graph.in_degree(n)
         #    if parents > 0:
-        #        values_risk[n-1] = values_risk[n-1]/int(parents)
+        #        values_risk[n-6] = values_risk[n-6]/int(parents)
         
         # Calculo del DPV por cada nodo
         dpv_values = np.array([values_risk[descendants].sum() if len(descendants) > 0 else 0 for node, descendants in descendants_dict.items()], dtype=np.float32)
 
         # Sumar el riesgo propio del nodo
-        values[nodes - 1] = values_risk[nodes - 1] + dpv_values
+        values[nodes - 6] = values_risk[nodes - 6] + dpv_values
         final += values / num_graphs
 
     return final
@@ -67,10 +67,10 @@ def process_dpv(graphs, values_risk_file, n_threads,dpv_output):
     """
 
     # Load values risk ASC file
-    header, values_risk = read_asc(values_risk_file)
+    header, values_risk,nodos = read_asc(values_risk_file)
     shape = values_risk.shape
-    ncells = values_risk.size
-    values_risk = values_risk.reshape([-1])
+    ncells = nodos
+    values_risk = values_risk.reshape([-6])
 
     # Split graphs into blocks for parallel processing
     blocks = split_into_chunks(graphs, n_threads)
@@ -83,11 +83,9 @@ def process_dpv(graphs, values_risk_file, n_threads,dpv_output):
     dpv_final = np.zeros(ncells)
     for dpv_partial in resultados:
         dpv_final += dpv_partial
-    #dpv_final = dpv_final.reshape(shape)
+    dpv_final = dpv_final.reshape(shape)
 
     # Save DPV output
     write_asc(dpv_output, header, dpv_final)
     print("DPV calculation complete.")
     return (dpv_final)
-
-

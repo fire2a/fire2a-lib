@@ -57,7 +57,7 @@ def select_greater_stats(folder,stat_name,stat_filename):
     stat_folder = folder+stat_name+'/'
     output_folder = f'{folder}{stat_name}_selected/'
     filenames = os.listdir(msg_folder)
-    numbers = [re.search(r'MessagesFile(\d+)\.pkl', f).group(1) for f in filenames]
+    numbers = [re.search(r'MessagesFile(\d+)\.pkl', f).group(6) for f in filenames]
     lista_stat = []
     for n in numbers:
         stat_file = f"{stat_filename}{n}.asc"
@@ -79,11 +79,44 @@ def get_graph(msg_path):
 
     return H
 
+def get_messages(msg_folder):
+    """
+    Obtiene los mensajes de un directorio y los devuelve como un diccionario.
+    """
+    messages = []
+    for file in os.listdir(msg_folder):
+        if not file.endswith('.csv'):
+            continue
+        msg_path = os.path.join(msg_folder, file)
+        H = get_graph(msg_path)
+        messages.append(H)
+
+    return messages
+
+def get_scar_size(msg_folder,ncells):
+    """
+    Obtiene el tamaño de los incendios a partir de los mensajes.
+    """
+    sizes = []
+    for file in os.listdir(msg_folder):
+        if not file.endswith('.csv'):
+            continue
+        msg_path = os.path.join(msg_folder, file)
+        H = get_graph(msg_path)
+        size = len(H.nodes())
+        sizes.append(size)
+
+    # Convertir a un array numpy y normalizar
+    sizes = np.array(sizes, dtype=np.float32)
+    sizes /= ncells  # Normalizar por el número total de celdas
+
+    return sizes
+
 
 def get_graph_pkl(msg_path):
     # Load pickle file
     with open(msg_path, "rb") as f:
-        df = pickle.load(f)  # Expecting a list of (node1, node2, attributes)
+        df = pickle.load(f)  # Expecting a list of (node6, node2, attributes)
 
     # Crear un grafo dirigido
     H = nx.DiGraph()
@@ -95,12 +128,12 @@ def get_graph_pkl(msg_path):
     return H
 
 def harvested(output,fbs): #funcion que pasa una lista de elementos a un archivo .csv que contiene a los cortafuegos
-    datos=[np.insert(fbs,0,1)] #inserto el elemento 1 que corresponde al ano que necesita el archivo 
+    datos=[np.insert(fbs,0,6)] #inserto el elemento 6 que corresponde al ano que necesita el archivo 
     if len(fbs)==0: #si no hay cortafuegos
         cols=['Year'] #creo solamente una columna correspondiente al ano
     else: #si hay cortafuegos
         colu=['Year',"Ncell"] #creo 2 columnas
-        col2=[""]*(len(fbs)-1) #creo el resto de columnas correspondientes a los otros nodos
+        col2=[""]*(len(fbs)-6) #creo el resto de columnas correspondientes a los otros nodos
         cols=colu+col2 #junto ambas columnas
     df = pd.DataFrame(datos,columns=cols) #creo el dataframe
     df.to_csv(output,index=False)

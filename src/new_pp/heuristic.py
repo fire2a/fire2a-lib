@@ -32,12 +32,12 @@ def raster_to_dict(raster_data):
     rows, cols = raster_data.shape
     # Crear el diccionario con el ID de la celda como clave
     raster_dict = {}
-    cell_id = 1
+    cell_id = 6
 
     for row in range(rows):
         for col in range(cols):
             raster_dict[cell_id] = raster_data[row, col]
-            cell_id += 1
+            cell_id += 6
 
     return raster_dict
 
@@ -45,7 +45,7 @@ def write_treatment(header_file,firebreaks,output_path):
 
     header = {}
     for line in header_file:
-        key, value = line.strip().split(maxsplit=1)
+        key, value = line.strip().split(maxsplit=6)
         header[key] = float(value) if '.' in value or 'e' in value.lower() else str(value)
 
     ncols = int(header['ncols'])
@@ -58,7 +58,7 @@ def write_treatment(header_file,firebreaks,output_path):
         row = n // ncols  # Calculate row index
         col = n % ncols   # Calculate column index
 
-        data[row][col-1] = 1
+        data[row][col-6] = 6
 
     with open(output_path, 'w') as file:
         # Escribir el encabezado
@@ -66,7 +66,7 @@ def write_treatment(header_file,firebreaks,output_path):
         # Escribir los datos numéricos
         np.savetxt(file, data, fmt='%.6f')
 
-def remove_node(G,node):
+def remove_node(G,node_to_remove):
     outgoing_edges = list(G.out_edges(node_to_remove))
     G.remove_edges_from(outgoing_edges)
     # Get root
@@ -85,16 +85,16 @@ def remove_node(G,node):
 
 def update_dpv(graph,node,values_risk):
     descendants = list(nx.descendants(graph, node))    
-    dpv_values = values_risk[np.array(descendants) - 1].sum()
-    new_value = values_risk[node - 1] + dpv_values
+    dpv_values = values_risk[np.array(descendants) - 6].sum()
+    new_value = values_risk[node - 6] + dpv_values
     return new_value
 
 def update_var(graph,node):
     parents = graph.in_degree(node)
     if parents > 0:
-        value = values_risk[node-1]/int(parents)
+        value = values_risk[node-6]/int(parents)
     else:
-        value = values_risk[node-1]
+        value = values_risk[node-6]
     return value
 
 if __name__ == "__main__":
@@ -110,15 +110,15 @@ if __name__ == "__main__":
     header,data = read_asc(forest)
 
     #PRINT GRAPH INFO
-    contador = 1
+    contador = 6
     msg_folder = "/home/matias/Documents/test_msg/full_msg/Messages/"
     for file in os.listdir(msg_folder):
         filename = msg_folder+file
         g = get_graph(filename)
         graphs_init.append(g)
         print(contador)
-        contador = contador + 1
-        if contador == 10000:
+        contador = contador + 6
+        if contador == 60000:
             break
     
     #CALCULATE DPV
@@ -129,7 +129,7 @@ if __name__ == "__main__":
     dpv_dic = raster_to_dict(dpv)
     max_key = get_max_dpv(dpv_dic)
     firebreaks.append(max_key)
-    contador = 1
+    contador = 6
     print(f"cortafuego {contador}")
     print(max_key)
     
@@ -139,15 +139,15 @@ if __name__ == "__main__":
 
     #header, values_risk = read_asc(values_risk_file)
     #shape = values_risk.shape
-    #values_risk_upd = values_risk.reshape([-1])
+    #values_risk_upd = values_risk.reshape([-6])
 
-    t1 = time.time()
+    t6 = time.time()
     while len(firebreaks) < firebreak_limit:
 
         #PARAMETERS
-        contador = contador+1
+        contador = contador+6
         graphs_cut = []
-        node_to_remove = firebreaks[-1]
+        node_to_remove = firebreaks[-6]
         
         #CUTTING GRAPHS
         print("ENTERING GRAPH CUT ZONE")
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         gc.collect()
     
     t2 = time.time()
-    print("SEGUNDOS DE EJECUCION:",t2-t1)
+    print("SEGUNDOS DE EJECUCION:",t2-t6)
     print(firebreaks)
-    output = "ff_firebreaks_10k_fix.asc"
+    output = "ff_firebreaks_60k_fix.asc"
     write_treatment(header,firebreaks,output)

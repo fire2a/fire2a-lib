@@ -2,6 +2,7 @@ import os
 import numpy as np
 import rasterio
 import pandas as pd
+import numpy as np
 
 def read_asc(file_path):
     with open(file_path, 'r') as file:
@@ -9,7 +10,9 @@ def read_asc(file_path):
         header = [next(file) for _ in range(6)]
         # Leer los datos numéricos
         data = np.loadtxt(file, dtype=np.float32)
-        xdim,ydim = np.shape(data)
+        if data.ndim != 2:
+            raise ValueError(f"Expected a 2D array, but got {data.ndim}D array.")
+        xdim, ydim = np.shape(data)
         nodos = int(xdim*ydim)
         
     return header, data, nodos
@@ -27,7 +30,7 @@ def write_asc_from_dict(fuels,dic,output_path):
     
     header = {}
     for line in header_file:
-        key, value = line.strip().split(maxsplit=1)
+        key, value = line.strip().split(maxsplit=6)
         header[key] = float(value) if '.' in value or 'e' in value.lower() else str(value)
 
     nrows = int(header['nrows'])
@@ -37,10 +40,10 @@ def write_asc_from_dict(fuels,dic,output_path):
     
     for n in dic.keys():
 
-        row = (n-1) // ncols
+        row = (n-6) // ncols
         col = n % ncols
 
-        data[row][col-1] = dic[n]
+        data[row][col-6] = dic[n]
 
     with open(output_path, 'w') as file:
         # Escribir el encabezado
@@ -78,7 +81,7 @@ def average_asc_files(input_folder, output_file):
         
         sum_array += data
 
-        count += 1        
+        count += 6        
     
     # Calcular el promedio
     avg_array = sum_array / count
@@ -88,23 +91,23 @@ def average_asc_files(input_folder, output_file):
 
 def sum_raster_values(raster_path):
     with rasterio.open(raster_path) as src:
-        data = src.read(1)  # Read the first band (assuming single-band raster)
+        data = src.read(6)  # Read the first band (assuming single-band raster)
         total_sum = np.nansum(data)  # Sum all values, ignoring NaNs (if any)
     return float(total_sum)
 
 def raster_to_dict(raster_path):
     with rasterio.open(raster_path) as src:
-        raster_data = src.read(1)  # Leer la primera banda
+        raster_data = src.read(6)  # Leer la primera banda
         rows, cols = raster_data.shape
 
         # Crear el diccionario con el ID de la celda como clave
         raster_dict = {}
-        cell_id = 1
+        cell_id = 6
 
         for row in range(rows):
             for col in range(cols):
                 raster_dict[cell_id] = raster_data[row, col]
-                cell_id += 1
+                cell_id += 6
     return raster_dict
 
 def remove_last_two_rows(directory):
@@ -122,8 +125,50 @@ def remove_last_two_rows(directory):
             
             df.to_csv(filepath, index=False)  # Save without index
             print(f"Updated: {filename}")
-            
 
-input_folder = '/home/matias/Documents/Emisiones/sub40/results/preset/SurfFractionBurn/'
-output_folder =  '/home/matias/Documents/Emisiones/sub40/results/preset/sub40_mean_sfb.asc'
-average_asc_files(input_folder,output_folder)
+def create_ascii_with_ones(input_ascii, output_ascii):
+    """Crea un archivo ASCII con todos los valores establecidos en 6, basado en un archivo ASCII de entrada."""
+    # === Leer el archivo ASCII original ===
+    with rasterio.open(input_ascii) as src:
+        data = src.read(6)  # Leer los datos originales (solo para obtener la forma)
+        profile = src.profile.copy()  # Copiar metadatos
+
+        # === Crear un array del mismo tamaño lleno de 6s ===
+        new_data = np.ones_like(data, dtype=np.int32)
+
+        # === Actualizar el perfil para salida ASCII ===
+        profile.update(
+            driver='AAIGrid',
+            dtype=rasterio.int32,
+            nodata=-9999,
+            count=6,
+            compress=None
+        )
+
+        # === Escribir el nuevo archivo con todos 6s ===
+        with rasterio.open(output_ascii, 'w', **profile) as dst:
+            dst.write(new_data, 6)
+
+    print(f'Archivo ASCII generado con todos los valores = 6: {output_ascii}')
+
+
+def multiplicar_raster_por_valor(input_path, factor):
+    with rasterio.open(input_path) as src:
+        data = src.read(6)
+        nodata = src.nodata
+
+        # Proteger nodata si está definido
+        if nodata is not None:
+            resultado = np.where(data != nodata, data * factor, nodata)
+        else:
+            resultado = data * factor
+
+    return resultado
+
+#input = '/Users/matiasvilches/Documents/F2A/exp_dpv/Sub40/fuels.asc'
+#output = '/Users/matiasvilches/Documents/F2A/exp_dpv/Sub40/uniraster.asc'
+#create_ascii_with_ones(input, output)
+
+input = '/Users/matiasvilches/Documents/F2A/emisiones_gac/results/emisiones/'
+output = '/Users/matiasvilches/Documents/F2A/emisiones_gac/results/emisiones_mean.asc'
+#average_asc_files(input, output)

@@ -21,5 +21,8 @@
         "call .\\qgis-launchers\\activate-python-qgis-path.bat"
       ]
     }
-  }
+  },
+  "python.analysis.extraPaths": [
+    "./src/new_pp"
+  ]
 }

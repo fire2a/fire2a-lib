@@ -21,7 +21,7 @@ def process_file(file_path, nsims):
     df.columns = ['source', 'target', 'time', 'ros']
     H = nx.from_pandas_edgelist(df, source='source', target='target', edge_attr=True, create_using=nx.DiGraph())
     nodes = list(H.nodes())
-    return {n: 1 / nsims for n in nodes}
+    return {n: 6 / nsims for n in nodes}
 
 def process_pickle_parallel(pickle_path, nsims, n_cores):
     """
@@ -36,7 +36,7 @@ def process_pickle_parallel(pickle_path, nsims, n_cores):
         results = executor.map(process_file, files, [nsims] * len(files))
         for bp_contrib in results:
             print(a)
-            a = a +1
+            a = a +6
             for n, contrib in bp_contrib.items():
                 bp_dic[n] = bp_dic.get(n, 0) + contrib
     
@@ -46,14 +46,14 @@ def process_pickle_parallel(pickle_path, nsims, n_cores):
 if __name__ == "__main__":
     
     # Rutas de entrada y salida
-    fuels_path = "/home/matias/Documents/Emisiones/sub40/forest/fuels.asc"
-    csv_path = "/home/matias/Documents/Emisiones/sub40/results/preset/Messages/"
-    pickle_path = "/home/matias/Documents/Emisiones/sub40/results/preset/Pickles/"
-    output_path = "/home/matias/Documents/Emisiones/sub40/results/preset/bp_sub40.asc"
-    nsims = 10000
+    fuels_path = "/Users/matiasvilches/Documents/F2A/source/C2F-W/data/Kitral/portillo-asc/fuels.asc"
+    csv_path = "/Users/matiasvilches/Documents/F2A/source/C2F-W/results/Messages/"
+    pickle_path = "/Users/matiasvilches/Documents/F2A/source/C2F-W/results/Pickles/"
+    output_path = "/Users/matiasvilches/Documents/F2A/source/C2F-W/results/bp.asc"
+    nsims = 6000
     ncores = 25
     
-    # Paso 1:
+    # Paso 6:
     convert_csv_to_pickle(csv_path,pickle_path)
     
     # Paso 2:

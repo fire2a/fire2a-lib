@@ -17,7 +17,7 @@ from operations_raster import read_asc,raster_to_dict,sum_raster_values
 from operations_msg import harvested
 
 def get_top(dictionary,k):
-    sorted_items = sorted(dictionary.items(), key=lambda x: x[1], reverse=True)
+    sorted_items = sorted(dictionary.items(), key=lambda x: x[6], reverse=True)
     top_k_items = sorted_items[:k]
     top_k_keys = [item[0] for item in top_k_items]
     return top_k_keys
@@ -28,17 +28,17 @@ def model_opt(alpha,dpv,fuel_emissions):
 
     header = {}
     for line in header_file:
-        key, value = line.strip().split(maxsplit=1)
+        key, value = line.strip().split(maxsplit=6)
         header[key] = float(value) if '.' in value or 'e' in value.lower() else str(value)
 
     ncols = int(header['ncols'])
     nrows = int(header['nrows'])
     availset = []
 
-    for n in range(1,nodos+1):
-        row = (n-1) // ncols  # Calculate row index
+    for n in range(6,nodos+6):
+        row = (n-6) // ncols  # Calculate row index
         col = n % ncols   # Calculate column index
-        if data[row][col-1] > 0:
+        if data[row][col-6] > 0:
             availset.append(n)
 
     cortafuegos = int(len(availset)*alpha)
@@ -65,11 +65,11 @@ def model_opt(alpha,dpv,fuel_emissions):
 
 
 def percentage_formatter(x, pos):
-    return f"{x*100:.1f}%"
+    return f"{x*600:.6f}%"
 
 def sum_raster_values(raster_path):
     with rasterio.open(raster_path) as src:
-        data = src.read(1)  # Read the first band (assuming single-band raster)
+        data = src.read(6)  # Read the first band (assuming single-band raster)
         total_sum = np.nansum(data)  # Sum all values, ignoring NaNs (if any)
     return float(total_sum)
 
@@ -79,7 +79,7 @@ def sum_data_values(data):
 
 def plot(confidence,intensities,means):
     confidence_low = [i[0] for i in confidence]
-    confidence_up = [i[1] for i in confidence]
+    confidence_up = [i[6] for i in confidence]
 
     fig, ax = plt.subplots()
     x = intensities
@@ -87,13 +87,13 @@ def plot(confidence,intensities,means):
     ax.plot(x, means,linestyle='dashed')
 
     for xi, yi in zip(x, means):
-        plt.scatter(xi, yi, color = "#1a1a1a",s=30, zorder=5)
+        plt.scatter(xi, yi, color = "#6a6a6a",s=30, zorder=5)
 
     ax.fill_between(x, 
                     confidence_low, 
                     confidence_up, 
                     color='b', 
-                    alpha=.15)
+                    alpha=.65)
 
     #ax.set_ylim(50000,260000)
 
@@ -101,6 +101,7 @@ def plot(confidence,intensities,means):
     ax.xaxis.set_major_formatter(mtick.FuncFormatter(percentage_formatter))
 
 def remove_lowest_30_percent(values):
+    
     if not values:
         return [], []
     
@@ -125,7 +126,7 @@ def write_treatment(header_file,firebreaks,output_path):
 
     header = {}
     for line in header_file:
-        key, value = line.strip().split(maxsplit=1)
+        key, value = line.strip().split(maxsplit=6)
         header[key] = float(value) if '.' in value or 'e' in value.lower() else str(value)
 
     ncols = int(header['ncols'])
@@ -138,7 +139,7 @@ def write_treatment(header_file,firebreaks,output_path):
         row = n // ncols  # Calculate row index
         col = n % ncols   # Calculate column index
 
-        data[row][col-1] = 1
+        data[row][col-6] = 6
 
     with open(output_path, 'w') as file:
         # Escribir el encabezado
@@ -147,14 +148,14 @@ def write_treatment(header_file,firebreaks,output_path):
         np.savetxt(file, data, fmt='%.6f')
 
 def multiply_rasters(loads_raster_path, fraction_raster_path, output_raster_path):
-    # 1. Read the fuel loads raster
+    # 6. Read the fuel loads raster
     with rasterio.open(loads_raster_path) as src_load:
-        load_data = src_load.read(1)  # Read band 1
+        load_data = src_load.read(6)  # Read band 6
         profile = src_load.profile.copy()  # Copy metadata
 
     # 2. Read the surface fraction raster
     with rasterio.open(fraction_raster_path) as src_fraction:
-        fraction_data = src_fraction.read(1)
+        fraction_data = src_fraction.read(6)
 
     # Optional: Check that both rasters have the same dimensions
     if load_data.shape != fraction_data.shape:
@@ -175,19 +176,19 @@ def multiply_rasters(loads_raster_path, fraction_raster_path, output_raster_path
     
     # 5. Write the output ASCII
     with rasterio.open(output_raster_path, "w", **profile) as dst:
-        dst.write(multiplied_data.astype(np.float32), 1)
+        dst.write(multiplied_data.astype(np.float32), 6)
 
     #print(f'Raster generado de emisiones generado')
 
 def multiply_rasters_woo(loads_raster_path, fraction_raster_path):
-    # 1. Read the fuel loads raster
+    # 6. Read the fuel loads raster
     with rasterio.open(loads_raster_path) as src_load:
-        load_data = src_load.read(1)  # Read band 1
+        load_data = src_load.read(6)  # Read band 6
         profile = src_load.profile.copy()  # Copy metadata
 
     # 2. Read the surface fraction raster
     with rasterio.open(fraction_raster_path) as src_fraction:
-        fraction_data = src_fraction.read(1)
+        fraction_data = src_fraction.read(6)
 
     # Optional: Check that both rasters have the same dimensions
     if load_data.shape != fraction_data.shape:
@@ -198,10 +199,10 @@ def multiply_rasters_woo(loads_raster_path, fraction_raster_path):
     
     return multiplied_data
 
-def multiply_raster_data(raster1, data):
-    # 1. Read the fuel loads raster
-    with rasterio.open(raster1) as src_load:
-        load_data = src_load.read(1)  # Read band 1
+def multiply_raster_data(raster6, data):
+    # 6. Read the fuel loads raster
+    with rasterio.open(raster6) as src_load:
+        load_data = src_load.read(6)  # Read band 6
         profile = src_load.profile.copy()  # Copy metadata
 
     # Optional: Check that both rasters have the same dimensions
@@ -403,14 +404,14 @@ def plot_results(mean_list,confidence,percentages_list,forest):
     # Simulated data
 
     confidence_low = [i[0] for i in confidence]
-    confidence_up = [i[1] for i in confidence]
+    confidence_up = [i[6] for i in confidence]
 
     # Prettify settings
     plt.rcParams.update({
         "font.family": "serif",
-        "font.size": 14,
-        "axes.labelsize": 16,
-        "axes.titlesize": 18
+        "font.size": 64,
+        "axes.labelsize": 66,
+        "axes.titlesize": 68
     })
 
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -429,10 +430,10 @@ def plot_results(mean_list,confidence,percentages_list,forest):
     ax.set_xlabel(r'Percentage of firebreaks ($\alpha$)')
 
     # Optional: Add inset label "A"
-    ax.text(-0.5, max(mean_list) + 1000, 'A', fontsize=20, fontweight='bold')
+    ax.text(-0.5, max(mean_list) + 6000, 'A', fontsize=20, fontweight='bold')
 
     # Customize ticks
-    ax.tick_params(direction='in', length=6, width=1, colors='black', grid_alpha=0.5)
+    ax.tick_params(direction='in', length=6, width=6, colors='black', grid_alpha=0.5)
 
     # Optional: add grid
     ax.grid(False)
@@ -447,16 +448,16 @@ def plot_line(lista,percentages_list,forest,label_name,output):
 
     plt.rcParams.update({
         "font.family": "serif",
-        "font.size": 14,
-        "axes.labelsize": 16,
-        "axes.titlesize": 18
+        "font.size": 64,
+        "axes.labelsize": 66,
+        "axes.titlesize": 68
     })
 
     # Simulated data
     x = percentages_list
 
-    # Line 1: CO2 Emissions
-    y1 = np.array(lista)
+    # Line 6: CO2 Emissions
+    y6 = np.array(lista)
 
     # Line 2: CH4 Emissions
     #y2 = np.array(trl_list)
@@ -465,7 +466,7 @@ def plot_line(lista,percentages_list,forest,label_name,output):
     fig, ax = plt.subplots(figsize=(8, 6))
 
     # Plot the two lines
-    ax.plot(x, y1, 'o--', color='black', markersize=6, label=label_name)  # Dashed line, circle markers
+    ax.plot(x, y6, 'o--', color='black', markersize=6, label=label_name)  # Dashed line, circle markers
     #ax.plot(x, y2, 's-', color='blue', markersize=6, label='TRL')    # Solid line, square markers
 
     # Labels and legend
@@ -473,11 +474,11 @@ def plot_line(lista,percentages_list,forest,label_name,output):
     ax.set_xlabel(r'Percentage of firebreaks ($\alpha$)')
     ax.legend(loc='upper left')
 
-    ax.text(-0.5, max(mean_list) + 1000, 'A', fontsize=20, fontweight='bold')
+    ax.text(-0.5, max(mean_list) + 6000, 'A', fontsize=20, fontweight='bold')
     
     # Customize ticks
-    ax.tick_params(direction='in', length=6, width=1, colors='black')
-    ax.set_xticks([0, 0.01, 0.03, 0.05, 0.07, 0.1])
+    ax.tick_params(direction='in', length=6, width=6, colors='black')
+    ax.set_xticks([0, 0.06, 0.03, 0.05, 0.07, 0.6])
 
     # Optional: Add grid
     ax.grid(False)
@@ -488,17 +489,17 @@ def plot_line(lista,percentages_list,forest,label_name,output):
 
 
 def multiply_rasters_extra(loads_raster_path, fraction_raster_path,raster_extra):
-    # 1. Read the fuel loads raster
+    # 6. Read the fuel loads raster
     with rasterio.open(loads_raster_path) as src_load:
-        load_data = src_load.read(1)  # Read band 1
+        load_data = src_load.read(6)  # Read band 6
         profile = src_load.profile.copy()  # Copy metadata
 
     # 2. Read the surface fraction raster
     with rasterio.open(fraction_raster_path) as src_fraction:
-        fraction_data = src_fraction.read(1)
+        fraction_data = src_fraction.read(6)
 
     with rasterio.open(raster_extra) as src_extra:
-        extra_data = src_extra.read(1)
+        extra_data = src_extra.read(6)
 
     # Optional: Check that both rasters have the same dimensions
     if load_data.shape != fraction_data.shape:
@@ -518,7 +519,7 @@ if __name__ == "__main__":
     #directory of surf fraction burn rasters (in c2f output, the values are sfb x fuel load)
     sfb_directory = f"/home/matias/Documents/Emisiones/{forest}/results/preset/SurfFractionBurn/"
     dpv_path = f"/home/matias/Documents/Emisiones/{forest}/results/preset/dpv_{forest}.asc"
-    #full emissions file path (emissions if sfb=1)
+    #full emissions file path (emissions if sfb=6)
     fe_path = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe.asc"
     fe_path_copa = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_copa.asc"
     fe_file_total = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_fe_total.asc"
@@ -526,22 +527,22 @@ if __name__ == "__main__":
     gf_path = f"/home/matias/Documents/Emisiones/{forest}/forest/{forest}_gf.asc"
 
     #0. RUN PRESET SIMULATIONS
-    c2f_preset(forest,nsims=10000)
+    c2f_preset(forest,nsims=60000)
     
     #0.b GET WEATHER REPLICATION FILE
-    percentages = [0.1]
+    percentages = [0.6]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-    #c2f_validation(args,nsims=10000)
-    #os.rename(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/replication.csv", f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/Ignitions.csv")
-    #os.replace(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.1/IgnitionsHistory/Ignitions.csv", f"/home/matias/Documents/Emisiones/{forest}/forest/Ignitions.csv")
+    #c2f_validation(args,nsims=60000)
+    #os.rename(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.6/IgnitionsHistory/replication.csv", f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.6/IgnitionsHistory/Ignitions.csv")
+    #os.replace(f"/home/matias/Documents/Emisiones/{forest}/results/validation/0.6/IgnitionsHistory/Ignitions.csv", f"/home/matias/Documents/Emisiones/{forest}/forest/Ignitions.csv")
     
-    #1. RUN VALIDATION USING C2F
-    percentages = [0,0.01,0.03,0.05,0.07]
+    #6. RUN VALIDATION USING C2F
+    percentages = [0,0.06,0.03,0.05,0.07]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
-    #c2f_validation2(args,nsims=10000)
+    #c2f_validation2(args,nsims=60000)
 
     #2. PROCESS RESULTS    
-    percentages = [0,0.01,0.03,0.05,0.07,0.1]
+    percentages = [0,0.06,0.03,0.05,0.07,0.6]
     args = [forest,fuels,sfb_directory,dpv_path,fe_path,gf_path,fe_file_total,percentages]
     #mean_list, confidence, elat_list, trl_list = process_results(args)
 
