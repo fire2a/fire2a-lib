@@ -1,0 +1,3 @@
+[console_scripts]
+gdal_calc_norm = fire2a.raster.gdal_calc_norm:main
+gdal_calc_sum = fire2a.raster.gdal_calc_sum:main

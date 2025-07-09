@@ -1,9 +1,0 @@
-matplotlib
-networkx >=2.7
-numpy   ; python_version >= '3.11'
-numpy <2; python_version <  '3.11'
-pandas
-pyomo
-scikit-learn
-scipy
-toml; python_version < '3.11'

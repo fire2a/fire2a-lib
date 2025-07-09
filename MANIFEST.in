@@ -1,7 +1,0 @@
-include src/fire2a/DB_DMC/*.csv
-prune usage_samples
-prune .vscode
-prune qgis-launchers
-prune hooks
-prune tests
-prune src/fire2template

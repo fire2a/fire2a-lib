@@ -1,4 +1,0 @@
-#!/bin/bash
-
-# update distribution version
-pip install -e .
