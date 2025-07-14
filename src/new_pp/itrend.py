@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from sim_temp import simulate_season_hyperparameters
 
-sys.path.append('/Users/matiasvilches/Documents/F2A/source/tools/post-processing/')
+sys.path.append('/home/matias/Documents/source/tools/post-processing/')
+#sys.path.append('/Users/matiasvilches/Documents/F2A/source/tools/post-processing/')
 from operations_raster import read_asc,average_asc_files
 from operations_raster import write_asc
 from operations_msg import get_graph
@@ -31,7 +32,8 @@ def c2f_simulation(
     n_threads,
     nsims,
     sim,
-    seed
+    seed,
+    ruta_base
 ):
     """
     Simulates wildfires using the C2F model and processes the results.
@@ -45,7 +47,7 @@ def c2f_simulation(
     """
     # Placeholder for actual C2F simulation command
     command = " ".join([
-        '/Users/matiasvilches/Documents/F2A/source/C2F-W/Cell2Fire/Cell2Fire',  # Replace with actual command
+        f'{ruta_base}/source/C2F-W/Cell2Fire/Cell2Fire',  # Replace with actual command
         '--input-instance-folder', fuels_path, #Input folder
         '--output-folder', output_path, #Output folder
         '--nthreads', str(n_threads), #Number of threads
@@ -120,11 +122,14 @@ def stop_criteria(
 
 if __name__ == '__main__':
     
-    temporadas = 1000
+    
+    ruta_base = '/home/matias/Documents'
+    
+    temporadas = 10
     forest = 'Biobio'
-    forest_path = f'/Users/matiasvilches/Documents/F2A/ITREND/forest/{forest}/fuels.asc'
-    original_fuels = f'/Users/matiasvilches/Documents/F2A/ITREND/forest/{forest}/fuels.asc'
-    fuel_wip_path = f'/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}_wip/fuels.asc'
+    forest_path = f'{ruta_base}/ITREND/forest/{forest}/fuels.asc'
+    original_fuels = f'{ruta_base}/ITREND/forest/{forest}/fuels.asc'
+    fuel_wip_path = f'{ruta_base}/ITREND/results/{forest}_wip/fuels.asc'
     total_incendios = []
 
     #"""
@@ -135,27 +140,27 @@ if __name__ == '__main__':
         scar_sizes = []
         stop = False
         n_simulacion = 1
-        forest_path = f'/Users/matiasvilches/Documents/F2A/ITREND/forest/{forest}/'
-        path = '/Users/matiasvilches/Documents/F2A/ITREND/data/BD_Incendios.csv'
+        forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
+        path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
 
         # Reset the working fuel map at the start of each season
         recover_fuels(original_fuels, fuel_wip_path)
         
         incendios, area = simulate_season_hyperparameters(path)
-        area = area*8
+        #area = area*8
         #print(f'Incendios: {incendios}, Area: {area}')
         
         while stop == False:
             
             # 1. Simular incendios individuales
-            output_path = f'/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
+            output_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
             #print(output_path)
             create_dir(output_path)
             n_threads = 1
             nsims = 1
             sim = 'K'
             seed = rd.randint(1,999)
-            c2f_simulation(forest_path, output_path, n_threads, nsims, sim, seed)
+            c2f_simulation(forest_path, output_path, n_threads, nsims, sim, seed, ruta_base)
 
             # 2. Verificar criterios de parada
             message_graph = get_graph(f'{output_path}/Messages/MessagesFile1.csv')
@@ -189,9 +194,9 @@ if __name__ == '__main__':
     season_excedence = {}
     season_messages = {}
     for t in range(1, temporadas + 1):
-        cells_excedence = {}
+        cells_excedence = []
         for n_simulacion in range(1, total_incendios[t-1] + 1):
-            output_path = f'/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
+            output_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
             flame_length_map = f'{output_path}/Statistics/statisticsPerSim.csv'
             flame_length = pd.read_csv(flame_length_map, sep=',')
             flame_length = flame_length.loc[0,'surfaceFlameLengthMean']
@@ -204,60 +209,60 @@ if __name__ == '__main__':
                 message_graph = get_graph(message_file)
                 season_messages[t] = season_messages.get(t, []) + [message_file]
                 burned_cells = list(message_graph.nodes())
-                for i in burned_cells:
-                    cells_excedence[i] = (cells_excedence.get(i, 0) + 1)/ total_incendios[t-1]
+                #for i in burned_cells:
+                #    cells_excedence[i] = (cells_excedence.get(i, 0) + 1)/temporadas#/ total_incendios[t-1]
+                cell_excedence.extend(burned_cells)
         season_excedence[t] = cells_excedence
 
     #print(f'season messages: {season_messages}')
 
     # 5. Calculate Burn probability map
     # bp_calculation function: (fuels,files_list,pickle_path,output_path,nsims,ncores)
+    """
     ncores = 6
-    bp_output = f"/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/BurnProbability"
+    bp_output = f"{ruta_base}/ITREND/results/{forest}/BurnProbability"
     create_dir(bp_output)
     for t in range(1, temporadas + 1):
         bp_file_output = f'{bp_output}/bp_t{t}.asc'
-        pickle_path = f'/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/t{t}/Pickles/'
+        pickle_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/Pickles/'
         try:
             bp_calculation(original_fuels, season_messages[t], pickle_path, bp_file_output, len(season_messages[t]), ncores)
         except KeyError as e:
             print(f"KeyError: {e}. No messages found for season {t}. Skipping Burn Probability calculation.")
             continue
-    
+    """
 
     # 6. Estimate the excedence ratio map using burn probability
     # if there is no burn probability map for specific season, skip it
+    
+    with rasterio.open(original_fuels) as src:
+            profile = src.profile
+            data = src.read(1)
+            nrows, ncols = data.shape
+            
+    for i in range(nrows):
+            for j in range(ncols):
+                data[i, j] = 0
+    
     for t in range(1, temporadas + 1):
         excedence_by_cell = season_excedence[t]
-        #print(f'Excedence by cell for season {t}: {excedence_by_cell}')
-        bp_file_output = f'{bp_output}/bp_t{t}.asc'
-        try:
-            with rasterio.open(bp_file_output) as src:
-                profile = src.profile
-                data = src.read(1)
-                nrows, ncols = data.shape
-        except:
-            print(f"Error: Burn Probability map for season {t} not found or inaccessible. Skipping Excedance Ratio calculation.")
-            continue
-        
-        #multiply the burn probability by the number of times a cell exceeded 3 meters of flame length
-        for i in range(nrows):
-            for j in range(ncols):
-                if data[i, j] > 0:
+
+        for node in excedence_by_cell:
                     # transform coordinates (x,y) to cell id, considerate 1-based indexing
-                    cell_id = i * ncols + j + 1  # Uncomment if using
-                    data[i, j] *= excedence_by_cell[cell_id]
-        #write the excedence ratio map
-        excedence_folder_output = f"/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/excedance_maps/"
-        create_dir(excedence_folder_output)
-        excedence_ratio_output = f"{excedence_folder_output}excedance_t{t}.asc"
-        with rasterio.open(excedence_ratio_output, 'w', **profile) as dst:
-            dst.write(data, 1)
+                    i, j = np.unravel_index(node-1, (nrows, ncols))
+                    data[i, j] += 1/temporadas
+    
+    #write the excedence ratio map
+    excedence_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
+    create_dir(excedence_folder_output)
+    excedence_ratio_output = f"{excedence_folder_output}excedance_map.asc"
+    with rasterio.open(excedence_ratio_output, 'w', **profile) as dst:
+        dst.write(data, 1)
 
-        print("Excedance ratio maps calculated for season", t)
+    print("Excedance ratio map calculated")
 
-    excedence_folder_output = f"/Users/matiasvilches/Documents/F2A/ITREND/results/{forest}/excedance_maps/"
-    input = excedence_folder_output
-    output = f"{excedence_folder_output}average_excedance.asc"
-    average_asc_files(input, output)
+    #excedence_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
+    #input = excedence_folder_output
+    #output = f"{excedence_folder_output}average_excedance.asc"
+    #average_asc_files(input, output)
     
