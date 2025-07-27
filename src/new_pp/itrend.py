@@ -1,19 +1,32 @@
 import subprocess as subp
 import random as rd
-import sys
 import os
 import rasterio
 import numpy as np
 import pandas as pd
+import multiprocessing
+import shutil
+import networkx as nx
+from collections import defaultdict
 from sim_temp import simulate_season_hyperparameters
 
-sys.path.append('/home/matias/Documents/source/tools/post-processing/')
-#sys.path.append('/Users/matiasvilches/Documents/F2A/source/tools/post-processing/')
-from operations_raster import read_asc,average_asc_files
-from operations_raster import write_asc
-from operations_msg import get_graph
-from calculator_bp import bp_calculation
+# 1. OBTENER EL NUMERO DE INCENDIOS Y AREA TOTAL QUEMADA
+# 2. SIMULAR UNA TEMPORADA
+#   a. SIMULAR UN INCENDIO
+#   b. ACTUALIZAR EL MAPA DE COMBUSTIBLES
+#   c. SIMULAR DE NUEVO
+# 3. SIMULAR N TEMPORADAS
+# 4. CONTAR LAS VECES QUE EL LARGO DE LLAMA SUPERA UN UMBRAL
+# 5. LA TASA DE EXCEDENCIA PASA SER
 
+def get_graph(msg_path):
+    H = nx.read_edgelist(path = msg_path,
+                            delimiter=',',
+                            create_using = nx.DiGraph(),
+                            nodetype = int,
+                            data = [('time', float), ('ros', float)])
+
+    return H
 
 def create_dir(directory):
     """
@@ -29,6 +42,7 @@ def create_dir(directory):
 def c2f_simulation(
     fuels_path,
     output_path,
+    fuels,
     n_threads,
     nsims,
     sim,
@@ -50,13 +64,14 @@ def c2f_simulation(
         f'{ruta_base}/source/C2F-W/Cell2Fire/Cell2Fire',  # Replace with actual command
         '--input-instance-folder', fuels_path, #Input folder
         '--output-folder', output_path, #Output folder
+        '--fuels', fuels, #specific fuel file
         '--nthreads', str(n_threads), #Number of threads
         '--nsims', str(nsims),  #Number of simulations
         '--sim',sim, #Fuel model
         '--seed',str(seed), #Random seed
         '--output-messages',
         '--weather random',
-        '--nweathers 30',
+        '--nweathers 500',
         '--statistics'  # Enable statistics output
     ])
     subp.call(command, shell=True, stdout=subp.DEVNULL)  # Run the C2F simulation command
@@ -120,121 +135,98 @@ def stop_criteria(
 
     return stop
 
-if __name__ == '__main__':
-    
-    
-    ruta_base = '/home/matias/Documents'
-    
-    temporadas = 10
-    forest = 'Biobio'
-    forest_path = f'{ruta_base}/ITREND/forest/{forest}/fuels.asc'
-    original_fuels = f'{ruta_base}/ITREND/forest/{forest}/fuels.asc'
-    fuel_wip_path = f'{ruta_base}/ITREND/results/{forest}_wip/fuels.asc'
+def run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base):
+        
     total_incendios = []
-
-    #"""
-    
     for t in range(1, temporadas + 1):
+        n_threads = 1
+        nsims = 1
+        sim = 'K'
+        
+        original_fuels = f'{forest_path}fuels.asc'
+        fuel_wip_path = f'{fuel_wip_folder}fuels.asc'
+
         print(10*'-',f'Starting season {t}',10*'-')
         forest = 'Biobio'
         scar_sizes = []
         stop = False
         n_simulacion = 1
-        forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
-        path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
-
+        
         # Reset the working fuel map at the start of each season
         recover_fuels(original_fuels, fuel_wip_path)
         
-        incendios, area = simulate_season_hyperparameters(path)
-        #area = area*8
-        #print(f'Incendios: {incendios}, Area: {area}')
+        # Simulate the season to get hyperparameters
+        incendios, area = simulate_season_hyperparameters(database_path)
         
         while stop == False:
             
             # 1. Simular incendios individuales
-            output_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
-            #print(output_path)
-            create_dir(output_path)
-            n_threads = 1
-            nsims = 1
-            sim = 'K'
             seed = rd.randint(1,999)
-            c2f_simulation(forest_path, output_path, n_threads, nsims, sim, seed, ruta_base)
+            output_path = f'{ruta_base}/ITREND/results/{forest}/seasons/t{t}/sim{n_simulacion}'
+            create_dir(output_path)
+            c2f_simulation(fuel_wip_folder, output_path, 'fuels.asc', n_threads, nsims, sim, seed, ruta_base)
 
             # 2. Verificar criterios de parada
             message_graph = get_graph(f'{output_path}/Messages/MessagesFile1.csv')
             burned_cells = list(message_graph.nodes())
             scar_size = len(burned_cells)
-            #print("scar size: ",scar_size)
+
             if scar_size < 5:
                 continue
+
             scar_sizes.append(scar_size)
             season_size = sum(scar_sizes)
+
             if season_size >= area:
-                #print(f'Season size: {season_size}, Area: {area}')
                 total_incendios.append(n_simulacion)
                 print(f'Season size: {season_size}, Area: {area}, Total Incendios: {total_incendios}')
                 stop = True
+                print(10*'_',f'Finalizing season {t}',10*'_')
                 continue
             else:
                 print(f'Season size: {season_size}, Area: {area}')
-                #pass
+                pass
 
             # 3. Actualizar mapa de combustibles con la superficie quemada
             update_fuelmap(fuel_wip_path, burned_cells)
             n_simulacion +=1
-            #if n_simulacion == incendios_temporada:
-                #recover_fuels(original_fuels,fuel_wip_path)
-                #stop = True
-     #"""       
-    # 4. Calculate excedence ratio maps
-    # for every season and simulation, calculate the times a cell exceded 3 meters of flame lenght
-    #total_incendios = [20,14,2,26,1,10,31,16,15,22]
-    season_excedence = {}
-    season_messages = {}
-    for t in range(1, temporadas + 1):
-        cells_excedence = []
-        for n_simulacion in range(1, total_incendios[t-1] + 1):
-            output_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/sim{n_simulacion}'
-            flame_length_map = f'{output_path}/Statistics/statisticsPerSim.csv'
-            flame_length = pd.read_csv(flame_length_map, sep=',')
-            flame_length = flame_length.loc[0,'surfaceFlameLengthMean']
-            print(f'Flame length for simulation {n_simulacion} in season {t}: {flame_length}')
 
-            if flame_length < 3:
-                continue
-            else:
-                message_file = f'{output_path}/Messages/MessagesFile1.csv'
-                message_graph = get_graph(message_file)
-                season_messages[t] = season_messages.get(t, []) + [message_file]
-                burned_cells = list(message_graph.nodes())
-                #for i in burned_cells:
-                #    cells_excedence[i] = (cells_excedence.get(i, 0) + 1)/temporadas#/ total_incendios[t-1]
-                cell_excedence.extend(burned_cells)
-        season_excedence[t] = cells_excedence
+    # Reset the working fuel map at the start of each season
+    recover_fuels(original_fuels, fuel_wip_path)
+    return total_incendios
 
-    #print(f'season messages: {season_messages}')
+def calculate_excedance(umbral,seasons_folder,original_fuels,excedance_folder_output):
 
-    # 5. Calculate Burn probability map
-    # bp_calculation function: (fuels,files_list,pickle_path,output_path,nsims,ncores)
-    """
-    ncores = 6
-    bp_output = f"{ruta_base}/ITREND/results/{forest}/BurnProbability"
-    create_dir(bp_output)
-    for t in range(1, temporadas + 1):
-        bp_file_output = f'{bp_output}/bp_t{t}.asc'
-        pickle_path = f'{ruta_base}/ITREND/results/{forest}/t{t}/Pickles/'
-        try:
-            bp_calculation(original_fuels, season_messages[t], pickle_path, bp_file_output, len(season_messages[t]), ncores)
-        except KeyError as e:
-            print(f"KeyError: {e}. No messages found for season {t}. Skipping Burn Probability calculation.")
-            continue
-    """
+    excedance_ratio_output = f"{excedance_folder_output}excedance_map.asc"
 
-    # 6. Estimate the excedence ratio map using burn probability
-    # if there is no burn probability map for specific season, skip it
-    
+    # este diccionario me guarda las veces que un 
+    # nodo se quema y las veces que sobrepasa el umbral
+    excedance = defaultdict(lambda: [0, 0])
+
+    for t_folder in os.listdir(seasons_folder):
+        t_path = os.path.join(seasons_folder, t_folder)
+        if os.path.isdir(t_path) and t_folder.startswith("t"):
+            
+            for sim_folder in os.listdir(t_path):
+                    sim_path = os.path.join(t_path, sim_folder)
+                    if os.path.isdir(sim_path) and sim_folder.startswith("sim"):
+                    
+                        msg_file_path = os.path.join(sim_path, "Messages", "MessagesFile1.csv")
+                        message_graph = get_graph(msg_file_path)
+                        burned_cells = list(message_graph.nodes())
+                        
+                        statistics_file_path = os.path.join(sim_path,"Statistics","statisticsPerSim.csv")
+                        flame_length = pd.read_csv(statistics_file_path, sep=',')
+                        flame_length = flame_length.loc[0,'surfaceFlameLengthMean']
+
+                        for cell in burned_cells:
+                            if flame_length > umbral:
+                                excedance[cell][0] += 1
+                                excedance[cell][1] += 1
+                            else:
+                                excedance[cell][1] += 1
+
+
     with rasterio.open(original_fuels) as src:
             profile = src.profile
             data = src.read(1)
@@ -242,27 +234,146 @@ if __name__ == '__main__':
             
     for i in range(nrows):
             for j in range(ncols):
-                data[i, j] = 0
-    
-    for t in range(1, temporadas + 1):
-        excedence_by_cell = season_excedence[t]
+                cell = np.ravel_multi_index((i, j), dims=(nrows, ncols)) + 1
+                cell_n = excedance[cell][0]
+                cell_m = excedance[cell][1]
+                try:
+                    data[i, j] =  float(cell_n / cell_m)
+                except:
+                    data[i, j] = 0
 
-        for node in excedence_by_cell:
-                    # transform coordinates (x,y) to cell id, considerate 1-based indexing
-                    i, j = np.unravel_index(node-1, (nrows, ncols))
-                    data[i, j] += 1/temporadas
-    
     #write the excedence ratio map
-    excedence_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
-    create_dir(excedence_folder_output)
-    excedence_ratio_output = f"{excedence_folder_output}excedance_map.asc"
-    with rasterio.open(excedence_ratio_output, 'w', **profile) as dst:
+    create_dir(excedance_folder_output)
+    profile.update(dtype='float32', count=1)
+    with rasterio.open(excedance_ratio_output, 'w', **profile) as dst:
         dst.write(data, 1)
-
     print("Excedance ratio map calculated")
-
-    #excedence_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
-    #input = excedence_folder_output
-    #output = f"{excedence_folder_output}average_excedance.asc"
-    #average_asc_files(input, output)
     
+def prepare_fuel_pool(forest_path, wip_folder, n_cores):
+    
+    pool_files = []
+    for i in range(n_cores):
+        dst_path = os.path.join(wip_folder,f'fuel_wip_{i}.asc')
+        shutil.copyfile(forest_path, dst_path)
+        pool_files.append(dst_path)
+    
+    return pool_files
+
+# Simula una temporada utilizando una carpeta de combustibles asignada desde el pool
+def run_season_with_pool(t, forest,
+                         wip_folder, ruta_base, database_path, original_fuels,
+                         fuel_queue, queue_lock):
+    
+    # Solicita una carpeta de combustibles disponible
+    with queue_lock:
+        fuel_file = fuel_queue.get()
+
+    try:
+        scar_sizes = []
+        stop = False
+        n_simulacion = 1
+        nsims = 1
+        sim = "K"
+        fuel_wip = os.path.basename(fuel_file)
+        print(10*'-', f'Starting season {t} with {fuel_wip}', 10*'-')
+
+        # Reinicia el archivo de combustibles
+        recover_fuels(original_fuels, fuel_file)
+
+        # Obtiene los parámetros de la temporada
+        incendios, area = simulate_season_hyperparameters(database_path)
+
+        # Simula incendios hasta alcanzar el área objetivo
+        while not stop:
+            seed = rd.randint(1, 999)
+            output_path = f'{ruta_base}/ITREND/results/{forest}/seasons/t{t}/sim{n_simulacion}'
+            create_dir(output_path)
+
+            # Ejecuta simulación individual
+            c2f_simulation(wip_folder, output_path, fuel_wip, 1, nsims, sim, seed, ruta_base)
+
+            # Extrae tamaño del incendio simulado
+            message_graph = get_graph(f'{output_path}/Messages/MessagesFile1.csv')
+            burned_cells = list(message_graph.nodes())
+            scar_size = len(burned_cells)
+
+            if scar_size < 5:
+                continue
+
+            scar_sizes.append(scar_size)
+            season_size = sum(scar_sizes)
+
+            # Condición de término de la temporada
+            if season_size >= area:
+                print(f'Season {t} complete. Fires: {n_simulacion}, Target Area: {area}')
+                stop = True
+            else:
+                print(f'Season {t}: size {season_size} / {area}')
+                update_fuelmap(fuel_file, burned_cells)
+
+            n_simulacion += 1
+
+    finally:
+        # Libera la carpeta para que otros procesos puedan usarla
+        with queue_lock:
+            fuel_queue.put(fuel_file)
+
+def run_all_seasons_parallel(temporadas, n_cores,
+                             forest, forest_path, fuel_wip_folder, 
+                             ruta_base, database_path):
+
+    # Prepara el pool de archivos fuels
+    original_fuels = os.path.join(forest_path, "fuels.asc")
+    fuel_files = prepare_fuel_pool(original_fuels, fuel_wip_folder, n_cores)
+
+    # Inicializa cola y lock para compartir entre procesos
+    fuel_queue = multiprocessing.Queue()
+    for file in fuel_files:
+        fuel_queue.put(file)
+
+    queue_lock = multiprocessing.Lock()
+
+    # Lista para guardar los procesos
+    procesos = []
+
+    for t in range(1, temporadas + 1):
+        p = multiprocessing.Process(
+            target=run_season_with_pool,
+            args=(t, forest, fuel_wip_folder, ruta_base, database_path, original_fuels, fuel_queue, queue_lock)
+        )
+        procesos.append(p)
+        p.start()
+
+        # Si alcanzamos el número de núcleos, esperar a que terminen
+        if len(procesos) >= n_cores:
+            for p in procesos:
+                p.join()
+            procesos = []  # Reiniciar lista para siguiente batch
+
+    # Esperar cualquier proceso restante al final
+    for p in procesos:
+        p.join()
+
+    # Limpiar archivos temporales
+    for file in fuel_files:
+        os.remove(file)
+
+if __name__ == '__main__':
+    
+    ruta_base = '/Users/matiasvilches/Documents/F2A'
+    forest = 'Biobio'
+
+    forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
+    original_fuels = f'{forest_path}fuels.asc'
+    excedance_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
+    fuel_wip_folder = f'{ruta_base}/ITREND/results/{forest}/{forest}_wip/'
+    database_path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
+    season_folder = f'{ruta_base}/ITREND/results/{forest}/seasons/'
+
+    temporadas = 4
+    umbral_excedencia = 3
+    n_cores = 2
+    
+    #run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base)
+    run_all_seasons_parallel(temporadas,n_cores,forest,forest_path,fuel_wip_folder,ruta_base,database_path)
+    calculate_excedance(umbral_excedencia,season_folder,original_fuels,excedance_folder_output)
