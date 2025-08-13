@@ -12,6 +12,7 @@ from collections import defaultdict
 from sim_temp import simulate_season_hyperparameters
 from multiprocessing import Pool
 import traceback
+import time
 
 # 1. OBTENER EL NUMERO DE INCENDIOS Y AREA TOTAL QUEMADA
 # 2. SIMULAR UNA TEMPORADA
@@ -200,9 +201,9 @@ def run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base):
     recover_fuels(original_fuels, fuel_wip_path)
     return total_incendios
 
-def calculate_excedance(umbral,seasons_folder,original_fuels,excedance_folder_output):
+def calculate_excedance(umbral,seasons_folder,original_fuels,excedance_ratio_output):
 
-    excedance_ratio_output = f"{excedance_folder_output}excedance_map.asc"
+    #excedance_ratio_output = f"{excedance_folder_output}excedance_map.asc"
 
     # este diccionario me guarda las veces que un 
     # nodo se quema y las veces que sobrepasa el umbral
@@ -222,7 +223,8 @@ def calculate_excedance(umbral,seasons_folder,original_fuels,excedance_folder_ou
                         
                         statistics_file_path = os.path.join(sim_path,"Statistics","statisticsPerSim.csv")
                         flame_length = pd.read_csv(statistics_file_path, sep=',')
-                        flame_length = flame_length.loc[0,'crownFlameLengthMean']
+                        flame_length = flame_length.loc[0,'surfaceFlameLengthMeansim']
+                        print(flame_length)
 
                         for cell in burned_cells:
                             if flame_length > umbral:
@@ -280,7 +282,7 @@ def run_season_mt(args):
     fuel_file = os.path.join(wip_folder_t, 'fuels.asc')
     #shutil.copy(original_fuels, fuel_file)
     shutil.copytree(forest_path, wip_folder_t, dirs_exist_ok=True)
-    print(f'Working folder for season {t} created at: {wip_folder_t}')
+    #print(f'Working folder for season {t} created at: {wip_folder_t}')
     #print(f"{wip_folder_t} created")
 
     try:
@@ -291,17 +293,18 @@ def run_season_mt(args):
  
         while True:  # Bucle de incendios (no de temporadas)
             seed = rd.randint(1, 999)
+            #seed = 123
             output_dir = os.path.join(base_season_path, f'sim{n_simulacion}')
             #print(f'Preparing output directory: {output_dir}')
             os.makedirs(output_dir, exist_ok=True)
 
-            print(f'Running fire simulation {n_simulacion} for season {t}')
+            #print(f'Running fire simulation {n_simulacion} for season {t}')
             command = c2f_simulation(wip_folder_t, output_dir, 1, 1, "K", seed, ruta_base)
             
             burned_cells = list(get_graph(f'{output_dir}/Messages/MessagesFile1.csv').nodes())
-            conversor_tamaño = 4
+            conversor_tamaño = 1
             scar_size = len(burned_cells) / conversor_tamaño
-            area = 100
+            #area = 1000
             if scar_size < 5:
                 continue
                 #print(f"Fire {n_simulacion} in t{t} skipped (size {scar_size})")
@@ -309,8 +312,8 @@ def run_season_mt(args):
                 scar_sizes.append(scar_size)
                 current_total = sum(scar_sizes)
 
-                if current_total >= area * 0.95:
-                    print(f'Season {t} completed | Area: {current_total:.2f}/{area:.2f}')
+                if current_total >= area * 0.98 * 0.53:
+                    #print(f'Season {t} completed | Area: {current_total:.2f}/{area:.2f}')
                     finish = True
                     break  # Sale del bucle de incendios (temporada completada)
                     
@@ -347,20 +350,41 @@ def run_all_seasons_parallel(temporadas, n_cores, forest, temporal_wip, forest_p
 
 if __name__ == '__main__':
     
-    ruta_base = '/Users/matiasvilches/Documents/F2A'
-    forest = 'Biobio'
+    #for n_cores in [8,10,12,14]:
+    for zone in ['sur']:
+        
+        # calculate proccesing time
+        start_time = time.time()
+        
+        # Define paths and parameters
+        #zone = 'norte'
+        ruta_base = '/Users/matiasvilches/Documents/F2A'
+        ruta_base = '/home/matias/Documents/'
+        forest = f'Biobio_{zone}_100'
 
-    forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
-    original_fuels = f'{forest_path}fuels.asc'
-    excedance_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
-    database_path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
-    season_folder = f'{ruta_base}/ITREND/results/{forest}/seasons/'
-    temporal_wip = f'{ruta_base}/ITREND/results/{forest}/wips'
-    
-    temporadas = 4
-    umbral_excedencia = 3
-    n_cores = 2
-    
-    #run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base)
-    #run_all_seasons_parallel(temporadas,n_cores,forest,temporal_wip,forest_path,ruta_base,database_path)
-    calculate_excedance(umbral_excedencia,season_folder,original_fuels,excedance_folder_output)
+        forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
+        original_fuels = f'{forest_path}fuels.asc'
+        excedance_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
+        database_path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
+        season_folder = f'{ruta_base}/ITREND/results/{forest}/seasons/'
+        temporal_wip = f'{ruta_base}/ITREND/results/{forest}/wips'
+        
+        temporadas = 2500
+        umbral_excedencia = 4
+        n_cores = 10
+        excedance_file = f"{excedance_folder_output}excedance_map_u{umbral_excedencia}.asc"
+        
+        #run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base)
+        #run_all_seasons_parallel(temporadas,n_cores,forest,temporal_wip,forest_path,ruta_base,database_path)
+        calculate_excedance(umbral_excedencia,season_folder,original_fuels,excedance_file)
+        
+        # calculate processing time in hours
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"Processing time for {n_cores} cores: {elapsed_time / 3600:.2f} hours = {elapsed_time / 60:.2f} minutes")
+        
+        # remove season folder
+        #if os.path.exists(season_folder):
+        #    shutil.rmtree(season_folder)
+            
+        #create_dir(season_folder)

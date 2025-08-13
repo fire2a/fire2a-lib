@@ -98,4 +98,3 @@ def simulate_season_hyperparameters(path):
     #     season_simulation = outlier_area + np.exp(simulated_log_res)
     #     print(np.exp(simulated_log_res))
     return number_of_fires, season_simulation
-
