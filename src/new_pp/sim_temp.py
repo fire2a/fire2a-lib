@@ -1,9 +1,6 @@
 import numpy as np
 from scipy import stats
-import matplotlib.pyplot as plt
 import pandas as pd
-import geopandas as gpd
-import seaborn as sns
 
 def simmulate_number_of_fires(df):
     mean, std = stats.norm.fit(df['Num_incendios'])
