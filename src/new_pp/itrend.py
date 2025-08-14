@@ -216,22 +216,27 @@ def calculate_excedance(umbral,seasons_folder,original_fuels,excedance_ratio_out
             for sim_folder in os.listdir(t_path):
                     sim_path = os.path.join(t_path, sim_folder)
                     if os.path.isdir(sim_path) and sim_folder.startswith("sim"):
-                    
-                        msg_file_path = os.path.join(sim_path, "Messages", "MessagesFile1.csv")
-                        message_graph = get_graph(msg_file_path)
-                        burned_cells = list(message_graph.nodes())
                         
-                        statistics_file_path = os.path.join(sim_path,"Statistics","statisticsPerSim.csv")
-                        flame_length = pd.read_csv(statistics_file_path, sep=',')
-                        flame_length = flame_length.loc[0,'surfaceFlameLengthMeansim']
-                        print(flame_length)
+                        try:
+                    
+                            msg_file_path = os.path.join(sim_path, "Messages", "MessagesFile1.csv")
+                            message_graph = get_graph(msg_file_path)
+                            burned_cells = list(message_graph.nodes())
+                            
+                            statistics_file_path = os.path.join(sim_path,"Statistics","statisticsPerSim.csv")
+                            flame_length = pd.read_csv(statistics_file_path, sep=',')
+                            flame_length = flame_length.loc[0,'crownFlameLengthMean']
+                            #print(flame_length)
 
-                        for cell in burned_cells:
-                            if flame_length > umbral:
-                                excedance[cell][0] += 1
-                                excedance[cell][1] += 1
-                            else:
-                                excedance[cell][1] += 1
+                            for cell in burned_cells:
+                                if flame_length > umbral:
+                                    excedance[cell][0] += 1
+                                    excedance[cell][1] += 1
+                                else:
+                                    excedance[cell][1] += 1
+                                    
+                        except:
+                            continue
 
 
     with rasterio.open(original_fuels) as src:
@@ -274,7 +279,7 @@ def prepare_fuel_pool(original_fuels_path, wip_folder, n_cores):
     ]
 
 def run_season_mt(args):
-    t, forest, forest_path, ruta_base, database_path,temporal_wip = args
+    t, forest, forest_path, ruta_base, database_path,temporal_wip,pond = args
 
     base_season_path = os.path.join(ruta_base, 'ITREND/results', forest, f'seasons/t{t}')
     #os.makedirs(wip_folder, exist_ok=True)
@@ -312,7 +317,7 @@ def run_season_mt(args):
                 scar_sizes.append(scar_size)
                 current_total = sum(scar_sizes)
 
-                if current_total >= area * 0.98 * 0.53:
+                if current_total >= area * 0.98 * pond:
                     #print(f'Season {t} completed | Area: {current_total:.2f}/{area:.2f}')
                     finish = True
                     break  # Sale del bucle de incendios (temporada completada)
@@ -334,13 +339,13 @@ def run_season_mt(args):
             #shutil.rmtree(base_season_path)
         raise  # Opcional: relanza el error si quieres manejar el fallo fuera de la función.
 
-def run_all_seasons_parallel(temporadas, n_cores, forest, temporal_wip, forest_path, ruta_base, database_path):
+def run_all_seasons_parallel(temporadas, n_cores, forest, temporal_wip, forest_path, ruta_base, database_path,pond):
     """Controlador principal"""
     #os.makedirs(wip_folder, exist_ok=True)
     
     # Preparar argumentos (ya no necesitamos fuel_files)
     tasks = [
-        (t, forest, forest_path, ruta_base, database_path,temporal_wip)
+        (t, forest, forest_path, ruta_base, database_path,temporal_wip,pond)
         for t in range(1, temporadas + 1)
     ]
     
@@ -351,40 +356,47 @@ def run_all_seasons_parallel(temporadas, n_cores, forest, temporal_wip, forest_p
 if __name__ == '__main__':
     
     #for n_cores in [8,10,12,14]:
-    for zone in ['sur']:
-        
-        # calculate proccesing time
-        start_time = time.time()
-        
-        # Define paths and parameters
-        #zone = 'norte'
-        ruta_base = '/Users/matiasvilches/Documents/F2A'
-        ruta_base = '/home/matias/Documents/'
-        forest = f'Biobio_{zone}_100'
+    for umbral_excedencia in [3]:
+        for zone in ['sur']:
 
-        forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
-        original_fuels = f'{forest_path}fuels.asc'
-        excedance_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
-        database_path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
-        season_folder = f'{ruta_base}/ITREND/results/{forest}/seasons/'
-        temporal_wip = f'{ruta_base}/ITREND/results/{forest}/wips'
-        
-        temporadas = 2500
-        umbral_excedencia = 4
-        n_cores = 10
-        excedance_file = f"{excedance_folder_output}excedance_map_u{umbral_excedencia}.asc"
-        
-        #run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base)
-        #run_all_seasons_parallel(temporadas,n_cores,forest,temporal_wip,forest_path,ruta_base,database_path)
-        calculate_excedance(umbral_excedencia,season_folder,original_fuels,excedance_file)
-        
-        # calculate processing time in hours
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print(f"Processing time for {n_cores} cores: {elapsed_time / 3600:.2f} hours = {elapsed_time / 60:.2f} minutes")
-        
-        # remove season folder
-        #if os.path.exists(season_folder):
-        #    shutil.rmtree(season_folder)
+            pond = 0
+            if zone == 'norte':
+                pond = 0.47
+            elif zone == 'sur':
+                pond = 0.53
             
-        #create_dir(season_folder)
+            # calculate proccesing time
+            start_time = time.time()
+            
+            # Define paths and parameters
+            #zone = 'norte'
+            ruta_base = '/Users/matiasvilches/Documents/F2A'
+            ruta_base = '/home/matias/Documents/'
+            forest = f'Biobio_{zone}_100'
+
+            forest_path = f'{ruta_base}/ITREND/forest/{forest}/'
+            original_fuels = f'{forest_path}fuels.asc'
+            excedance_folder_output = f"{ruta_base}/ITREND/results/{forest}/excedance_maps/"
+            database_path = f'{ruta_base}/ITREND/data/BD_Incendios.csv'
+            season_folder = f'{ruta_base}/ITREND/results/{forest}/seasons/'
+            temporal_wip = f'{ruta_base}/ITREND/results/{forest}/wips'
+            
+            temporadas = 2500
+            #umbral_excedencia = 4
+            n_cores = 10
+            excedance_file = f"{excedance_folder_output}excedance_map_{umbral_excedencia}m_{forest}.asc"
+            
+            #run_season(temporadas,forest_path,fuel_wip_folder,database_path,ruta_base)
+            run_all_seasons_parallel(temporadas,n_cores,forest,temporal_wip,forest_path,ruta_base,database_path,pond)
+            #calculate_excedance(umbral_excedencia,season_folder,original_fuels,excedance_file)
+            
+            # calculate processing time in hours
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            print(f"Processing time for {n_cores} cores: {elapsed_time / 3600:.2f} hours = {elapsed_time / 60:.2f} minutes")
+            
+            # remove season folder
+            #if os.path.exists(season_folder):
+            #    shutil.rmtree(season_folder)
+                
+            #create_dir(season_folder)
