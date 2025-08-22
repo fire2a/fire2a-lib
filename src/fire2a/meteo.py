@@ -18,6 +18,8 @@ __author__ = "Caro"
 __revision__ = "$Format:%H$"
 
 import sys
+import csv
+import os
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
@@ -38,6 +40,22 @@ ruta_data = aqui / "DB_DMC"
 # TODO test this:
 # assert len(list(ruta_data.glob("*.csv"))) > 1
 # assert (ruta_data / "Estaciones.csv").is_file()
+
+
+def transform_weather_file(filename):
+    """Flip the direction of the wind in a weather file. Column containing wind direction must be called "WD".\
+        this changes the contents of the given file."""
+    temp_name = f"{filename}_tmp"
+    with open(filename, newline='') as csvfile, open(temp_name, mode='w') as outfile:
+        reader = csv.DictReader(csvfile)
+        writer = csv.DictWriter(outfile, reader.fieldnames)
+        writer.writeheader()
+        for i in reader:
+            i['WD'] = flip_wind(float(i["WD"]))
+            writer.writerow(i)
+    if os.path.isfile(filename):
+        os.remove(filename)
+        os.rename(temp_name, filename)
 
 
 def is_qgis_running():
@@ -87,16 +105,7 @@ def distance(fila, lat, lon):
         return eucl_distance(fila, lat, lon)
 
 
-def meteo_to_c2f(alfa):
-    """@private"""
-    if alfa >= 0 and alfa < 180:
-        return round(alfa + 180, 2)
-    elif alfa >= 180 and alfa <= 360:
-        return round(alfa - 180, 2)
-    return np.nan
-
-
-def barlo_sota(a):
+def flip_wind(a):
     """Leeward to Windward wind angle direction flip. Barlovento a sotavento. Downwind to upwind."""
     return round((a + 180) % 360, 2)
 
@@ -216,7 +225,7 @@ def generate(
             # TODO no drop ?
             # chosen_meteo = chosen_meteo.drop(columns=["station"])
             # wind direction
-            chosen_meteo.loc[:, "WD"] = chosen_meteo["WD"].apply(barlo_sota)
+            chosen_meteo.loc[:, "WD"] = chosen_meteo["WD"]
             # scenario name
             chosen_meteo.loc[:, "Scenario"] = "DMC" if numsims == 1 else f"DMC_{i+1}"
             # TODO sobra: datetime format
