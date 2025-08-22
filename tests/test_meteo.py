@@ -33,9 +33,9 @@ def test_weather_lenght(tmp_path):
 def test_invert_wind():
     from numpy import linspace
 
-    from fire2a.meteo import barlo_sota, meteo_to_c2f
+    from fire2a.meteo import flip_wind
 
-    for a in linspace(1, 360, 12):
-        assert barlo_sota(a) - meteo_to_c2f(a) < 0.01, "Conversion incorrecta"
+    for a in linspace(0, 359, 12):
+        assert round(a,2) - flip_wind(flip_wind(a)) < 0.01, "Conversion incorrecta"
     # for a in np.linspace(-360, 720, 12):
     #     print(a, barlo_sota(a), meteo_to_c2f(a))
