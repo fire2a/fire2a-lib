@@ -224,8 +224,6 @@ def generate(
             # drop station
             # TODO no drop ?
             # chosen_meteo = chosen_meteo.drop(columns=["station"])
-            # wind direction
-            chosen_meteo.loc[:, "WD"] = chosen_meteo["WD"]
             # scenario name
             chosen_meteo.loc[:, "Scenario"] = "DMC" if numsims == 1 else f"DMC_{i+1}"
             # TODO sobra: datetime format
