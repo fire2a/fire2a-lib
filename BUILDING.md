@@ -3,6 +3,7 @@
 ### Pre-requisites
 ```
 pip install -r requirements.build.txt
+pip install -e .
 ```
 
 ### Distribution
@@ -28,10 +29,10 @@ git tag
 
 # Create tags on the main branch!
 # tag create locally & upload
-git tag -a v0.3.10 -m 'meteo fixes' && git push origin v0.3.10
+git tag -a v0.3.11 -m 'wind flip' && git push origin v0.3.11
 
 # delete tag locally & upstream
-git tag --delete v0.3.10 && git push --delete origin v0.3.10
+git tag --delete v0.3.11 && git push --delete origin v0.3.11
 
 # view calculated version to check is not dirty
 python -m setuptools_scm
