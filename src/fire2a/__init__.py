@@ -140,5 +140,11 @@ def setup_file(name="unknown", filepath=Path().cwd()):
     else:
         NAME = name
         FILEPATH = filepath
-    logger.warning("setup_file(%s, %s) __main__:%s", NAME, FILEPATH, __main__)
+    logger.warning(
+        "setup_file(%s, %s) __main__.name=%s __main__.file=%s", 
+        NAME, 
+        FILEPATH, 
+        getattr(__main__, '__name__', 'unknown'),
+        getattr(__main__, '__file__', 'unknown')
+    )
     return NAME, FILEPATH
