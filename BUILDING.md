@@ -29,10 +29,10 @@ git tag
 
 # Create tags on the main branch!
 # tag create locally & upload
-git tag -a v0.3.11 -m 'wind flip' && git push origin v0.3.11
+git tag -a v0.3.12 -m 'minor future deprecation fix' && git push origin v0.3.12
 
 # delete tag locally & upstream
-git tag --delete v0.3.11 && git push --delete origin v0.3.11
+git tag --delete v0.3.12 && git push --delete origin v0.3.12
 
 # view calculated version to check is not dirty
 python -m setuptools_scm
