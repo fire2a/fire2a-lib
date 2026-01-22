@@ -18,27 +18,33 @@ pip install -e .
   
 #### Manual Steps
 ```bash
-# clean (-n is dry-run, remove to delete)
+# Ensure working tree is clean
+git status
+
+# Clean (-n is dry-run, remove to delete)
 git clean -dfX -n
-git clean -dfX
+git clean -dfX      # X removes only .gitignored files
 git clean -dfx -n
-git clean -dfx
+git clean -dfx      # x removes all untracked (danger!)
 
-# tags check
-git tag
-
-# Create tags on the main branch!
-# tag create locally & upload
-git tag -a v0.3.12 -m 'minor future deprecation fix' && git push origin v0.3.12
-
-# delete tag locally & upstream
-git tag --delete v0.3.12 && git push --delete origin v0.3.12
-
-# view calculated version to check is not dirty
+# Calculate the next tag
+git tag --sort=-version:refname -n | head
 python -m setuptools_scm
 
-# build : creates `dist` with .whl & tar.gz files
+# Create tag LOCALLY first (don't push yet)
+git tag -a v0.3.13 -m 'preventive breaking changes with pandas v3'
+
+# NOW check version is clean
+python -m setuptools_scm
+
+# Test build locally: creates `dist` with .whl & tar.gz files
 python -m build
+
+# Push tag (triggers GitHub Actions workflow for PyPI publishing)
+git push origin v0.3.13
+
+# [if failure] Undo delete tag locally & upstream
+git tag --delete v0.3.13 && git push --delete origin v0.3.13
 ```
 
 ### Documentation

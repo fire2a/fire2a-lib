@@ -27,7 +27,7 @@ dependencies = [
     "networkx>=2.7",
     "numpy<2; python_version < '3.11'",
     "numpy; python_version >= '3.11'",
-    "pandas",
+    "pandas<3.0.0",
     "pyomo",
     "scikit-learn",
     "scipy",
